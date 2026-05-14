@@ -1,11 +1,14 @@
-import LoginPage from "./pages/LoginPage" 
+import HowItWorks from "./components/LandingPage/HowItWorks/HowItWorks"
 import LandingPage from "./pages/LandingPage"
 
 function App() {
 
   return (
     <>
-      <LandingPage />
+      <div className="mb-30">
+        <LandingPage />
+      </div>
+      <HowItWorks />
     </>
   )
 }
