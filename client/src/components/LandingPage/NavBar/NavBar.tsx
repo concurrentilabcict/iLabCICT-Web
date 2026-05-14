@@ -3,7 +3,7 @@ import Logo from "@/assets/logo.png"
 export default function NavBar() {
     return(
         <>
-            <div className="flex items-center justify-between py-5 px-5">
+            <div className="flex items-center justify-between py-5 px-5 lg:px-15">
                 <button className="button-navbar group">
                     <div className="flex flex-col items-center transition-transform
                      duration-400 group-hover:-translate-y-1/2">
