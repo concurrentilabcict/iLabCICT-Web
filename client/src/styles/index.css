@@ -11,10 +11,30 @@ body {
   background-color: #ffffff;
 }
 
+.main-color {
+  @apply bg-[#bf3419];
+}
+
 /* LANDING PAGE */
 
 .button-navbar {
   @apply relative overflow-hidden h-[40px] cursor-pointer; 
+}
+
+.button-primary {
+
+}
+
+.button-secondary {
+  
+}
+
+.text-hero-content {
+  @apply text-[30px] font-bold leading-[1.2];
+}
+
+.text-secondary {
+  @apply text-gray-500
 }
 
 /* SYSTEM */

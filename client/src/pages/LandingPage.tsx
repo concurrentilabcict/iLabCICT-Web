@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import NavBar from "../components/LandingPage/NavBar/NavBar";
+import HeroSection from "@/components/LandingPage/HeroSection/HeroSection";
 
 export default function LandingPage() {
 
@@ -11,6 +12,7 @@ export default function LandingPage() {
         <>
             <div className="flex flex-col">
                 <NavBar />
+                <HeroSection />
             </div>
         </>
     );

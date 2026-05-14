@@ -12,7 +12,7 @@ export default function NavBar() {
                     </div>
                 </button>
 
-            <img src={Logo} alt="ILabCICT Logo" className="w-15 h-auto" />
+            <img src={Logo} alt="ILabCICT Logo" className="w-13 pr-3 h-auto" />
 
             <button className="button-navbar group">
                     <div className="flex flex-col items-center transition-transform
