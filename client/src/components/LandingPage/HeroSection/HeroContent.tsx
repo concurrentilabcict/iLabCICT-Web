@@ -9,8 +9,10 @@ export default function HeroContent() {
                     <h1 className="text-[#bf3419]">Stronger Results.</h1>
                 </div>
 
-                <div className="text-center text-secondary">
-                    <p>iLabCICT centralizes maintenance, technical support, and laboratory operations for Bulacan State University's CICT-built for efficiency, reliability, and control.</p>
+                <div className="text-center text-secondary max-w-[467px]">
+                    <p>iLabCICT centralizes maintenance, technical support,
+                        and laboratory operations for Bulacan State University's CICT-
+                        built for efficiency, reliability, and control.</p>
                 </div>
 
                 <HeroButtons />

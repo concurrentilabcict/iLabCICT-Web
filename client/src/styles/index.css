@@ -22,15 +22,17 @@ body {
 }
 
 .button-primary {
-
+  @apply font-medium flex items-center gap-x-3 bg-[#bf3419] text-white 
+          px-3 py-2 rounded-lg text-sm; 
 }
 
 .button-secondary {
-  
+  @apply font-medium flex items-center gap-x-3 outline outline-[#bf3419]
+        text-[#bf3419] px-3 py-2.5 rounded-lg text-sm sm:text-base;
 }
 
 .text-hero-content {
-  @apply text-[30px] font-bold leading-[1.2];
+  @apply text-[clamp(30px,7vw,80px)] font-bold leading-[1.2];
 }
 
 .text-secondary {
