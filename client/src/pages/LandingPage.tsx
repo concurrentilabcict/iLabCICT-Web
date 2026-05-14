@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-
+import NavBar from "../components/LandingPage/NavBar/NavBar";
+import HeroSection from "@/components/LandingPage/HeroSection/HeroSection";
 
 export default function LandingPage() {
 
@@ -9,8 +10,9 @@ export default function LandingPage() {
 
     return(
         <>
-            <div className="flex items-center justify-center min-h-screen">
-                <h1>Landing Page</h1>
+            <div className="flex flex-col">
+                <NavBar />
+                <HeroSection />
             </div>
         </>
     );
