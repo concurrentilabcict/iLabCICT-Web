@@ -1,11 +1,14 @@
 import LandingPage from "./pages/LandingPage"
+import SmoothScrolling from "./components/LandingPage/SmoothScrolling/SmoothScrolling"
 
 function App() {
 
   return (
     <>
       <div>
-        <LandingPage />
+        <SmoothScrolling>
+          <LandingPage />
+        </SmoothScrolling>
       </div>
     </>
   )
