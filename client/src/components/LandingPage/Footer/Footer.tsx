@@ -1,5 +1,3 @@
-import Logo from "@/assets/logo.png"
-
 export default function Footer() {
     return(
         <>
