@@ -2,9 +2,13 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+type EveryRoleProps = {
+    setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
 gsap.registerPlugin(ScrollTrigger);
 
-export default function EveryRole() {
+export default function EveryRole({ setIsDarkMode }: EveryRoleProps) {
     const sectionRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -17,6 +21,13 @@ export default function EveryRole() {
                 start: "top center",
                 markers: true,
                 toggleActions: "play reverse play reverse",
+                onEnter: () => {
+                    setIsDarkMode(true);
+                },
+
+                onLeaveBack: () => {
+                    setIsDarkMode(false);
+                }
             },
         });
 
@@ -28,7 +39,7 @@ export default function EveryRole() {
     return (
         <div ref={sectionRef}
             className="flex items-center justify-center min-h-screen">
-
+            <h1 className="font-secondary text-center text-[100px]">LABORATORY <br />OPERATIONS SHOULD <br /> FEEL SEAMLESS, FAST AND INTELLIGENT.</h1>
         </div>
     );
 }

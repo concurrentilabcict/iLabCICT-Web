@@ -1,6 +1,10 @@
 import Demo from "@/assets/videos/demo.mp4"
 
-export default function GenerateReports() {
+type GenerateReportsProps = {
+    isDarkMode: boolean;
+}
+
+export default function GenerateReports({ isDarkMode }: GenerateReportsProps) {
     return (
         <>
             <div className="mt-5 lg:mt-5 flex flex-col px-3 lg:px-5">
@@ -22,7 +26,7 @@ export default function GenerateReports() {
 
                 <p className="text-base lg:text-xl mb-7">MONITOR PERFORMANCE, UPTIME, AND REQUEST TRENDS WITH POWERFUL REPORTS.</p>
                 
-                <div className="h-px w-full bg-black" />
+                <div className={`h-px w-full ${isDarkMode ? "bg-white" : "bg-black"}`} />
             </div>
         </>
     );
