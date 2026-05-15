@@ -11,7 +11,7 @@ export default function HeroContent() {
                 </div>
 
                 <div className="text-center lg:text-left text-secondary max-w-[467px] lg:max-w-none">
-                    <p>iLabCICT centralizes maintenance, technical support,<br className="hidden lg:block" />
+                    <p>ILabCICT centralizes maintenance, technical support,<br className="hidden lg:block" />
                         and laboratory operations for Bulacan State University's CICT-<br className="hidden lg:block" />
                         built for efficiency, reliability, and control.</p>
                 </div>

@@ -3,7 +3,7 @@
 export default function HowItWorks() {
     return(
         <>
-            <div className="mb-50 flex flex-col items-end pr-5 gap-y-3
+            <div className="flex flex-col items-end pr-5 gap-y-3
             md:pr-25">
                 <div className="flex flex-col gap-y-1 text-xl lg:text-3xl text-right">
                     <h1>SEE HOW</h1>
