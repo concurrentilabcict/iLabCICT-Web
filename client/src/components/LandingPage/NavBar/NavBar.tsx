@@ -36,7 +36,7 @@ export default function NavBar() {
                 `}
             >
                 <div className="flex items-center justify-between py-5 px-5 lg:px-15">
-                    <button className="button-navbar group">
+                    <button className="button-navbar !text-black group">
                         <div className="flex flex-col items-center transition-transform
                         duration-400 group-hover:-translate-y-1/2">
                             <span className="flex items-center h-[40px]">CONTACT</span>
@@ -46,7 +46,7 @@ export default function NavBar() {
 
                     <img src={Logo} alt="ILabCICT Logo" className="w-13 pr-3 h-auto" />
 
-                    <button className="button-navbar group">
+                    <button className="button-navbar !text-black group">
                         <div className="flex flex-col items-center transition-transform
                         duration-400 group-hover:-translate-y-1/2">
                             <span className="flex items-center h-[40px]">LOGIN</span>
