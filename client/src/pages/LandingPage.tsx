@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import NavBar from "../components/LandingPage/NavBar/NavBar";
 import HeroSection from "@/components/LandingPage/HeroSection/HeroSection";
+import GenerateReports from "@/components/LandingPage/GenerateReports/GenerateReports"
+import HowItWorks from "@/components/LandingPage/HowItWorks/HowItWorks"
+import ResolveEfficiently from "@/components/LandingPage/ResolveEfficiently/ResolveEfficiently"
+import SubmitRequest from "@/components/LandingPage/SubmitRequest/SubmitRequest"
+import TrackAndManage from "@/components/LandingPage/TrackAndManage/TrackAndManage"
 
 export default function LandingPage() {
 
@@ -8,11 +13,19 @@ export default function LandingPage() {
         document.title = "IlabCICT";
     }, []);
 
-    return(
+    return (
         <>
             <div className="flex flex-col">
                 <NavBar />
-                <HeroSection />
+                <div className="mb-30">
+                    <HeroSection />
+                </div>
+
+                <HowItWorks />
+                <SubmitRequest />
+                <TrackAndManage />
+                <ResolveEfficiently />
+                <GenerateReports />
             </div>
         </>
     );
