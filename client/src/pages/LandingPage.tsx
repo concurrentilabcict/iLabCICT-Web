@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { AnimatePresence, motion } from "framer-motion";
 
 import NavBar from "../components/LandingPage/NavBar/NavBar";
 import HeroSection from "@/components/LandingPage/HeroSection/HeroSection";
@@ -13,9 +14,16 @@ import Footer from "@/components/LandingPage/Footer/Footer";
 
 export default function LandingPage() {
     const [isDarkMode, setIsDarkMode] = useState(false);
+    const [showTransition, setShowTransition] = useState(true);
 
     useEffect(() => {
         document.title = "IlabCICT";
+
+        const timer = setTimeout(() => {
+            setShowTransition(false);
+        }, 100);
+
+        return () => clearTimeout(timer);
     }, []);
 
     useEffect(() => {
@@ -27,36 +35,62 @@ export default function LandingPage() {
     }, [isDarkMode]);
 
     return (
-        <main
-            className={`
-                flex flex-col
-                transition-colors duration-500
-                ${
-                    isDarkMode
+        <>
+            <AnimatePresence>
+                {showTransition && (
+                    <motion.div
+                        initial={{
+                            opacity: 1,
+                            scale: 1,
+                            transformOrigin: "bottom right",
+                        }}
+                        animate={{
+                            opacity: 0,
+                            scale: 2.5,
+                            filter: "blur(5px)",
+                        }}
+                        exit={{
+                            opacity: 0,
+                        }}
+                        transition={{
+                            duration: 0.75,
+                            ease: [0.76, 0, 0.24, 1],
+                        }}
+                        className="fixed inset-0 bg-white z-[100] pointer-events-none"
+                    />
+                )}
+            </AnimatePresence>
+
+            <main
+                className={`
+                    flex flex-col
+                    transition-colors duration-500
+                    ${isDarkMode
                         ? "bg-black text-white"
                         : "bg-white text-black"
-                }
-            `}
-        >
-            <NavBar />
+                    }
+                `}
+            >
+                <NavBar />
 
-            <div className="mt-25 mb-30">
-                <HeroSection />
-            </div>
+                <div className="mt-25 mb-30">
+                    <HeroSection />
+                </div>
 
-            <HowItWorks />
+                <HowItWorks />
 
-            <SubmitRequest isDarkMode={isDarkMode} />
+                <SubmitRequest isDarkMode={isDarkMode} />
 
-            <TrackAndManage isDarkMode={isDarkMode} />
+                <TrackAndManage isDarkMode={isDarkMode} />
 
-            <ResolveEfficiently isDarkMode={isDarkMode} />
+                <ResolveEfficiently isDarkMode={isDarkMode} />
 
-            <GenerateReports isDarkMode={isDarkMode} />
+                <GenerateReports isDarkMode={isDarkMode} />
 
-            <EveryRole setIsDarkMode={setIsDarkMode} />
+                <EveryRole setIsDarkMode={setIsDarkMode} />
 
-            <Footer />
-        </main>
+                <Footer />
+            </main>
+        </>
     );
 }
