@@ -20,7 +20,7 @@ export default function SubmitRequest() {
                     <source src={Demo} type="video/mp4" />
                 </video>
 
-                <p className="text-xl mb-7">FACULTY OR STAFF CAN EASILY SUBMIT TECHNICAL OR MAINTENANCE REQUESTS.</p>
+                <p className="text-base lg:text-xl mb-7">FACULTY OR STAFF CAN EASILY SUBMIT TECHNICAL OR MAINTENANCE REQUESTS.</p>
                 
                 <div className="h-px w-full bg-black" />
             </div>

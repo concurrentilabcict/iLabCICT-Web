@@ -20,7 +20,7 @@ export default function ResolveEfficiently() {
                     <source src={Demo} type="video/mp4" />
                 </video>
 
-                <p className="text-xl mb-7">WORK IS COMPLETED AND UPDATES ARE COMMUNICATED SEAMLESSLY.</p>
+                <p className="text-base lg:text-xl mb-7">WORK IS COMPLETED AND UPDATES ARE COMMUNICATED SEAMLESSLY.</p>
                 
                 <div className="h-px w-full bg-black" />
             </div>

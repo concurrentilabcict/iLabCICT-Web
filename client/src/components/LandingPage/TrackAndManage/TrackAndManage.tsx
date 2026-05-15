@@ -20,7 +20,7 @@ export default function TrackAndManage() {
                     <source src={Demo} type="video/mp4" />
                 </video>
 
-                <p className="text-xl mb-7">TECHNICIANS RECEIVE, PRIORITIZE, AND MANAGE TASKS IN REAL-TIME.</p>
+                <p className="text-base lg:text-xl mb-7">TECHNICIANS RECEIVE, PRIORITIZE, AND MANAGE TASKS IN REAL-TIME.</p>
                 
                 <div className="h-px w-full bg-black" />
             </div>

@@ -20,7 +20,7 @@ export default function GenerateReports() {
                     <source src={Demo} type="video/mp4" />
                 </video>
 
-                <p className="text-xl mb-7">MONITOR PERFORMANCE, UPTIME, AND REQUEST TRENDS WITH POWERFUL REPORTS.</p>
+                <p className="text-base lg:text-xl mb-7">MONITOR PERFORMANCE, UPTIME, AND REQUEST TRENDS WITH POWERFUL REPORTS.</p>
                 
                 <div className="h-px w-full bg-black" />
             </div>
