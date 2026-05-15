@@ -40,7 +40,7 @@ export default function LandingPage() {
         >
             <NavBar />
 
-            <div className="mb-30">
+            <div className="mt-25 mb-30">
                 <HeroSection />
             </div>
 
