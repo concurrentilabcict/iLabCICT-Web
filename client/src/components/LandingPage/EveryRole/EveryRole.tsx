@@ -20,8 +20,6 @@ export default function EveryRole({
             start: "top 70%",
             end: "bottom 30%",
 
-            markers: true,
-
             invalidateOnRefresh: true,
 
             onEnter: () => {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import NavBar from "../components/LandingPage/NavBar/NavBar";
 import HeroSection from "@/components/LandingPage/HeroSection/HeroSection";
@@ -8,6 +9,7 @@ import ResolveEfficiently from "@/components/LandingPage/ResolveEfficiently/Reso
 import SubmitRequest from "@/components/LandingPage/SubmitRequest/SubmitRequest";
 import TrackAndManage from "@/components/LandingPage/TrackAndManage/TrackAndManage";
 import EveryRole from "@/components/LandingPage/EveryRole/EveryRole";
+import Footer from "@/components/LandingPage/Footer/Footer";
 
 export default function LandingPage() {
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -15,6 +17,14 @@ export default function LandingPage() {
     useEffect(() => {
         document.title = "IlabCICT";
     }, []);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            ScrollTrigger.refresh();
+        }, 500);
+
+        return () => clearTimeout(timeout);
+    }, [isDarkMode]);
 
     return (
         <main
@@ -35,13 +45,18 @@ export default function LandingPage() {
             </div>
 
             <HowItWorks />
-            <SubmitRequest />
-            <TrackAndManage />
-            <ResolveEfficiently />
+
+            <SubmitRequest isDarkMode={isDarkMode} />
+
+            <TrackAndManage isDarkMode={isDarkMode} />
+
+            <ResolveEfficiently isDarkMode={isDarkMode} />
 
             <GenerateReports isDarkMode={isDarkMode} />
 
             <EveryRole setIsDarkMode={setIsDarkMode} />
+
+            <Footer />
         </main>
     );
 }

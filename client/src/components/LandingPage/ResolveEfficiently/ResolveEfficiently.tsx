@@ -1,6 +1,10 @@
 import Demo from "@/assets/videos/demo.mp4"
 
-export default function ResolveEfficiently() {
+type ResolveEfficientlyProps = {
+    isDarkMode: boolean;
+}
+
+export default function ResolveEfficiently({ isDarkMode }: ResolveEfficientlyProps) {
     return (
         <>
             <div className="mt-5 lg:mt-5 flex flex-col px-3 lg:px-5">
@@ -22,7 +26,7 @@ export default function ResolveEfficiently() {
 
                 <p className="text-base lg:text-xl mb-7">WORK IS COMPLETED AND UPDATES ARE COMMUNICATED SEAMLESSLY.</p>
                 
-                <div className="h-px w-full bg-black" />
+                <div className={`h-px w-full ${isDarkMode ? "bg-white" : "bg-black"}`} />
             </div>
         </>
     );

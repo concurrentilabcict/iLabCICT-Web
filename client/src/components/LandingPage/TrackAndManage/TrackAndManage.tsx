@@ -1,6 +1,10 @@
 import Demo from "@/assets/videos/demo.mp4"
 
-export default function TrackAndManage() {
+type TrackAndManageProps = {
+    isDarkMode: boolean;
+}
+
+export default function TrackAndManage({ isDarkMode }: TrackAndManageProps) {
     return (
         <>
             <div className="mt-5 lg:mt-5 flex flex-col px-3 lg:px-5">
@@ -22,7 +26,7 @@ export default function TrackAndManage() {
 
                 <p className="text-base lg:text-xl mb-7">TECHNICIANS RECEIVE, PRIORITIZE, AND MANAGE TASKS IN REAL-TIME.</p>
                 
-                <div className="h-px w-full bg-black" />
+                <div className={`h-px w-full ${isDarkMode ? "bg-white" : "bg-black"}`} />
             </div>
         </>
     );
