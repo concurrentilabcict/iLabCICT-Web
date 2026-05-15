@@ -6,6 +6,7 @@ import HowItWorks from "@/components/LandingPage/HowItWorks/HowItWorks"
 import ResolveEfficiently from "@/components/LandingPage/ResolveEfficiently/ResolveEfficiently"
 import SubmitRequest from "@/components/LandingPage/SubmitRequest/SubmitRequest"
 import TrackAndManage from "@/components/LandingPage/TrackAndManage/TrackAndManage"
+import EveryRole from "@/components/LandingPage/EveryRole/EveryRole";
 
 export default function LandingPage() {
 
@@ -25,6 +26,9 @@ export default function LandingPage() {
                 <SubmitRequest />
                 <TrackAndManage />
                 <ResolveEfficiently />
+                <GenerateReports />
+                <EveryRole />
+                 <ResolveEfficiently />
                 <GenerateReports />
             </div>
         </>
