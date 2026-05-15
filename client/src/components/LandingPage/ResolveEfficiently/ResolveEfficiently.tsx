@@ -1,0 +1,29 @@
+import Demo from "@/assets/videos/demo.mp4"
+
+export default function ResolveEfficiently() {
+    return (
+        <>
+            <div className="mt-5 lg:mt-5 flex flex-col px-3 lg:px-5">
+                <div className="flex items-start gap-x-3">
+                    <h3 className="mt-[clamp(6px,calc(-8.64px+4.07vw),33px)] lg:text-xl">03</h3>
+                    <h1 className="text-[clamp(30px,calc(30px+70*((100vw-360px)/663)),100px)]
+                     font-secondary font-extralight">RESOLVE EFFICIENTLY</h1>
+                </div>
+
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full mb-7"
+                >
+                    <source src={Demo} type="video/mp4" />
+                </video>
+
+                <p className="text-xl mb-7">WORK IS COMPLETED AND UPDATES ARE COMMUNICATED SEAMLESSLY.</p>
+                
+                <div className="h-px w-full bg-black" />
+            </div>
+        </>
+    );
+}
