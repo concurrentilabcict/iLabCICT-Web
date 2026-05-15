@@ -1,9 +1,15 @@
+import LandingPage from "./pages/LandingPage"
+import SmoothScrolling from "./components/LandingPage/SmoothScrolling/SmoothScrolling"
 
 function App() {
 
   return (
     <>
-      <span className="text-red-800">Hello World</span>
+      <div>
+        <SmoothScrolling>
+          <LandingPage />
+        </SmoothScrolling>
+      </div>
     </>
   )
 }

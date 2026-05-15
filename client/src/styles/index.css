@@ -1,1 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap');
+
 @import "tailwindcss";
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+html {
+  scrollbar-width: none; /* Firefox */
+}
+
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+@theme {
+  --font-secondary: "Merriweather", serif;
+  --font-primary: 'Inter', sans-serif;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.main-color {
+  @apply bg-[#bf3419];
+}
+
+/* LANDING PAGE */
+
+.button-navbar {
+  @apply relative overflow-hidden h-[40px] cursor-pointer; 
+}
+
+.button-primary {
+  @apply font-medium flex items-center gap-x-3 bg-[#bf3419] text-white 
+          px-3 py-2 rounded-lg text-sm cursor-pointer; 
+}
+
+.button-secondary {
+  @apply font-medium flex items-center gap-x-3 outline outline-[#bf3419]
+        text-[#bf3419] px-3 py-2.5 rounded-lg text-sm sm:text-base cursor-pointer;
+}
+
+.text-hero-content {
+  @apply text-[clamp(30px,7vw,80px)] lg:text-[70px] font-bold leading-[1.2]
+         lg:text-[clamp(50px,calc(50px+20*((100vw-1024px)/896)),70px)];
+}
+
+.text-secondary {
+  @apply text-gray-500;
+}
+
+/* SYSTEM */
