@@ -4,6 +4,7 @@
 
 @theme {
   --font-secondary: "Merriweather", serif;
+  --font-primary: 'Inter', sans-serif;
 }
 
 body {
