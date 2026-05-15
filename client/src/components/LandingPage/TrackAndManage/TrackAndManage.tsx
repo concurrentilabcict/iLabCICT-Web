@@ -1,13 +1,13 @@
 import Demo from "@/assets/videos/demo.mp4"
 
-export default function SubmitRequest() {
+export default function TrackAndManage() {
     return (
         <>
             <div className="mt-5 lg:mt-5 flex flex-col px-3 lg:px-5">
                 <div className="flex items-start gap-x-3">
-                    <h3 className="mt-[clamp(6px,calc(-8.64px+4.07vw),33px)] lg:text-xl">01</h3>
+                    <h3 className="mt-[clamp(6px,calc(-8.64px+4.07vw),33px)] lg:text-xl">02</h3>
                     <h1 className="text-[clamp(30px,calc(30px+70*((100vw-360px)/663)),100px)]
-                     font-secondary font-extralight">SUBMIT A REQUEST</h1>
+                     font-secondary font-extralight">TRACK & MANAGE</h1>
                 </div>
 
                 <video
@@ -20,7 +20,7 @@ export default function SubmitRequest() {
                     <source src={Demo} type="video/mp4" />
                 </video>
 
-                <p className="text-xl mb-7">FACULTY OR STAFF CAN EASILY SUBMIT TECHNICAL OR MAINTENANCE REQUESTS.</p>
+                <p className="text-xl mb-7">TECHNICIANS RECEIVE, PRIORITIZE, AND MANAGE TASKS IN REAL-TIME.</p>
                 
                 <div className="h-px w-full bg-black" />
             </div>
