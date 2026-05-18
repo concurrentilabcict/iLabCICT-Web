@@ -13,5 +13,5 @@
 }
 
 .primary-button {
-    @apply bg-[#bf3419] text-white py-3 px-4 rounded-full font-semibold cursor-pointer;
+    @apply bg-[#bf3419] text-white py-3 px-4 rounded-full font-semibold cursor-pointer w-full max-w-sm;
 }

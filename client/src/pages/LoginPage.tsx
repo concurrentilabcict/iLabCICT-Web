@@ -4,7 +4,9 @@ import "@/styles/system.css"
 export default function LoginPage() {
     return (
         <>
-            <LoginForm />
+            <div className="flex items-center justify-center min-h-screen">
+                <LoginForm />
+            </div>
         </>
     );
 }

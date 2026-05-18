@@ -8,12 +8,12 @@ export default function LoginForm() {
 
     return (
         <>
-            <div className="flex flex-col min-h-screen items-center justify-center gap-y-1 px-5">
+            <div className="flex flex-col items-center justify-center gap-y-1 px-5 w-full">
                 <img src={Logo} alt="Logo" className="w-25 h-auto" />
                 <h1 className='primary-text-color text-3xl tracking-wide font-bold'>IlabCICT</h1>
                 <span>Welcome back, sign in to continue.</span>
 
-                <div className="flex flex-col w-full gap-y-5 mt-15">
+                <div className="flex flex-col items-center w-full gap-y-5 mt-15">
                     <div className="relative w-full max-w-sm">
                         <User
                             size={18}
@@ -48,7 +48,7 @@ export default function LoginForm() {
                         </button>
                     </div>
 
-                    <button className='text-end primary-text-color font-semibold mb-5 cursor-pointer'>Forgot Password?</button>
+                    <button className='w-full text-end primary-text-color font-semibold mb-5 cursor-pointer max-w-sm'>Forgot Password?</button>
 
                     <button className='primary-button'>
                         Sign In
