@@ -12,6 +12,22 @@
   @apply text-gray-500;
 }
 
+.primary-border-color {
+  @apply border-[#e5e5e5];
+}
+
+/* Status */
+
+.pending-status {
+  @apply bg-[#FEF9C3] text-[#CA8A04];
+}
+
+.report-status {
+  @apply bg-[#FEE2E2] text-[#B91C1C];
+}
+
+/* Button */
+
 .primary-button {
-    @apply bg-[#bf3419] text-white py-3 px-4 rounded-full font-semibold cursor-pointer w-full max-w-sm;
+  @apply bg-[#bf3419] text-white py-3 px-4 rounded-full font-semibold cursor-pointer w-full max-w-sm;
 }
