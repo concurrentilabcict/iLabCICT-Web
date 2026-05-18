@@ -1,0 +1,17 @@
+@reference "@/styles/global.css";
+
+.primary-bg-color {
+  @apply bg-[#bf3419];
+}
+
+.primary-text-color {
+  @apply text-[#bf3419];
+}
+
+.secondary-text-color {
+  @apply text-gray-500;
+}
+
+.primary-button {
+    @apply bg-[#bf3419] text-white py-3 px-4 rounded-full font-semibold cursor-pointer;
+}
