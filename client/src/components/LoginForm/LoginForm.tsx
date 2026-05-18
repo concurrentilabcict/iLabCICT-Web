@@ -44,7 +44,7 @@ export default function LoginForm() {
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 secondary-text-color cursor-pointer"
                         >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                         </button>
                     </div>
 
