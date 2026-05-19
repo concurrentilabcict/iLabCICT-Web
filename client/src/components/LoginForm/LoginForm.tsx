@@ -1,10 +1,45 @@
 import Logo from '@/assets/logo.png';
 import { User, LockKeyhole, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { publicFetch } from '@/lib/api';
 
 export default function LoginForm() {
 
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    const navigate = useNavigate();
+
+    const handleLogin = async () => {
+
+        try {
+            setLoading(true);
+
+            const res = await publicFetch("https://ilabcict-backend.onrender.com/api/auth/login/", {
+                method: "POST",
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setError(true);
+                console.log("failed to login");
+                return;
+            }
+            
+            console.log("successfully logged in");
+
+        } catch (err) {
+            console.error("Error occurred while logging in:", err);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     return (
         <>
@@ -23,6 +58,9 @@ export default function LoginForm() {
                         <input
                             type="text"
                             placeholder="Username"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
                             className="w-full rounded-lg border border-gray-300 py-3 pl-10 pr-4 outline-none focus:border-black"
                         />
                     </div>
@@ -36,6 +74,9 @@ export default function LoginForm() {
                         <input
                             type={showPassword ? "text" : "password"}
                             placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
                             className="w-full rounded-lg border border-gray-300 py-3 pl-10 pr-4 outline-none focus:border-black"
                         />
 
@@ -50,8 +91,8 @@ export default function LoginForm() {
 
                     <button className='w-full text-end primary-text-color font-semibold mb-5 cursor-pointer max-w-sm'>Forgot Password?</button>
 
-                    <button className='primary-button'>
-                        Sign In
+                    <button className='primary-button' onClick={handleLogin} disabled={loading}>
+                        {loading ? "Signing in..." : "Sign In"}
                     </button>
                 </div>
             </div>
