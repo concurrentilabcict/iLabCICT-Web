@@ -3,8 +3,9 @@ import { Clock, User, Tickets, Monitor, Building2, CalendarDays, ChevronRight } 
 export default function ManageTicketCard() {
     return (
         <>
-            <div className="bg-white flex flex-col gap-y-2.5 border primary-border-color rounded-2xl p-3.5">
-                <div className="flex items-center justify-between">
+            <div className="bg-white flex flex-col gap-y-2.5 border primary-border-color
+             rounded-2xl p-3.5 w-full max-w-[600px]">
+                <div className="flex items-center gap-x-2">
                     <div className="flex items-center gap-x-1">
                         <div className='flex pending-status gap-x-2 items-center  px-3 py-1.5 rounded-md'>
                             <Clock size={14} />
