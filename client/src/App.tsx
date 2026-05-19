@@ -2,14 +2,21 @@ import LandingPage from "./pages/LandingPage"
 import SmoothScrolling from "./components/LandingPage/SmoothScrolling/SmoothScrolling"
 import LoginPage from "./pages/LoginPage"
 import ManageTicketPage from "./pages/Technician/ManageTicketPage"
+import { Route, Routes } from "react-router-dom"
+import { ProtectedRoute, PublicRoute } from "./routes/ProtectedRoute"
 
 function App() {
 
   return (
     <>
-      <div>
-         <ManageTicketPage />
-      </div>
+      <Routes>
+        <Route path="/" element={<PublicRoute><SmoothScrolling>
+          <LandingPage /></SmoothScrolling></PublicRoute>} />
+        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+
+        <Route path="/manage-ticket" element={<ProtectedRoute allowedRole="technician">
+          <ManageTicketPage /></ProtectedRoute>} />
+      </Routes>
     </>
   )
 }

@@ -8,12 +8,14 @@ import NavBar from "@/components/Technician/NavBar/NavBar";
 export default function ManageTicketPage() {
     return(
         <>
-            <div className="bg-[#f8fafc]">
-                <Header />
+            <Header />
+            <div className="min-h-screen bg-[#f8fafc]">
+                <div className="max-w-[1000px] mx-auto min-h-screen">
                 <Filter />
                 <SearchFilter />
                 <ManageTicket />
                 <NavBar />
+            </div>
             </div>
         </>
     );

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import Logo from "@/assets/logo.png";
+import { useNavigate } from "react-router-dom";
 
 export default function NavBar() {
     const [showNav, setShowNav] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         let lastScrollY = window.scrollY;
@@ -46,7 +48,7 @@ export default function NavBar() {
 
                     <img src={Logo} alt="ILabCICT Logo" className="w-13 pr-3 h-auto" />
 
-                    <button className="button-navbar !text-black group">
+                    <button onClick={() => navigate("/login")} className="button-navbar !text-black group">
                         <div className="flex flex-col items-center transition-transform
                         duration-400 group-hover:-translate-y-1/2">
                             <span className="flex items-center h-[40px]">LOGIN</span>

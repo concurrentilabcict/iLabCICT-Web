@@ -2,21 +2,36 @@ import { Navigate } from "react-router-dom";
 import { type ReactNode } from "react";
 import { useAuth } from "../auth/useAuth";
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
-    const { isAuthenticated } = useAuth();
+type ProtectedRouteProps = {
+    children: ReactNode;
+    allowedRole: string;
+}
+
+export function ProtectedRoute({ children, allowedRole }: ProtectedRouteProps) {
+    const { isAuthenticated, role } = useAuth();
 
     if (!isAuthenticated) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/login" replace />;
+    }
+
+    if (allowedRole !== role) {
+        return <Navigate to="/unauthorized" replace />;
     }
 
     return children;
 }
 
 export function PublicRoute({ children }: { children: ReactNode }) {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, role } = useAuth();
 
     if (isAuthenticated) {
-        return <Navigate to="/dashboard" replace />;
+        if(role === "technician") {
+            return <Navigate to="/manage-ticket" replace />;
+        }
+
+        if(role === "admin") {
+            return <Navigate to="/admin" replace />;
+        }
     }
 
     return children;

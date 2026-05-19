@@ -3,6 +3,7 @@ import { User, LockKeyhole, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { publicFetch } from '@/lib/api';
+import { useAuth } from '@/auth/useAuth';
 
 export default function LoginForm() {
 
@@ -14,6 +15,8 @@ export default function LoginForm() {
 
     const navigate = useNavigate();
 
+    const { login } = useAuth();
+
     const handleLogin = async () => {
 
         try {
@@ -21,7 +24,7 @@ export default function LoginForm() {
 
             const res = await publicFetch("https://ilabcict-backend.onrender.com/api/auth/login/", {
                 method: "POST",
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ username: email, password }),
             });
 
             const data = await res.json();
@@ -31,8 +34,11 @@ export default function LoginForm() {
                 console.log("failed to login");
                 return;
             }
+
+            const name = data.first_name + " " + data.last_name;
             
-            console.log("successfully logged in");
+           login(data.access, name, data.role); 
+           navigate("/manage-ticket");
 
         } catch (err) {
             console.error("Error occurred while logging in:", err);

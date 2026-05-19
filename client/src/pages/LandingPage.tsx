@@ -1,3 +1,5 @@
+import "@/styles/landing.css"
+
 import { useEffect, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AnimatePresence, motion } from "framer-motion";

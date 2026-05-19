@@ -4,7 +4,7 @@ export default function ManageTicketCard() {
     return (
         <>
             <div className="bg-white flex flex-col gap-y-2.5 border primary-border-color
-             rounded-2xl p-3.5 w-full max-w-[600px]">
+             rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px]">
                 <div className="flex items-center gap-x-2">
                     <div className="flex items-center gap-x-1">
                         <div className='flex pending-status gap-x-2 items-center  px-3 py-1.5 rounded-md'>
