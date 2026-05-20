@@ -1,5 +1,5 @@
 import Filter from "@/components/Technician/ManageTicket/Filter";
-import Header from "@/components/Technician/ManageTicket/Header";
+import Header from "@/components/Technician/ManageTicket/Header/Header";
 import ManageTicket from "@/components/Technician/ManageTicket/ManageTicket";
 import SearchFilter from "@/components/Technician/ManageTicket/SearchFilter";
 
