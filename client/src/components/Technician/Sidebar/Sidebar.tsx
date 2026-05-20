@@ -21,7 +21,7 @@ import Logo from "@/assets/logo.png";
 const items = [
     {
         title: "Tickets",
-        url: "/tickets",
+        url: "/manage-ticket",
         icon: ScrollText,
     },
     {
@@ -88,9 +88,10 @@ export default function Sidebar() {
                                         isActive={location.pathname === item.url}
                                         className="
                                         py-5
+                                        mb-1
                                         transition-colors
-                                        data-[active=true]:bg-black
-                                        data-[active=true]:text-white
+                                        data-[active=true]:bg-muted
+                                        data-[active=true]:text-foreground
                                         "
                                     >
                                         <NavLink to={item.url}>

@@ -9,6 +9,7 @@ export default function ManageTicketPage() {
 
     return (
         <>
+            {/* will fix later */}
             {isMobile ? <MobileLayout /> : <DesktopLayout />}
         </>
     );
