@@ -97,7 +97,7 @@ export default function LoginForm() {
 
                     <button className='w-full text-end primary-text-color font-semibold mb-5 cursor-pointer max-w-sm'>Forgot Password?</button>
 
-                    <button className='primary-button' onClick={handleLogin} disabled={loading}>
+                    <button className='primary-button rounded-full! w-full max-w-sm' onClick={handleLogin} disabled={loading}>
                         {loading ? "Signing in..." : "Sign In"}
                     </button>
                 </div>

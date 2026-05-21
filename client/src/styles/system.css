@@ -39,6 +39,10 @@
 /* Input */
 
 .primary-input {
-  @apply  rounded-md border border-[#e5e5e5] py-2 pr-4 
-          outline-none focus:border-black! px-3;
+  @apply  w-full rounded-md border border-[#e5e5e5] py-2
+          outline-none focus:border-black! px-3 max-w-[500px];
+}
+
+.disable-input {
+  @apply w-full rounded-md py-2 px-3 bg-gray-100 text-gray-400 border border-gray-300 cursor-not-allowed;
 }
