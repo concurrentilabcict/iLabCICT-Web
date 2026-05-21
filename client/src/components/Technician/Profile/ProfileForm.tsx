@@ -16,10 +16,10 @@ export default function ProfileForm() {
                  <div className="h-px w-full bg-[#e5e5e5]" />
 
                  <div className={`flex gap-x-4 ${isMobile ? "px-3" : ""}`}>
-                    <img src="https://i.pinimg.com/736x/b2/ca/2f/b2ca2f89be542c67a00b2f92b1d972a7.jpg" alt="" className="w-15 h-auto rounded-full" />
+                    <img src="https://i.pinimg.com/736x/b2/ca/2f/b2ca2f89be542c67a00b2f92b1d972a7.jpg" alt="" className="w-15 sm:w-20 lg:w-25 h-auto rounded-full" />
 
                     <div className="flex flex-col gap-y-2">
-                        <div className="flex font-medium text-sm gap-x-2">
+                        <div className="flex text-sm gap-x-2">
                             <button className="flex gap-x-1 items-center primary-button">
                                 <Image size={14} />
                                 Change Image

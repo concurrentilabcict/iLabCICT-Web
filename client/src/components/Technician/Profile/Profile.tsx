@@ -1,8 +1,6 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import AccountSecurity from "./AccountSecurity";
 import ProfileForm from "./ProfileForm";
-import AccountAction from "./AccountAction";
-
 
 export default function Profile() {
 
@@ -13,7 +11,6 @@ export default function Profile() {
             <div className={`flex flex-col py-3 ${isMobile ? "mb-23" : "mb-10"}`}>
                 <ProfileForm />
                 <AccountSecurity />
-                <AccountAction />
             </div>
         </>
     );
