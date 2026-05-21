@@ -10,7 +10,7 @@ export default function MobileHeader() {
                     <div className='primary-bg-color rounded-sm p-2'>
                         <ScrollText size={18} className='text-white' />
                     </div>
-                    <h1 className='text-lg font-medium'>Ticket Queue</h1>
+                    <h1 className='text-lg font-medium'>Profile</h1>
                 </div>
                 <span>profile</span>
             </div>

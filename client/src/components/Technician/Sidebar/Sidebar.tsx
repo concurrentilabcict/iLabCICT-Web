@@ -17,6 +17,7 @@ import { EllipsisVertical, ScrollText, Monitor, ClipboardList, BookOpen } from "
 import { NavLink, useLocation } from "react-router-dom";
 
 import Logo from "@/assets/logo.png";
+import ProfileFooter from "./ProfileFooter";
 
 const items = [
     {
@@ -49,25 +50,32 @@ export default function Sidebar() {
         <ShadSidebar collapsible="icon">
             <SidebarHeader className="py-3 pl-3">
                 <div className="flex items-center justify-between w-full">
-                    <div className="group/logo relative flex w-8 items-center justify-center">
+                    <div
+                        className={`
+        relative flex w-8 items-center justify-center
+        ${state === "collapsed" ? "group/logo" : ""}
+      `}
+                    >
                         <img
                             src={Logo}
                             alt="Logo"
-                            className="
-          h-auto w-6
-          transition-opacity
-          group-hover/logo:opacity-0
-        "
+                            className={`
+          h-auto w-6 transition-opacity
+          ${state === "collapsed"
+                                    ? "group-hover/logo:opacity-0"
+                                    : ""
+                                }
+        `}
                         />
 
-                        <SidebarTrigger
-                            className="
-          absolute
-          opacity-0
-          transition-opacity
-          group-hover/logo:opacity-100
-        "
-                        />
+                        {state === "collapsed" && (
+                            <SidebarTrigger
+                                className="
+            absolute opacity-0 transition-opacity
+            group-hover/logo:opacity-100
+          "
+                            />
+                        )}
                     </div>
 
                     {state === "expanded" && <SidebarTrigger />}
@@ -106,38 +114,7 @@ export default function Sidebar() {
                 </SidebarGroup>
             </SidebarContent>
 
-            <SidebarFooter className="border-t">
-                <button
-                    className="
-      flex w-full items-center rounded-lg
-      transition-colors hover:bg-muted h-[61px]
-    "
-                >
-                    <div className="flex items-center gap-3 overflow-hidden">
-                        <img
-                            src="https://github.com/shadcn.png"
-                            alt="Profile"
-                            className="h-8 w-8 shrink-0 rounded-full object-cover"
-                        />
-
-                        {state === "expanded" && (
-                            <>
-                                <div className="min-w-0 flex flex-col text-left">
-                                    <span className="truncate font-medium">
-                                        John Patrick Soriaga
-                                    </span>
-
-                                    <span className="truncate text-sm text-muted-foreground">
-                                        Technician
-                                    </span>
-                                </div>
-
-                                <EllipsisVertical className="ml-auto h-4 w-4 shrink-0" />
-                            </>
-                        )}
-                    </div>
-                </button>
-            </SidebarFooter>
+           <ProfileFooter />
         </ShadSidebar>
     );
 }

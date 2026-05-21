@@ -35,7 +35,7 @@ export default function SearchFilter() {
     }, []);
 
     return (
-        <div className="flex items-center justify-between gap-x-2 px-5 py-3">
+        <div className="flex items-center justify-between gap-x-2 px-3 py-3">
             <div className="relative w-full max-w-sm">
                 <Search
                     size={18}
