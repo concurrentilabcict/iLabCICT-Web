@@ -1,8 +1,6 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ManageTicketCard from "./ManageTicketCard";
 
-
-
 export default function ManageTicket() {
 
     const isMobile = useMediaQuery("(max-width: 767px)");

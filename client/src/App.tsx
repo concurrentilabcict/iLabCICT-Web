@@ -5,6 +5,7 @@ import ManageTicketPage from "./pages/Technician/ManageTicketPage"
 import { Route, Routes } from "react-router-dom"
 import { ProtectedRoute, PublicRoute } from "./routes/ProtectedRoute"
 import ProfilePage from "./pages/Technician/ProfilePage"
+import NotificationPage from "./pages/Technician/NotificationPage"
 
 function App() {
 
@@ -19,6 +20,8 @@ function App() {
           <ManageTicketPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute allowedRole="technician">
           <ProfilePage /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute allowedRole="technician">
+          <NotificationPage /></ProtectedRoute>} />
       </Routes>
     </>
   )

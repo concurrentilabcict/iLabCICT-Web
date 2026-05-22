@@ -13,7 +13,11 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
-export default function MoreMenu() {
+type MoreMenuProps = {
+    isActive?: boolean;
+};
+
+export default function MoreMenu({ isActive }: MoreMenuProps) {
 
     const navigate = useNavigate();
 
@@ -22,7 +26,8 @@ export default function MoreMenu() {
             <DropdownMenuTrigger asChild>
                 <button
                     type="button"
-                    className="flex flex-col items-center gap-y-1 cursor-pointer secondary-text-color outline-none"
+                    className={`flex flex-col items-center gap-y-1 cursor-pointer outline-none
+                    ${isActive ? "primary-text-color" : "secondary-text-color"}`}
                 >
                     <CircleEllipsis size={23} />
                     <span className="text-sm">More</span>
@@ -35,7 +40,6 @@ export default function MoreMenu() {
                 align="end"
                 sideOffset={20}
             >
-
                 <DropdownMenuItem onSelect={() => navigate("/weekly-report")}>
                     <FileText className="mr-2 h-4 w-4" />
                     Weekly Report
