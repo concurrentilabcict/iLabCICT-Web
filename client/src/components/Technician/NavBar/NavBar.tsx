@@ -1,4 +1,5 @@
 import { ScrollText, Monitor, CircleEllipsis, ClipboardList, ScanQrCode } from 'lucide-react';
+import MoreMenu from "./MoreMenu";
 
 export default function NavBar() {
     return (
@@ -29,11 +30,7 @@ export default function NavBar() {
                     <span className='text-sm'>Repairs</span>
                 </button>
 
-                <button type="button" className='flex flex-col items-center gap-y-1
-                cursor-pointer secondary-text-color'>
-                    <CircleEllipsis size={23} />
-                    <span className='text-sm'>More</span>
-                </button>
+                <MoreMenu />
             </div>
         </>
     );
