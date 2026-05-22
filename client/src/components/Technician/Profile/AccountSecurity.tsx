@@ -11,11 +11,10 @@ export default function AccountSecurity() {
                 <div className="h-px w-full bg-[#e5e5e5]" />
 
                 <div className={`flex flex-col mb-5 ${isMobile ? "px-3" : ""}`}>
-                    <div className="flex flex-col gap-y-1 sm:mb-5">
+                    <div className="flex flex-col gap-y-1 mb-3 sm:mb-5">
                         <span className="font-medium">Email</span>
                         <div className="flex sm:justify-between sm:items-center flex-col gap-y-1 sm:flex-row sm:gap-x-3">
                             <input type="text" className="disable-input mb-1.5 flex-1 min-w-0 sm:max-w-lg" placeholder="patricksoriaga14@gmail.com" />
-                        <button className="secondary-button text-sm self-end sm:self-auto font-medium shrink-0 mb-1">Change Email</button>
                         </div>
                     </div>
 
