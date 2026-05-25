@@ -16,43 +16,16 @@ export default function ManageTicket() {
             setIsLoading(true);
 
             try {
-                const ticketsRes = await privateFetch("https://ilabcict-backend.onrender.com/api/tickets/");
-                const rawTickets = await ticketsRes.json();
+                const res = await privateFetch("https://ilabcict-backend.onrender.com/api/tickets/");
 
-                const formattedTickets: Tickets[] = await Promise.all(
-                    rawTickets.map(async (ticket: any) => {
+                const data = await res.json();
 
-                        const [roomRes, computerRes, facultyRes] = await Promise.all([
-                            fetch(`https://ilabcict-backend.onrender.com/api/rooms/${ticket.room}/`),
-                            fetch(`https://ilabcict-backend.onrender.com/api/computers/${ticket.computer}/`),
-                            fetch(`https://ilabcict-backend.onrender.com/api/users/${ticket.reported_by}/`)
-                        ]);
+                if(!res.ok) {
+                    console.error("Failed to fetch all tickets!");
+                }
 
-                        const roomData = await roomRes.json();
-                        const computerData = await computerRes.json();
-                        const facultyData = await facultyRes.json();
-
-                        const roomBuilding = roomData.building_name + ", " + roomData.room_name;
-                        const facultyName = facultyData.first_name + " " + facultyData.last_name;
-
-                        return {
-                            id: ticket.id,
-                            status: ticket.status,
-                            type: ticket.type,
-                            title: ticket.title,
-                            complaintDescription: ticket.complaint_description,
-                            reportedBy: facultyName,
-                            ticketCode: ticket.ticket_code,
-
-                            room: roomBuilding,
-                            computer: computerData.computer_code,
-                        };
-                    })
-                );
+                setTickets(data);
                 
-                console.log(formattedTickets);
-                setTickets(formattedTickets);
-
             } catch (err) {
                 console.error("Failed to fetch tickets: ", err);
             } finally {

@@ -46,6 +46,12 @@ export default function ProfileForm() {
                 }),
             }
         );
+
+        if(!res.ok) {
+            console.error("failed remove");
+        }
+
+        console.log("damn thats my nigga right there");
     }
 
     return (
