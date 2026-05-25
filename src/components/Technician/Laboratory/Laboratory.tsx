@@ -1,0 +1,15 @@
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import RoomCard from "./RoomCard";
+
+
+export default function Laboratory(){
+    
+    const isMobile = useMediaQuery("(max-width: 767px)");
+    
+    return(
+        <div className={`flex items-center w-full flex-col gap-3 px-3 py-3
+            sm:grid sm:grid-cols-2 ${isMobile ? "mb-23" : "mb-10"}`}>
+                <RoomCard/>
+        </div>
+    );
+}
