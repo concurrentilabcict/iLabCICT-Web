@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import NavBar from "@/components/LandingPage/NavBar/NavBar";
 import ComputerList from "@/components/Technician/ComputerList/ComputerList";
 import Filter from "@/components/Technician/ComputerList/Filter";
@@ -34,6 +35,14 @@ export default function ComputerListPage(){
                         </div>
                     </SidebarInset>
             </SidebarProvider>
+=======
+
+
+export default function(){
+    return(
+        <>
+        
+>>>>>>> e4e1475169f57dbaeacb52c997dfd4a3b70455fe
         </>
     );
 }

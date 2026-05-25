@@ -12,10 +12,13 @@
   @apply text-gray-500;
 }
 
+<<<<<<< HEAD
 .muted-text-color {
   @apply text-gray-400;
 }
 
+=======
+>>>>>>> e4e1475169f57dbaeacb52c997dfd4a3b70455fe
 .primary-border-color {
   @apply border-[#e5e5e5];
 }
