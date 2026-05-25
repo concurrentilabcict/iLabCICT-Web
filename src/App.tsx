@@ -25,10 +25,12 @@ function App() {
             <ProfilePage /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute allowedRole="technician">
             <NotificationPage /></ProtectedRoute>} />
-          <Route path="/laboratory" element={
-            <LaboratoryPage />}/>  
-          <Route path="/laboratory/:room" element={<ComputerListPage/>}/>
-          <Route path="/laboratory/:room/:code" element={<ComputerInformationPage/>}/>
+          <Route path="/laboratory" element={<ProtectedRoute allowedRole="technician">
+            <LaboratoryPage /></ProtectedRoute>}/>  
+          <Route path="/laboratory/:room" element={<ProtectedRoute allowedRole="technician">
+            <ComputerListPage/></ProtectedRoute>}/>
+          <Route path="/laboratory/:room/:code" element={<ProtectedRoute allowedRole="technician">
+            <ComputerInformationPage/></ProtectedRoute>}/>
       </Routes>
     </>
   )
