@@ -1,33 +1,57 @@
-export const privateFetch = async (url: string, options: RequestInit = {}) => {
+export const privateFetch = async (
+    url: string,
+    options: RequestInit = {}
+) => {
     let accessToken = localStorage.getItem("accessToken") || "";
-    console.log("TOKEN:", accessToken);
 
-    const makeRequest = () =>
-        fetch(url, {
+    const makeRequest = () => {
+        const isFormData = options.body instanceof FormData;
+
+        return fetch(url, {
             ...options,
             headers: {
-                "Content-Type": "application/json",
+                ...(isFormData
+                    ? {}
+                    : { "Content-Type": "application/json" }),
+
                 ...(options.headers || {}),
+
                 Authorization: `Bearer ${accessToken}`,
             },
         });
+    };
 
     let res = await makeRequest();
 
     if (res.status === 401) {
-        const refreshRes = await fetch("http://localhost:3000/api/auth/refresh", {
-            method: "POST",
-            credentials: "include",
-        });
+        const refreshToken = localStorage.getItem("refreshToken");
+
+        const refreshRes = await fetch(
+            "https://ilabcict-backend.onrender.com/api/auth/refresh/",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    refresh: refreshToken,
+                }),
+            }
+        );
 
         if (!refreshRes.ok) {
             localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+
             window.location.href = "/";
+
             throw new Error("Session expired");
         }
 
         const data = await refreshRes.json();
+
         accessToken = data.accessToken;
+
         localStorage.setItem("accessToken", accessToken);
 
         res = await makeRequest();
@@ -36,11 +60,19 @@ export const privateFetch = async (url: string, options: RequestInit = {}) => {
     return res;
 };
 
-export const publicFetch = (url: string, options: RequestInit = {}) => {
+export const publicFetch = (
+    url: string,
+    options: RequestInit = {}
+) => {
+    const isFormData = options.body instanceof FormData;
+
     return fetch(url, {
         ...options,
         headers: {
-            "Content-Type": "application/json",
+            ...(isFormData
+                ? {}
+                : { "Content-Type": "application/json" }),
+
             ...(options.headers || {}),
         },
     });
