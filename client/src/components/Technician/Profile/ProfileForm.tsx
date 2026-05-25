@@ -1,6 +1,8 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { privateFetch } from "@/lib/api";
 
 import { Image } from 'lucide-react';
+import { useRef } from "react";
 
 export default function ProfileForm() {
 
@@ -9,33 +11,80 @@ export default function ProfileForm() {
     const fName = "John Patrick"
     const lName = "Soriaga"
 
-    return(
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+
+        if (!file) return;
+
+        const formData = new FormData();
+
+        formData.append("profile_image", file);
+
+        const res = await privateFetch("https://ilabcict-backend.onrender.com/api/users/5/",
+            {
+                method: "PATCH",
+                body: formData,
+            }
+        );
+
+        if (!res.ok) {
+            console.error("failed to upload");
+        }
+
+        console.log("nigga success");
+
+    };
+
+    const handleImageRemove = async () => {
+        const res = await privateFetch("https://ilabcict-backend.onrender.com/api/users/5/",
+            {
+                method: "PATCH",
+                body: JSON.stringify({
+                    profile_image: null,
+                }),
+            }
+        );
+    }
+
+    return (
         <>
             <div className={`flex flex-col gap-y-5 ${isMobile ? "" : "px-3"}`}>
                 <h1 className={`text-lg mt-2 font-semibold ${isMobile ? "px-3" : ""}`}>My Profile</h1>
-                 <div className="h-px w-full bg-[#e5e5e5]" />
+                <div className="h-px w-full bg-[#e5e5e5]" />
 
-                 <div className={`flex items-start gap-x-4 ${isMobile ? "px-3" : ""}`}>
+                <div className={`flex items-start gap-x-4 ${isMobile ? "px-3" : ""}`}>
                     <img src="https://i.pinimg.com/736x/b2/ca/2f/b2ca2f89be542c67a00b2f92b1d972a7.jpg" alt="" className="w-15 sm:w-20 lg:w-25 rounded-full" />
 
                     <div className="flex flex-col gap-y-2">
                         <div className="flex text-sm gap-x-2">
-                            <button className="flex gap-x-1 items-center primary-button">
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex gap-x-1 items-center primary-button">
                                 <Image size={14} />
                                 Change Image
                             </button>
-                    
-                           <button className="secondary-button">
+
+                            <button onClick={handleImageRemove} className="secondary-button">
                                 Remove Image
                             </button>
+
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleImageChange}
+                            />
                         </div>
 
                         <p className="secondary-text-color text-xs">We support PNGs, JPEGs, and WEBP</p>
                         <span className="text-sm md:text-base leading-none font-medium">Technician</span>
                     </div>
-                 </div>
+                </div>
 
-                 <div className={`flex mb-5 gap-x-2 ${isMobile ? "px-3" : ""}`}>
+                <div className={`flex mb-5 gap-x-2 ${isMobile ? "px-3" : ""}`}>
                     <div className="flex flex-col gap-y-1 w-full">
                         <span className="font-medium">First Name</span>
                         <input type="text" value={fName} className="primary-input" />
@@ -45,7 +94,7 @@ export default function ProfileForm() {
                         <span className="font-medium">Last Name</span>
                         <input type="text" value={lName} className="primary-input" />
                     </div>
-                 </div>
+                </div>
             </div>
         </>
     );
