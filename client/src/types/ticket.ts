@@ -1,28 +1,38 @@
 export type User = {
     id: number;
-    first_name: string;
-    last_name: string;
+    firstName: string;
+    lastName: string;
 }
 
 export type Room = {
     id: number;
-    room_name: string;
-    building_name: string;
+    roomName: string;
+    buildingName: string;
 }
 
 export type Computer = {
     id: number;
-    computer_code: string;
+    computerCode: string;
 }
 
-export type Tickets = {
+export type Ticket = {
     id: number;
-    status: string;
-    type: string;
-    title: string;
-    complaint_description: string;
-    ticket_code: string;
-    reported_by: User;
+    ticketCode: string;
+
+    reportedBy: User;
+    assignedTo: User;
+
     room: Room;
     computer: Computer;
+
+    type: string;
+    title: string;
+    complaintDescription: string;
+
+    issueImage: string | null;
+
+    status: string;
+
+    createdAt: string;
+    updatedAt: string;
 }
