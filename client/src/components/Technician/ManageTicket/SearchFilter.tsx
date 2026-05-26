@@ -126,7 +126,7 @@ export default function SearchFilter({
                                 key={type}
                                 type="button"
                                 className={`block w-full text-left px-3 py-2 hover:bg-gray-100 ${
-                                    selectedType === type ? 'font-medium primary-text-color' : ''
+                                    selectedType === type ? 'font-medium' : ''
                                 }`}
                                 onClick={() => {
                                     onTypeChange(type);

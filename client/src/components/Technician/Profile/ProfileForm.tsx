@@ -1,5 +1,7 @@
+import { useAuth } from "@/auth/useAuth";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { privateFetch } from "@/lib/api";
+import placeholderPicture from "@/assets/profile-placeholder.png"
 
 import { Image } from 'lucide-react';
 import { useRef } from "react";
@@ -8,8 +10,7 @@ export default function ProfileForm() {
 
     const isMobile = useMediaQuery("(max-width: 767px)");
 
-    const fName = "John Patrick"
-    const lName = "Soriaga"
+    const { role, name, profilePicture, setProfilePicture } = useAuth();
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -29,9 +30,14 @@ export default function ProfileForm() {
             }
         );
 
+        const data = await res.json();
+
         if (!res.ok) {
             console.error("failed to upload");
         }
+
+        setProfilePicture(data.profile_image);
+        localStorage.setItem("profilePicture", data.profile_image);
 
         console.log("nigga success");
 
@@ -47,10 +53,14 @@ export default function ProfileForm() {
             }
         );
 
+         const data = await res.json();
+
         if(!res.ok) {
             console.error("failed remove");
         }
 
+        setProfilePicture(data.profile_image);
+        localStorage.setItem("profilePicture", data.profile_image);
         console.log("damn thats my nigga right there");
     }
 
@@ -61,7 +71,7 @@ export default function ProfileForm() {
                 <div className="h-px w-full bg-[#e5e5e5]" />
 
                 <div className={`flex items-start gap-x-4 ${isMobile ? "px-3" : ""}`}>
-                    <img src="https://i.pinimg.com/736x/b2/ca/2f/b2ca2f89be542c67a00b2f92b1d972a7.jpg" alt="" className="w-15 sm:w-20 lg:w-25 rounded-full" />
+                    <img src={profilePicture || placeholderPicture} alt="" className="w-15 sm:w-20 lg:w-25 rounded-full" />
 
                     <div className="flex flex-col gap-y-2">
                         <div className="flex text-sm gap-x-2">
@@ -86,19 +96,19 @@ export default function ProfileForm() {
                         </div>
 
                         <p className="secondary-text-color text-xs">We support PNGs, JPEGs, and WEBP</p>
-                        <span className="text-sm md:text-base leading-none font-medium">Technician</span>
+                        <span className="text-sm md:text-base leading-none font-medium">{role}</span>
                     </div>
                 </div>
 
                 <div className={`flex mb-5 gap-x-2 ${isMobile ? "px-3" : ""}`}>
                     <div className="flex flex-col gap-y-1 w-full">
                         <span className="font-medium">First Name</span>
-                        <input type="text" value={fName} className="primary-input" />
+                        <input type="text" value="dsadsa" className="primary-input" />
                     </div>
 
                     <div className="flex flex-col gap-y-1 w-full">
                         <span className="font-medium">Last Name</span>
-                        <input type="text" value={lName} className="primary-input" />
+                        <input type="text" value="dsadsa" className="primary-input" />
                     </div>
                 </div>
             </div>

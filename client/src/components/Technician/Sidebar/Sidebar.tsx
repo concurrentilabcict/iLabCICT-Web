@@ -12,7 +12,7 @@ import {
     useSidebar,
     SidebarGroupLabel,
 } from "@/components/ui/sidebar";
-import { EllipsisVertical, ScrollText, Monitor, ClipboardList, BookOpen } from "lucide-react";
+import { ScrollText, Monitor, ClipboardList, BookOpen } from "lucide-react";
 
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -114,7 +114,7 @@ export default function Sidebar() {
                 </SidebarGroup>
             </SidebarContent>
 
-           <ProfileFooter />
+            <ProfileFooter />
         </ShadSidebar>
     );
 }

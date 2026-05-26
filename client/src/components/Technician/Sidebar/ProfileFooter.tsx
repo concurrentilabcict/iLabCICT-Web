@@ -1,3 +1,4 @@
+import { useAuth } from "@/auth/useAuth";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -8,7 +9,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
+import { capitalize } from "@/utils/string";
 import { EllipsisVertical, LogOut, User } from "lucide-react";
+import placeholderPicture from "@/assets/profile-placeholder.png"
 
 import { useNavigate } from "react-router-dom";
 
@@ -16,6 +19,8 @@ export default function ProfileFooter() {
     const { state } = useSidebar();
 
     const navigate = useNavigate();
+
+    const { role, name, profilePicture } = useAuth();
 
     return (
         <SidebarFooter className="border-t">
@@ -29,7 +34,7 @@ export default function ProfileFooter() {
                     >
                         <div className="flex items-center gap-3 overflow-hidden w-full">
                             <img
-                                src="https://github.com/shadcn.png"
+                                src={profilePicture || placeholderPicture}
                                 alt="Profile"
                                 className="h-8 w-8 shrink-0 rounded-full object-cover"
                             />
@@ -38,11 +43,11 @@ export default function ProfileFooter() {
                                 <>
                                     <div className="min-w-0 flex flex-col text-left">
                                         <span className="truncate font-medium">
-                                            John Patrick Soriaga
+                                            {name}
                                         </span>
 
                                         <span className="truncate text-sm text-muted-foreground">
-                                            Technician
+                                            {role}
                                         </span>
                                     </div>
 
@@ -63,14 +68,14 @@ export default function ProfileFooter() {
 
                         <div className="flex gap-x-3">
                             <img
-                                src="https://github.com/shadcn.png"
+                                src={profilePicture || placeholderPicture}
                                 alt="Profile"
                                 className="h-8 w-8 shrink-0 mt-0.5 rounded-full object-cover"
                             />
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-black">John Patrick Soriaga</span>
+                                <span className="text-sm font-medium text-black">{name ? capitalize(name) : "No Name"}</span>
                                 <span className="text-xs text-muted-foreground">
-                                    Technician
+                                    {role ? capitalize(role) : "No Role"}
                                 </span>
                             </div>
                         </div>
