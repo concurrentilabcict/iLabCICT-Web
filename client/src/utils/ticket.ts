@@ -2,6 +2,7 @@ import {
     Clock3,
     CircleDot,
     CheckCircle2,
+    LoaderCircle,
 } from "lucide-react";
 
 export const statusConfig = {
@@ -36,3 +37,9 @@ export type Status =
 
 export type TicketType =
     keyof typeof typeConfig;
+
+export type StatusFilter =
+    "All" | Status;
+
+export type TicketTypeFilter =
+    "All" | TicketType;

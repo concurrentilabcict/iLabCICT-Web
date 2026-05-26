@@ -13,9 +13,14 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
 
 export default function ManageTicketPage() {
+
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
+    const [typeFilter, setTypeFilter] = useState<TicketTypeFilter>("All");
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(()=> {
         document.title = "Manage Ticket | ILabCICT";
@@ -31,9 +36,21 @@ export default function ManageTicketPage() {
                     <div className="min-h-screen bg-[#f8fafc]">
                         {isMobile ? <MobileHeader /> : <Header />}
                         <div className="mx-auto max-w-[1000px]">
-                            <Filter />
-                            <SearchFilter />
-                            <ManageTicket />
+                            <Filter
+                                selectedStatus={statusFilter}
+                                onStatusChange={setStatusFilter}
+                            />
+                            <SearchFilter
+                                searchQuery={searchQuery}
+                                selectedType={typeFilter}
+                                onSearchChange={setSearchQuery}
+                                onTypeChange={setTypeFilter}
+                            />
+                            <ManageTicket
+                                statusFilter={statusFilter}
+                                typeFilter={typeFilter}
+                                searchQuery={searchQuery}
+                            />
                         </div>
 
                     </div>
