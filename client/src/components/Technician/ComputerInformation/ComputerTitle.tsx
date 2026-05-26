@@ -4,9 +4,10 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, LaptopMinimal } from "lucide-react";
 
 export default function ComputerTitle(){
+
     return(
         <div className="flex flex-col gap-2 px-3 py-3">
-            <Link className="flex gap-1 items-center" to={"/laboratory"}>
+            <Link className="flex gap-1 items-center" to={"/manage-laboratory/sdl1"}>
                 <ArrowLeft size={20}/>
                 <span className="text-sm"> Back to Computer List</span>
             </Link>

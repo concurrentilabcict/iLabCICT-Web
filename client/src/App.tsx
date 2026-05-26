@@ -19,18 +19,18 @@ function App() {
           <LandingPage /></SmoothScrolling></PublicRoute>} />
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
 
-          <Route path="/manage-ticket" element={<ProtectedRoute allowedRole="technician">
-            <ManageTicketPage /></ProtectedRoute>} />
+          <Route path="/manage-ticket" element={
+            <ManageTicketPage />} />
           <Route path="/profile" element={<ProtectedRoute allowedRole="technician">
             <ProfilePage /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute allowedRole="technician">
             <NotificationPage /></ProtectedRoute>} />
-          <Route path="/laboratory" element={<ProtectedRoute allowedRole="technician">
+          <Route path="/manage-laboratory" element={<ProtectedRoute allowedRole="technician">
             <LaboratoryPage /></ProtectedRoute>}/>  
-          <Route path="/laboratory/:room" element={<ProtectedRoute allowedRole="technician">
-            <ComputerListPage/></ProtectedRoute>}/>
-          <Route path="/laboratory/:room/:code" element={<ProtectedRoute allowedRole="technician">
-            <ComputerInformationPage/></ProtectedRoute>}/>
+          <Route path="/manage-laboratory/:room" element={<ProtectedRoute allowedRole="technician">
+            <ComputerListPage /></ProtectedRoute>}/>
+          <Route path="/manage-laboratory/:room/:code" element={<ProtectedRoute allowedRole="technician">
+          <ComputerInformationPage /></ProtectedRoute>}/>
       </Routes>
     </>
   )

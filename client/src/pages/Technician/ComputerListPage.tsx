@@ -1,4 +1,4 @@
-import NavBar from "@/components/LandingPage/NavBar/NavBar";
+import NavBar from "@/components/Technician/NavBar/NavBar";
 import ComputerList from "@/components/Technician/ComputerList/ComputerList";
 import Filter from "@/components/Technician/ComputerList/Filter";
 import SearchFilter from "@/components/Technician/ComputerList/SearchFilter";

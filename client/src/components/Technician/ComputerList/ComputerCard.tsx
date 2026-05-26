@@ -1,7 +1,10 @@
 import { LaptopMinimal, Calendar, SquarePen, Trash, HardDrive} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 
 export default function ComputerCard(){
+
+    const navigate = useNavigate()
     return(
         <>
              <div className="bg-white flex flex-col gap-y-2.5 border primary-border-color
@@ -32,6 +35,7 @@ export default function ComputerCard(){
 
                 <div className="flex w-full gap-2">
                     <button
+                        onClick={()=>navigate("/manage-laboratory/sdl1/pc1")}
                         type="button"
                         className="flex flex-1 justify-center shrink-0 gap-2.5 bg-white primary-bg-color rounded-md px-4 py-2 text-sm font-medium text-white"
                         >

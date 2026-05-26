@@ -1,4 +1,4 @@
-import NavBar from "@/components/LandingPage/NavBar/NavBar";
+import NavBar from "@/components/Technician/NavBar/NavBar";
 import Filter from "@/components/Technician/Laboratory/Filter";
 import Header from "@/components/Technician/Laboratory/Header/Header";
 import MobileHeader from "@/components/Technician/Laboratory/Header/MobileHeader";
