@@ -1,5 +1,5 @@
-import MobileHeader from "@/components/Technician/Notification/Header/MobileHeader";
-import Header from "@/components/Technician/Notification/Header/Header";
+import MobileHeader from "@/components/Technician/Header/MobileHeader";
+import Header from "@/components/Technician/Header/Header";
 import NavBar from "@/components/Technician/NavBar/NavBar";
 import Notification from "@/components/Technician/Notification/Notification";
 
@@ -27,7 +27,7 @@ export default function NotificationPage() {
                 {isMobile ? <NavBar /> : <Sidebar />}
                 <SidebarInset>
                     <div className="min-h-screen">
-                        {isMobile ? <MobileHeader /> : <Header />}
+                        {isMobile ? <MobileHeader title="Notification" /> : <Header title="Notification" />}
                         <div className="mx-auto max-w-[1000px]">
                             <Notification />
                         </div>

@@ -1,5 +1,5 @@
-import MobileHeader from "@/components/Technician/Notification/Header/MobileHeader";
-import Header from "@/components/Technician/Notification/Header/Header";
+import MobileHeader from "@/components/Technician/Header/MobileHeader";
+import Header from "@/components/Technician/Header/Header";
 import NavBar from "@/components/Technician/NavBar/NavBar";
 
 
@@ -28,7 +28,7 @@ export default function WeeklyReportPage() {
                 {isMobile ? <NavBar /> : <Sidebar />}
                 <SidebarInset>
                     <div className="min-h-screen">
-                        {isMobile ? <MobileHeader /> : <Header />}
+                        {isMobile ? <MobileHeader title="Weekly Reports" /> : <Header title="Weekly Reports" />}
                         <div className="mx-auto max-w-[1000px]">
                             <WeeklyReport />
                         </div>

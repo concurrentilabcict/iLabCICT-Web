@@ -8,7 +8,6 @@ import {
     SidebarMenuItem,
     SidebarMenuButton,
     SidebarTrigger,
-    SidebarFooter,
     useSidebar,
     SidebarGroupLabel,
 } from "@/components/ui/sidebar";
@@ -47,7 +46,7 @@ export default function Sidebar() {
     const location = useLocation();
 
     return (
-        <ShadSidebar collapsible="icon">
+        <ShadSidebar collapsible="icon" className="flex">
             <SidebarHeader className="py-3 pl-3">
                 <div className="flex items-center justify-between w-full">
                     <div
@@ -60,7 +59,7 @@ export default function Sidebar() {
                             src={Logo}
                             alt="Logo"
                             className={`
-          h-auto w-6 transition-opacity
+          h-auto w-6 transition-opacity ml-1
           ${state === "collapsed"
                                     ? "group-hover/logo:opacity-0"
                                     : ""
@@ -97,7 +96,8 @@ export default function Sidebar() {
                                         className="
                                         py-5
                                         mb-1
-                                        transition-colors
+                                        ml-1
+                                        transition-colors   
                                         data-[active=true]:bg-muted
                                         data-[active=true]:text-foreground
                                         "

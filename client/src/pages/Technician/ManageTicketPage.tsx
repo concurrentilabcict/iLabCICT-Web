@@ -1,9 +1,9 @@
 import Filter from "@/components/Technician/ManageTicket/Filter";
-import Header from "@/components/Technician/ManageTicket/Header/Header";
+import Header from "@/components/Technician/Header/Header";
 import ManageTicket from "@/components/Technician/ManageTicket/ManageTicket";
 import SearchFilter from "@/components/Technician/ManageTicket/SearchFilter";
 import NavBar from "@/components/Technician/NavBar/NavBar";
-import MobileHeader from "@/components/Technician/ManageTicket/Header/MobileHeader";
+import MobileHeader from "@/components/Technician/Header/MobileHeader";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Sidebar from "@/components/Technician/Sidebar/Sidebar";
@@ -34,7 +34,7 @@ export default function ManageTicketPage() {
                 {isMobile ? <NavBar /> : <Sidebar />}
                 <SidebarInset>
                     <div className="min-h-screen bg-[#f8fafc]">
-                        {isMobile ? <MobileHeader /> : <Header />}
+                        {isMobile ? <MobileHeader title="Ticket Queue" /> : <Header title="Ticket Queue" />}
                         <div className="mx-auto max-w-[1000px]">
                             <Filter
                                 selectedStatus={statusFilter}

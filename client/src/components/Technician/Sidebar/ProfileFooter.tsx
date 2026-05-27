@@ -28,15 +28,16 @@ export default function ProfileFooter() {
                 <DropdownMenuTrigger asChild>
                     <button
                         className="
-              flex w-full items-center rounded-lg
-              transition-colors hover:bg-muted h-[61px] px-2
-            "
+    flex w-full items-center rounded-lg
+    transition-colors hover:bg-muted
+    h-[61px] px-2 overflow-hidden
+  "
                     >
-                        <div className="flex items-center gap-3 overflow-hidden w-full">
+                        <div className="flex items-center gap-3 min-w-[32px] w-full">
                             <img
                                 src={profilePicture || placeholderPicture}
                                 alt="Profile"
-                                className="h-8 w-8 shrink-0 rounded-full object-cover"
+                                className="size-8 rounded-full object-cover flex-shrink-0"
                             />
 
                             {state === "expanded" && (

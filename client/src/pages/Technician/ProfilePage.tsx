@@ -1,6 +1,6 @@
 import Profile from "@/components/Technician/Profile/Profile";
-import Header from "@/components/Technician/Profile/Header/Header";
-import MobileHeader from "@/components/Technician/Profile/Header/MobileHeader";
+import Header from "@/components/Technician/Header/Header";
+import MobileHeader from "@/components/Technician/Header/MobileHeader";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Sidebar from "@/components/Technician/Sidebar/Sidebar";
@@ -27,7 +27,7 @@ export default function ProfilePage() {
                 {isMobile ? null : <Sidebar />}
                 <SidebarInset>
                     <div className="min-h-screen ">
-                        {isMobile ? <MobileHeader /> : <Header />}
+                        {isMobile ? <MobileHeader title="Profile" /> : <Header title="Profile" />}
                         <div className="mx-auto max-w-[1000px] pb-10">
                             <Profile />
                         </div>
