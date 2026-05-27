@@ -1,5 +1,6 @@
  export type LoginProps = {
-        token: string;
+        accessToken: string;
+        refreshToken: string;
         name: string;
         role: string;
         profilePicture: string;

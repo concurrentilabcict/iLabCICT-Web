@@ -50,7 +50,7 @@ export const privateFetch = async (
 
         const data = await refreshRes.json();
 
-        accessToken = data.accessToken;
+        accessToken = data.access;
 
         localStorage.setItem("accessToken", accessToken);
 
