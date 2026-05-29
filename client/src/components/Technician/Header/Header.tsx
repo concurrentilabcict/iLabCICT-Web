@@ -1,6 +1,8 @@
 import { Menu, ScrollText } from "lucide-react";
-
 import { useSidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/auth/useAuth";
+import PlaceHolder from "@/assets/profile-placeholder.png"
+import { useNavigate } from "react-router-dom";
 
 type HeaderProps = {
     title: string;
@@ -8,6 +10,9 @@ type HeaderProps = {
 
 export default function Header({ title }: HeaderProps) {
     const { toggleSidebar } = useSidebar();
+
+    const { profilePicture } = useAuth();
+    const navigate = useNavigate();
 
     return (
         <div className="bg-white flex items-center justify-between p-5 border-b border-b-[#e5e5e5]">
@@ -21,7 +26,10 @@ export default function Header({ title }: HeaderProps) {
                 </div>
                 <h1 className="text-lg font-medium">{title}</h1>
             </div>
-            <span>profile</span>
+
+            <button onClick={() => navigate("/profile")} className="cursor-pointer">
+                <img src={profilePicture || PlaceHolder} alt="User Profile" className="h-9 w-9 rounded-full object-cover" />
+            </button>
         </div>
     );
 }

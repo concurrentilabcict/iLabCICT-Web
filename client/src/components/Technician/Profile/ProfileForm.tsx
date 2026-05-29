@@ -71,7 +71,7 @@ export default function ProfileForm() {
                 <div className="h-px w-full bg-[#e5e5e5]" />
 
                 <div className={`flex items-start gap-x-4 ${isMobile ? "px-3" : ""}`}>
-                    <img src={profilePicture || placeholderPicture} alt="" className="w-15 sm:w-20 lg:w-25 rounded-full" />
+                    <img src={profilePicture || placeholderPicture} alt="" className="w-15 h-15 sm:w-20 sm:h-20 lg:w-25 lg:h-25 rounded-full" />
 
                     <div className="flex flex-col gap-y-2">
                         <div className="flex text-sm gap-x-2">
