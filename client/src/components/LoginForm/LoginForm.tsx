@@ -37,7 +37,8 @@ export default function LoginForm() {
 
             const name = data.first_name + " " + data.last_name;
             
-           login({ accessToken: data.access, refreshToken: data.refresh, name: name, role: data.role, profilePicture: data.profile_image }); 
+           login({ id: data.id, accessToken: data.access, refreshToken: data.refresh,
+             name: name, role: data.role, profilePicture: data.profile_image }); 
            navigate("/manage-ticket");
 
         } catch (err) {

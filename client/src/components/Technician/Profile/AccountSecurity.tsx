@@ -1,8 +1,20 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useState } from "react";
 
 export default function AccountSecurity() {
 
     const isMobile = useMediaQuery("(max-width: 767px)");
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    const handleCancelPasswordChange = () => {
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setIsChangingPassword(false);
+    };
 
     return (
         <>
@@ -11,18 +23,71 @@ export default function AccountSecurity() {
                 <div className="h-px w-full bg-[#e5e5e5]" />
 
                 <div className={`flex flex-col mb-5 ${isMobile ? "px-3" : ""}`}>
-                    <div className="flex flex-col gap-y-1 mb-3 sm:mb-5">
-                        <span className="font-medium">Email</span>
-                        <div className="flex sm:justify-between sm:items-center flex-col gap-y-1 sm:flex-row sm:gap-x-3">
-                            <input type="text" className="disable-input mb-1.5 flex-1 min-w-0 sm:max-w-lg" placeholder="patricksoriaga14@gmail.com" />
-                        </div>
-                    </div>
+                    <div className="flex flex-col gap-y-4">
+                        <div className="flex flex-col gap-y-4">
 
-                    <div className="flex flex-col gap-y-1">
-                        <span className="font-medium">Password</span>
-                        <div className="flex sm:justify-between sm:items-center flex-col gap-y-1 sm:flex-row sm:gap-x-3">
-                            <input type="text" className="disable-input mb-1.5 flex-1 min-w-0 sm:max-w-lg" placeholder="************" />
-                        <button className="secondary-button text-sm self-end sm:self-auto font-medium shrink-0 mb-1">Change Pasword</button>
+                            <div className="flex flex-col gap-y-1 w-full">
+                                <span className="font-medium text-sm">Current Password</span>
+                                <input
+                                    type="password"
+                                    value={currentPassword}
+                                    disabled={!isChangingPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    className={isChangingPassword ? "primary-input w-full max-w-full!" : "disable-input w-full"}
+                                />
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-y-4 sm:gap-x-2">
+                                <div className="flex flex-col gap-y-1 w-full sm:w-1/2">
+                                    <span className="font-medium text-sm">New Password</span>
+                                    <input
+                                        type="password"
+                                        value={newPassword}
+                                        disabled={!isChangingPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className={isChangingPassword ? "primary-input w-full" : "disable-input w-full"}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-y-1 w-full sm:w-1/2">
+                                    <span className="font-medium text-sm">Confirm Password</span>
+                                    <input
+                                        type="password"
+                                        value={confirmPassword}
+                                        disabled={!isChangingPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        className={isChangingPassword ? "primary-input w-full" : "disable-input w-full"}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-x-2">
+                                {isChangingPassword ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={handleCancelPasswordChange}
+                                            className="secondary-button text-sm font-medium"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="primary-button text-sm font-medium"
+                                        >
+                                            Save Password
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsChangingPassword(true)}
+                                        className="secondary-button mt-1.5 text-sm w-fit sm:self-auto font-medium mb-1"
+                                    >
+                                        Change Password
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

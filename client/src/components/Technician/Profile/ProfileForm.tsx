@@ -4,15 +4,31 @@ import { privateFetch } from "@/lib/api";
 import placeholderPicture from "@/assets/profile-placeholder.png"
 
 import { Image } from 'lucide-react';
-import { useRef } from "react";
+import { useRef, useState } from "react";
+
+const splitFullName = (fullName: string) => {
+    const parts = fullName.trim().split(" ").filter(Boolean);
+
+    return {
+        firstName: parts.slice(0, -1).join(" "),
+        lastName: parts.slice(-1).join(" "),
+    };
+};
 
 export default function ProfileForm() {
 
     const isMobile = useMediaQuery("(max-width: 767px)");
 
-    const { role, name, profilePicture, setProfilePicture } = useAuth();
+    const { role, name, profilePicture, setName, setProfilePicture } = useAuth();
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const initialName = splitFullName(name);
+    const [isEditing, setIsEditing] = useState(false);
+    const [firstName, setFirstName] = useState(initialName.firstName);
+    const [lastName, setLastName] = useState(initialName.lastName);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const userId = localStorage.getItem("id");
 
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -23,7 +39,7 @@ export default function ProfileForm() {
 
         formData.append("profile_image", file);
 
-        const res = await privateFetch("https://ilabcict-backend.onrender.com/api/users/5/",
+        const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`,
             {
                 method: "PATCH",
                 body: formData,
@@ -39,12 +55,10 @@ export default function ProfileForm() {
         setProfilePicture(data.profile_image);
         localStorage.setItem("profilePicture", data.profile_image);
 
-        console.log("nigga success");
-
     };
 
     const handleImageRemove = async () => {
-        const res = await privateFetch("https://ilabcict-backend.onrender.com/api/users/5/",
+        const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`,
             {
                 method: "PATCH",
                 body: JSON.stringify({
@@ -53,16 +67,60 @@ export default function ProfileForm() {
             }
         );
 
-         const data = await res.json();
+        const data = await res.json();
 
-        if(!res.ok) {
+        if (!res.ok) {
             console.error("failed remove");
         }
 
         setProfilePicture(data.profile_image);
         localStorage.setItem("profilePicture", data.profile_image);
-        console.log("damn thats my nigga right there");
     }
+
+    const handleCancelEdit = () => {
+        const currentName = splitFullName(name);
+
+        setFirstName(currentName.firstName);
+        setLastName(currentName.lastName);
+        setIsEditing(false);
+    };
+
+    const handleProfileSave = async () => {
+        try {
+            setIsSaving(true);
+
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        first_name: firstName.trim(),
+                        last_name: lastName.trim(),
+                    }),
+                }
+            );
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                console.error("failed to update profile");
+                return;
+            }
+
+            const updatedFirstName = data.first_name ?? firstName.trim();
+            const updatedLastName = data.last_name ?? lastName.trim();
+            const updatedName = `${updatedFirstName} ${updatedLastName}`.trim();
+
+            setFirstName(updatedFirstName);
+            setLastName(updatedLastName);
+            setName(updatedName);
+            localStorage.setItem("name", updatedName);
+            setIsEditing(false);
+        } catch (err) {
+            console.error("Error occurred while updating profile:", err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     return (
         <>
@@ -77,12 +135,12 @@ export default function ProfileForm() {
                         <div className="flex text-sm gap-x-2">
                             <button
                                 onClick={() => fileInputRef.current?.click()}
-                                className="flex gap-x-1 items-center primary-button">
+                                className="cursor-pointer flex gap-x-1 items-center primary-button">
                                 <Image size={14} />
                                 Change Image
                             </button>
 
-                            <button onClick={handleImageRemove} className="secondary-button">
+                            <button onClick={handleImageRemove} className=" cursor-pointer secondary-button">
                                 Remove Image
                             </button>
 
@@ -93,6 +151,7 @@ export default function ProfileForm() {
                                 className="hidden"
                                 onChange={handleImageChange}
                             />
+
                         </div>
 
                         <p className="secondary-text-color text-xs">We support PNGs, JPEGs, and WEBP</p>
@@ -100,15 +159,67 @@ export default function ProfileForm() {
                     </div>
                 </div>
 
-                <div className={`flex mb-5 gap-x-2 ${isMobile ? "px-3" : ""}`}>
-                    <div className="flex flex-col gap-y-1 w-full">
-                        <span className="font-medium">First Name</span>
-                        <input type="text" value="dsadsa" className="primary-input" />
+                <div className={`flex mb-5 flex-col gap-y-4 ${isMobile ? "px-3" : ""}`}>
+                    <div className="flex flex-col gap-y-4 sm:flex-row sm:gap-x-2">
+                        <div className="flex flex-col gap-y-1 w-full">
+                            <span className="font-medium">First Name</span>
+                            <input
+                                type="text"
+                                value={firstName}
+                                disabled={!isEditing}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                className={isEditing ? "primary-input" : "disable-input max-w-[500px]"}
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-y-1 w-full">
+                            <span className="font-medium">Last Name</span>
+                            <input
+                                type="text"
+                                value={lastName}
+                                disabled={!isEditing}
+                                onChange={(e) => setLastName(e.target.value)}
+                                className={isEditing ? "primary-input" : "disable-input max-w-[500px]"}
+                            />
+                        </div>
                     </div>
 
-                    <div className="flex flex-col gap-y-1 w-full">
-                        <span className="font-medium">Last Name</span>
-                        <input type="text" value="dsadsa" className="primary-input" />
+                     <div className="flex flex-col gap-y-1">
+                        <span className="font-medium">Email</span>
+                        <div className="flex sm:justify-between sm:items-center flex-col gap-y-1 sm:flex-row sm:gap-x-3">
+                            <input type="text" className="disable-input mb-1.5 w-full" placeholder="patricksoriaga14@gmail.com" />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-x-2">
+                        {isEditing ? (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={handleCancelEdit}
+                                    className="secondary-button text-sm font-medium"
+                                    disabled={isSaving}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleProfileSave}
+                                    className="primary-button text-sm font-medium"
+                                    disabled={isSaving}
+                                >
+                                    {isSaving ? "Saving..." : "Save Changes"}
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => setIsEditing(true)}
+                                className="secondary-button text-sm font-medium"
+                            >
+                                Edit Profile
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

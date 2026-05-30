@@ -19,7 +19,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.getItem("profilePicture")
     );
 
-    const login = ({ accessToken, refreshToken, name, role, profilePicture }: LoginProps) => {
+    const login = ({ id, accessToken, refreshToken, name, role, profilePicture }: LoginProps) => {
+        localStorage.setItem("id", String(id));
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("name", name);
@@ -32,11 +33,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const logout = () => {
+        localStorage.removeItem("id");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("name");
         localStorage.removeItem("role");
-        localStorage.removeItem("profilePicutre");
+        localStorage.removeItem("profilePicture");
         setName("");
         setRole("");
         setProfilePicture("");
@@ -45,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, name, role, profilePicture, setProfilePicture, login, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, name, role, profilePicture, setName, setProfilePicture, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

@@ -43,7 +43,7 @@ export const privateFetch = async (
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
 
-            window.location.href = "/";
+            window.location.href = "/login";
 
             throw new Error("Session expired");
         }
