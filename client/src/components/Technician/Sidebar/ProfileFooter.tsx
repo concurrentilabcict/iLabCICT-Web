@@ -20,7 +20,7 @@ export default function ProfileFooter() {
 
     const navigate = useNavigate();
 
-    const { role, name, profilePicture } = useAuth();
+    const { role, name, profilePicture, logout } = useAuth();
 
     return (
         <SidebarFooter className="border-t">
@@ -93,7 +93,7 @@ export default function ProfileFooter() {
 
                     <DropdownMenuSeparator />
 
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={logout}>
                         <LogOut className="mr-2 h-4 w-4" />
                         Logout
                     </DropdownMenuItem>

@@ -11,7 +11,7 @@ export default function LoginForm() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
@@ -20,6 +20,12 @@ export default function LoginForm() {
 
     const loginMutation = useMutation({
         mutationFn: async () => {
+
+            if (!email || !password) {
+                throw new Error("Username and password are required.");
+
+            }
+
             const res = await publicFetch("https://ilabcict-backend.onrender.com/api/auth/login/", {
                 method: "POST",
                 body: JSON.stringify({ username: email, password }),
@@ -28,7 +34,7 @@ export default function LoginForm() {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.message || "Failed to login");
+                throw new Error("Incorrect username and password.");
             }
 
             return data;
@@ -46,8 +52,7 @@ export default function LoginForm() {
         },
 
         onError: (err) => {
-            console.error(err);
-            setError(true);
+            setError(err.message);
         }
     });
 
@@ -59,13 +64,14 @@ export default function LoginForm() {
                 <h1 className='primary-text-color text-3xl tracking-wide font-bold'>IlabCICT</h1>
                 <span>Welcome back, sign in to continue.</span>
 
-                <div className="flex items-center justify-center text-sm bg-red-100 text-red-700
-                border border-red-700/50 rounded-md w-full max-w-sm p-5 mt-5">
-                    <span className='ml-auto'>Incorrect username and password.</span>
-                    <button className='ml-auto cursor-pointer'>
-                        <X size={18} strokeWidth={3} />
-                    </button>
-                </div>
+                {error &&
+                    <div className="flex items-center justify-center text-sm bg-red-100 text-red-700
+                    border border-red-700/50 rounded-md w-full max-w-sm p-5 mt-5">
+                        <span className='ml-auto'>{error}</span>
+                        <button onClick={() => setError(null)} className='ml-auto cursor-pointer'>
+                            <X size={18} strokeWidth={3} />
+                        </button>
+                    </div>}
 
                 <div className={`flex flex-col items-center w-full gap-y-5 ${error ? "mt-5" : "mt-5"}`}>
                     <div className="relative w-full max-w-sm">
@@ -113,9 +119,9 @@ export default function LoginForm() {
                     <button className=' primary-button rounded-full! w-full max-w-sm'
                         onClick={() => loginMutation.mutate()}
                         disabled={loginMutation.isPending}>
-                        
+
                         {loginMutation.isPending ? <><Spinner className='size-5' /> Signing in... </>
-                        : <>Sign In</>}
+                            : <>Sign In</>}
                     </button>
                 </div>
             </div>
