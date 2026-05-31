@@ -46,7 +46,7 @@ export default function ProfileForm() {
 
             formData.append("profile_image", file);
 
-            const res = await fetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`, {
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`, {
                 method: "PATCH",
                 body: formData,
             });
@@ -220,7 +220,7 @@ export default function ProfileForm() {
                                 <button
                                     type="button"
                                     onClick={handleCancelEdit}
-                                    className="secondary-button text-sm font-medium"
+                                    className="secondary-button cursor-pointer text-sm font-medium"
                                     disabled={isSaving}
                                 >
                                     Cancel
@@ -228,7 +228,7 @@ export default function ProfileForm() {
                                 <button
                                     type="button"
                                     onClick={handleProfileSave}
-                                    className="primary-button text-sm font-medium"
+                                    className="primary-button cursor-pointer text-sm font-medium"
                                     disabled={isSaving}
                                 >
                                     {isSaving ? "Saving..." : "Save Changes"}
@@ -238,7 +238,7 @@ export default function ProfileForm() {
                             <button
                                 type="button"
                                 onClick={() => setIsEditing(true)}
-                                className="secondary-button text-sm font-medium"
+                                className="secondary-button cursor-pointer text-sm font-medium"
                             >
                                 Edit Profile
                             </button>

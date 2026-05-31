@@ -1,10 +1,11 @@
 import Logo from '@/assets/logo.png';
-import { User, LockKeyhole, Eye, EyeOff } from 'lucide-react';
+import { User, LockKeyhole, Eye, EyeOff, X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { publicFetch } from '@/lib/api';
 import { useAuth } from '@/auth/useAuth';
 import { useMutation } from '@tanstack/react-query';
+import { Spinner } from "@/components/ui/spinner"
 
 export default function LoginForm() {
 
@@ -58,7 +59,15 @@ export default function LoginForm() {
                 <h1 className='primary-text-color text-3xl tracking-wide font-bold'>IlabCICT</h1>
                 <span>Welcome back, sign in to continue.</span>
 
-                <div className="flex flex-col items-center w-full gap-y-5 mt-15">
+                <div className="flex items-center justify-center text-sm bg-red-100 text-red-700
+                border border-red-700/50 rounded-md w-full max-w-sm p-5 mt-5">
+                    <span className='ml-auto'>Incorrect username and password.</span>
+                    <button className='ml-auto cursor-pointer'>
+                        <X size={18} strokeWidth={3} />
+                    </button>
+                </div>
+
+                <div className={`flex flex-col items-center w-full gap-y-5 ${error ? "mt-5" : "mt-5"}`}>
                     <div className="relative w-full max-w-sm">
                         <User
                             size={18}
@@ -101,8 +110,12 @@ export default function LoginForm() {
 
                     <button className='w-full text-end primary-text-color font-semibold mb-5 cursor-pointer max-w-sm'>Forgot Password?</button>
 
-                    <button className='primary-button rounded-full! w-full max-w-sm' onClick={() => loginMutation.mutate()} disabled={loginMutation.isPending}>
-                        {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                    <button className=' primary-button rounded-full! w-full max-w-sm'
+                        onClick={() => loginMutation.mutate()}
+                        disabled={loginMutation.isPending}>
+                        
+                        {loginMutation.isPending ? <><Spinner className='size-5' /> Signing in... </>
+                        : <>Sign In</>}
                     </button>
                 </div>
             </div>

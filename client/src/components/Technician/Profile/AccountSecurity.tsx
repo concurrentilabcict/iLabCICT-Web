@@ -1,4 +1,5 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
 export default function AccountSecurity() {
@@ -8,6 +9,12 @@ export default function AccountSecurity() {
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+
+    const changePasswordMutation = useMutation({
+        mutationFn: async () => {
+
+        }
+    });
 
     const handleCancelPasswordChange = () => {
         setCurrentPassword("");
@@ -67,13 +74,13 @@ export default function AccountSecurity() {
                                         <button
                                             type="button"
                                             onClick={handleCancelPasswordChange}
-                                            className="secondary-button text-sm font-medium"
+                                            className="secondary-button cursor-pointer text-sm font-medium"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             type="button"
-                                            className="primary-button text-sm font-medium"
+                                            className="primary-button text-sm cursor-pointer font-medium"
                                         >
                                             Save Password
                                         </button>
@@ -82,7 +89,7 @@ export default function AccountSecurity() {
                                     <button
                                         type="button"
                                         onClick={() => setIsChangingPassword(true)}
-                                        className="secondary-button mt-1.5 text-sm w-fit sm:self-auto font-medium mb-1"
+                                        className="secondary-button hover:secondary-button-hover mt-1.5 text-sm cursor-pointer w-fit sm:self-auto font-medium mb-1"
                                     >
                                         Change Password
                                     </button>
