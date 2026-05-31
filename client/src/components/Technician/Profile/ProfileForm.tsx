@@ -5,6 +5,7 @@ import placeholderPicture from "@/assets/profile-placeholder.png"
 
 import { Image } from 'lucide-react';
 import { useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 const splitFullName = (fullName: string) => {
     const parts = fullName.trim().split(" ").filter(Boolean);
@@ -30,52 +31,74 @@ export default function ProfileForm() {
 
     const userId = localStorage.getItem("id");
 
-    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
 
         if (!file) return;
 
-        const formData = new FormData();
+        imageChangeMutation.mutate(file);
+    }
 
-        formData.append("profile_image", file);
+    const imageChangeMutation = useMutation({
+        mutationFn: async (file: File) => {
 
-        const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`,
-            {
+            const formData = new FormData();
+
+            formData.append("profile_image", file);
+
+            const res = await fetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`, {
                 method: "PATCH",
                 body: formData,
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to change profile");
             }
-        );
 
-        const data = await res.json();
+            return data;
+        },
 
-        if (!res.ok) {
-            console.error("failed to upload");
+        onSuccess: (data) => {
+            setProfilePicture(data.profile_image);
+            localStorage.setItem("profilePicture", data.profile_image);
+        },
+
+        onError: (err) => {
+            console.error(err);
+
         }
+    });
 
-        setProfilePicture(data.profile_image);
-        localStorage.setItem("profilePicture", data.profile_image);
-
-    };
-
-    const handleImageRemove = async () => {
-        const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`,
-            {
+    const imageRemoveMutation = useMutation({
+        mutationFn: async () => {
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`, {
                 method: "PATCH",
                 body: JSON.stringify({
                     profile_image: null,
                 }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to remove profile");
             }
-        );
 
-        const data = await res.json();
+            return data;
+        },
 
-        if (!res.ok) {
-            console.error("failed remove");
+        onSuccess: (data) => {
+            setProfilePicture(data.profile_image);
+            localStorage.setItem("profilePicture", data.profile_image);
+        },
+
+        onError: (err) => {
+            console.error(err);
+
         }
-
-        setProfilePicture(data.profile_image);
-        localStorage.setItem("profilePicture", data.profile_image);
-    }
+    });
 
     const handleCancelEdit = () => {
         const currentName = splitFullName(name);
@@ -140,7 +163,7 @@ export default function ProfileForm() {
                                 Change Image
                             </button>
 
-                            <button onClick={handleImageRemove} className=" cursor-pointer secondary-button">
+                            <button onClick={() => imageRemoveMutation.mutate()} className=" cursor-pointer secondary-button">
                                 Remove Image
                             </button>
 
@@ -184,7 +207,7 @@ export default function ProfileForm() {
                         </div>
                     </div>
 
-                     <div className="flex flex-col gap-y-1">
+                    <div className="flex flex-col gap-y-1">
                         <span className="font-medium">Email</span>
                         <div className="flex sm:justify-between sm:items-center flex-col gap-y-1 sm:flex-row sm:gap-x-3">
                             <input type="text" className="disable-input mb-1.5 w-full" placeholder="patricksoriaga14@gmail.com" />

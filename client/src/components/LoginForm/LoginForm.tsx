@@ -4,24 +4,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { publicFetch } from '@/lib/api';
 import { useAuth } from '@/auth/useAuth';
+import { useMutation } from '@tanstack/react-query';
 
 export default function LoginForm() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(false);
-    const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
 
     const { login } = useAuth();
 
-    const handleLogin = async () => {
-
-        try {
-            setLoading(true);
-
+    const loginMutation = useMutation({
+        mutationFn: async () => {
             const res = await publicFetch("https://ilabcict-backend.onrender.com/api/auth/login/", {
                 method: "POST",
                 body: JSON.stringify({ username: email, password }),
@@ -30,23 +27,29 @@ export default function LoginForm() {
             const data = await res.json();
 
             if (!res.ok) {
-                setError(true);
-                console.log("failed to login");
-                return;
+                throw new Error(data.message || "Failed to login");
             }
 
-            const name = data.first_name + " " + data.last_name;
-            
-           login({ id: data.id, accessToken: data.access, refreshToken: data.refresh,
-             name: name, role: data.role, profilePicture: data.profile_image }); 
-           navigate("/manage-ticket");
+            return data;
+        },
 
-        } catch (err) {
-            console.error("Error occurred while logging in:", err);
-        } finally {
-            setLoading(false);
+        onSuccess: (data) => {
+            const name = data.first_name + " " + data.last_name;
+
+            login({
+                id: data.id, accessToken: data.access, refreshToken: data.refresh,
+                name: name, role: data.role, profilePicture: data.profile_image,
+            });
+
+            navigate("/manage-ticket");
+        },
+
+        onError: (err) => {
+            console.error(err);
+            setError(true);
         }
-    }
+    });
+
 
     return (
         <>
@@ -98,8 +101,8 @@ export default function LoginForm() {
 
                     <button className='w-full text-end primary-text-color font-semibold mb-5 cursor-pointer max-w-sm'>Forgot Password?</button>
 
-                    <button className='primary-button rounded-full! w-full max-w-sm' onClick={handleLogin} disabled={loading}>
-                        {loading ? "Signing in..." : "Sign In"}
+                    <button className='primary-button rounded-full! w-full max-w-sm' onClick={() => loginMutation.mutate()} disabled={loginMutation.isPending}>
+                        {loginMutation.isPending ? "Signing in..." : "Sign In"}
                     </button>
                 </div>
             </div>
