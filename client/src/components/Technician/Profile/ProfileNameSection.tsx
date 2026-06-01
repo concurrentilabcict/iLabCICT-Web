@@ -1,0 +1,180 @@
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+
+import { useAuth } from "@/auth/useAuth";
+import { privateFetch } from "@/lib/api";
+import SaveProfileDialog from "./SaveProfileDialog";
+
+type ProfileNameSectionProps = {
+    isMobile: boolean;
+};
+
+const splitFullName = (fullName: string) => {
+    const parts = fullName.trim().split(" ").filter(Boolean);
+
+    return {
+        firstName: parts.slice(0, -1).join(" "),
+        lastName: parts.slice(-1).join(" "),
+    };
+};
+
+export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps) {
+    const { name, setName } = useAuth();
+    const initialName = splitFullName(name);
+    const [isEditing, setIsEditing] = useState(false);
+    const [firstName, setFirstName] = useState(initialName.firstName);
+    const [lastName, setLastName] = useState(initialName.lastName);
+    const [profileError, setProfileError] = useState("");
+
+    const userId = localStorage.getItem("id");
+    const currentName = splitFullName(name);
+    const isFirstNameEmpty = Boolean(profileError) && !firstName.trim();
+    const isLastNameEmpty = Boolean(profileError) && !lastName.trim();
+    const isNameUnchanged = firstName.trim() === currentName.firstName && lastName.trim() === currentName.lastName;
+    const firstNameInputClass = isEditing
+        ? `primary-input ${isFirstNameEmpty || (profileError && isNameUnchanged) ? "border-red-600! focus:border-red-600!" : ""}`
+        : "disable-input max-w-[500px]";
+    const lastNameInputClass = isEditing
+        ? `primary-input ${isLastNameEmpty || (profileError && isNameUnchanged) ? "border-red-600! focus:border-red-600!" : ""}`
+        : "disable-input max-w-[500px]";
+
+    const handleCancelEdit = () => {
+        const currentName = splitFullName(name);
+
+        setFirstName(currentName.firstName);
+        setLastName(currentName.lastName);
+        setProfileError("");
+        setIsEditing(false);
+    };
+
+    const validateProfileChanges = () => {
+        if (!firstName.trim() || !lastName.trim()) {
+            setProfileError("First name and last name cannot be empty.");
+            return false;
+        }
+
+        if (isNameUnchanged) {
+            setProfileError("Please change your first name or last name before saving.");
+            return false;
+        }
+
+        setProfileError("");
+        return true;
+    };
+
+    const handleSaveProfile = () => {
+        if (!validateProfileChanges()) {
+            return;
+        }
+
+        profileSaveMutation.mutate();
+    };
+
+    const profileSaveMutation = useMutation({
+        mutationFn: async () => {
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`, {
+                method: "PATCH",
+                body: JSON.stringify({
+                    first_name: firstName.trim(),
+                    last_name: lastName.trim(),
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to change name");
+            }
+
+            return data;
+        },
+
+        onSuccess: (data) => {
+            const updatedFirstName = data.first_name ?? firstName.trim();
+            const updatedLastName = data.last_name ?? lastName.trim();
+            const updatedName = `${updatedFirstName} ${updatedLastName}`.trim();
+
+            setFirstName(updatedFirstName);
+            setLastName(updatedLastName);
+            setName(updatedName);
+            localStorage.setItem("name", updatedName);
+            setProfileError("");
+            setIsEditing(false);
+        },
+
+        onError: (err) => {
+            console.error(err);
+        }
+    });
+
+    return (
+        <div className={`flex mb-5 flex-col gap-y-4 ${isMobile ? "px-3" : ""}`}>
+            <div className="flex flex-col gap-y-4 sm:flex-row sm:gap-x-2">
+                <div className="flex flex-col gap-y-1 w-full">
+                    <span className="font-medium">First Name</span>
+                    <input
+                        type="text"
+                        value={firstName}
+                        disabled={!isEditing}
+                        onChange={(e) => { setFirstName(e.target.value); setProfileError("") }}
+                        className={firstNameInputClass}
+                        aria-invalid={isFirstNameEmpty || Boolean(profileError && isNameUnchanged)}
+                    />
+                </div>
+
+                <div className="flex flex-col gap-y-1 w-full">
+                    <span className="font-medium">Last Name</span>
+                    <input
+                        type="text"
+                        value={lastName}
+                        disabled={!isEditing}
+                        onChange={(e) => { setLastName(e.target.value); setProfileError("") }}
+                        className={lastNameInputClass}
+                        aria-invalid={isLastNameEmpty || Boolean(profileError && isNameUnchanged)}
+                    />
+                </div>
+            </div>
+
+            {profileError && (
+                <p className="text-sm text-red-600">
+                    {profileError}
+                </p>
+            )}
+
+            <div className="flex flex-col gap-y-1">
+                <span className="font-medium">Email</span>
+                <div className="flex sm:justify-between sm:items-center flex-col gap-y-1 sm:flex-row sm:gap-x-3">
+                    <input type="text" className="disable-input mb-1.5 w-full" placeholder="patricksoriaga14@gmail.com" />
+                </div>
+            </div>
+
+            <div className="flex justify-end gap-x-2">
+                {isEditing ? (
+                    <>
+                        <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="secondary-button cursor-pointer text-sm font-medium"
+                            disabled={profileSaveMutation.isPending}
+                        >
+                            Cancel
+                        </button>
+                        <SaveProfileDialog
+                            onSave={handleSaveProfile}
+                            onBeforeOpen={validateProfileChanges}
+                            isPending={profileSaveMutation.isPending}
+                        />
+                    </>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="secondary-button cursor-pointer text-sm font-medium"
+                    >
+                        Edit Profile
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
