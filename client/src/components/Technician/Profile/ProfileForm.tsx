@@ -7,6 +7,8 @@ import { Image } from 'lucide-react';
 import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
+import { Spinner } from "@/components/ui/spinner"
+
 const splitFullName = (fullName: string) => {
     const parts = fullName.trim().split(" ").filter(Boolean);
 
@@ -27,7 +29,6 @@ export default function ProfileForm() {
     const [isEditing, setIsEditing] = useState(false);
     const [firstName, setFirstName] = useState(initialName.firstName);
     const [lastName, setLastName] = useState(initialName.lastName);
-    const [isSaving, setIsSaving] = useState(false);
 
     const userId = localStorage.getItem("id");
 
@@ -108,27 +109,26 @@ export default function ProfileForm() {
         setIsEditing(false);
     };
 
-    const handleProfileSave = async () => {
-        try {
-            setIsSaving(true);
-
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`,
-                {
-                    method: "PATCH",
-                    body: JSON.stringify({
-                        first_name: firstName.trim(),
-                        last_name: lastName.trim(),
-                    }),
-                }
-            );
+    const profileSaveMutation = useMutation({
+        mutationFn: async () => {
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`, {
+                method: "PATCH",
+                body: JSON.stringify({
+                    first_name: firstName.trim(),
+                    last_name: lastName.trim(),
+                }),
+            });
 
             const data = await res.json();
 
-            if (!res.ok) {
-                console.error("failed to update profile");
-                return;
+            if(!res.ok) {
+                throw new Error(data.message || "Failed to change name");
             }
 
+            return data;
+        },
+
+        onSuccess: (data) => {
             const updatedFirstName = data.first_name ?? firstName.trim();
             const updatedLastName = data.last_name ?? lastName.trim();
             const updatedName = `${updatedFirstName} ${updatedLastName}`.trim();
@@ -138,12 +138,13 @@ export default function ProfileForm() {
             setName(updatedName);
             localStorage.setItem("name", updatedName);
             setIsEditing(false);
-        } catch (err) {
-            console.error("Error occurred while updating profile:", err);
-        } finally {
-            setIsSaving(false);
+        },
+
+        onError: (err) => {
+            console.error(err);
         }
-    };
+    });
+
 
     return (
         <>
@@ -159,12 +160,14 @@ export default function ProfileForm() {
                             <button
                                 onClick={() => fileInputRef.current?.click()}
                                 className="cursor-pointer flex gap-x-1 items-center primary-button">
-                                <Image size={14} />
-                                Change Image
+                                {!imageChangeMutation.isPending ? <><Image size={14} /> <span>Change Image</span></>
+                                    : <><Spinner className="size-5" /> <span>Uploading...</span></>}
+
                             </button>
 
-                            <button onClick={() => imageRemoveMutation.mutate()} className=" cursor-pointer secondary-button">
-                                Remove Image
+                            <button onClick={() => imageRemoveMutation.mutate()} className=" cursor-pointer flex gap-x-1 secondary-button">
+                                {!imageRemoveMutation.isPending ? <><span>Remove Image</span></>
+                                    : <><Spinner className="size-5" /> <span>Removing...</span></>}
                             </button>
 
                             <input
@@ -221,17 +224,18 @@ export default function ProfileForm() {
                                     type="button"
                                     onClick={handleCancelEdit}
                                     className="secondary-button cursor-pointer text-sm font-medium"
-                                    disabled={isSaving}
+                                    disabled={profileSaveMutation.isPending}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={handleProfileSave}
+                                    onClick={() => profileSaveMutation.mutate()}
                                     className="primary-button cursor-pointer text-sm font-medium"
-                                    disabled={isSaving}
+                                    disabled={profileSaveMutation.isPending}
                                 >
-                                    {isSaving ? "Saving..." : "Save Changes"}
+                                    {profileSaveMutation.isPending ? <><Spinner className="size-5" /> <span>Saving...</span></> 
+                                    : "Save Changes"}
                                 </button>
                             </>
                         ) : (

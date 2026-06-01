@@ -72,7 +72,7 @@ export default function ManageTicketCard({
           {title}
         </h1>
 
-        <p className="text-sm secondary-text-color max-w-[75%] line-clamp-2">
+        <p className="text-sm secondary-text-color max-w-[75%] line-clamp-2 h-10">
           {complaintDescription}
         </p>
       </div>
