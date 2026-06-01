@@ -77,3 +77,18 @@ export const publicFetch = (
         },
     });
 };
+
+export type ApiError = Error & {
+    status?: number;
+};
+
+export function createApiError(
+    status: number,
+    message: string
+): ApiError {
+    const error = new Error(message) as ApiError;
+
+    error.status = status;
+
+    return error;
+} 

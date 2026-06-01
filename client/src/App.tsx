@@ -7,11 +7,13 @@ import { ProtectedRoute, PublicRoute } from "./routes/ProtectedRoute"
 import ProfilePage from "./pages/Technician/ProfilePage"
 import NotificationPage from "./pages/Technician/NotificationPage"
 import WeeklyReportPage from "./pages/Technician/WeeklyReportPage"
+import { Toaster } from "react-hot-toast";
 
 function App() {
 
   return (
     <>
+    <Toaster position="top-center" toastOptions={{duration: 3000, }} />
       <Routes>
         <Route path="/" element={<PublicRoute><SmoothScrolling>
           <LandingPage /></SmoothScrolling></PublicRoute>} />

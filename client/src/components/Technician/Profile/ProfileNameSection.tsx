@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/auth/useAuth";
 import { privateFetch } from "@/lib/api";
 import SaveProfileDialog from "./SaveProfileDialog";
+import toast from "react-hot-toast";
 
 type ProfileNameSectionProps = {
     isMobile: boolean;
@@ -100,10 +101,13 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
             localStorage.setItem("name", updatedName);
             setProfileError("");
             setIsEditing(false);
+
+            toast.success("Name updated successfully.");
         },
 
         onError: (err) => {
             console.error(err);
+            toast.error("Failed to update name.");
         }
     });
 

@@ -2,8 +2,9 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { privateFetch } from "@/lib/api";
+import { createApiError, privateFetch, type ApiError } from "@/lib/api";
 import SavePasswordDialog from "./SavePasswordDialog";
+import toast from "react-hot-toast";
 
 export default function AccountSecurity() {
 
@@ -55,8 +56,6 @@ export default function AccountSecurity() {
 
     const changePasswordMutation = useMutation({
         mutationFn: async () => {
-
-
             const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/reset-password/${userId}/`, {
                 method: "PATCH",
                 body: JSON.stringify({
@@ -68,8 +67,27 @@ export default function AccountSecurity() {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.message || "Failed to change the password");
+                throw createApiError(res.status,
+                    data.message || "Failed to change the password");
             }
+        },
+
+        onSuccess: () => {
+            toast.success("Password updated successfully.");
+        },
+
+        onError: (error: ApiError) => {
+            if (error.status === 400) {
+                toast.error("Incorrect current password.");
+                return;
+            }
+
+            if (error.status === 500) {
+                toast.error("Server error. Please try again later.");
+                return;
+            }
+
+            toast.error("Something went wrong.");
         }
     });
 

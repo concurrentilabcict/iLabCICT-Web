@@ -8,6 +8,8 @@ import { privateFetch } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
 import RemoveImageDialog from "./RemoveImageDialog";
 
+import toast from "react-hot-toast";
+
 type ProfileImageSectionProps = {
     isMobile: boolean;
 };
@@ -69,11 +71,12 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
 
         onSuccess: (data) => {
             syncProfilePicture(data.profile_image);
+            toast.success("Profile image updated successfully.");
         },
 
         onError: (err) => {
             console.error(err);
-
+            toast.error("Failed to update profile image.");
         }
     });
 
@@ -97,11 +100,12 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
 
         onSuccess: (data) => {
             syncProfilePicture(data.profile_image);
+            toast.success("Profile image removed successfully.");
         },
 
         onError: (err) => {
             console.error(err);
-
+            toast.error("Failed to remove profile image.");
         }
     });
 
