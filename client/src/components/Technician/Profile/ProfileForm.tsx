@@ -8,6 +8,8 @@ import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import { Spinner } from "@/components/ui/spinner"
+import RemoveImageDialog from "./RemoveImageDialog";
+import SaveProfileDialog from "./SaveProfileDialog";
 
 const splitFullName = (fullName: string) => {
     const parts = fullName.trim().split(" ").filter(Boolean);
@@ -16,6 +18,14 @@ const splitFullName = (fullName: string) => {
         firstName: parts.slice(0, -1).join(" "),
         lastName: parts.slice(-1).join(" "),
     };
+};
+
+const hasUploadedProfilePicture = (picture: string | null) => {
+    if (!picture) return false;
+
+    const normalizedPicture = picture.trim().toLowerCase();
+
+    return normalizedPicture !== "null" && normalizedPicture !== "undefined";
 };
 
 export default function ProfileForm() {
@@ -29,8 +39,21 @@ export default function ProfileForm() {
     const [isEditing, setIsEditing] = useState(false);
     const [firstName, setFirstName] = useState(initialName.firstName);
     const [lastName, setLastName] = useState(initialName.lastName);
+    const [profileError, setProfileError] = useState("");
 
     const userId = localStorage.getItem("id");
+    const currentName = splitFullName(name);
+    const isFirstNameEmpty = Boolean(profileError) && !firstName.trim();
+    const isLastNameEmpty = Boolean(profileError) && !lastName.trim();
+    const isNameUnchanged = firstName.trim() === currentName.firstName && lastName.trim() === currentName.lastName;
+    const hasProfilePicture = hasUploadedProfilePicture(profilePicture);
+    const displayedProfilePicture = hasProfilePicture ? profilePicture! : placeholderPicture;
+    const firstNameInputClass = isEditing
+        ? `primary-input ${isFirstNameEmpty || (profileError && isNameUnchanged) ? "border-red-600! focus:border-red-600!" : ""}`
+        : "disable-input max-w-[500px]";
+    const lastNameInputClass = isEditing
+        ? `primary-input ${isLastNameEmpty || (profileError && isNameUnchanged) ? "border-red-600! focus:border-red-600!" : ""}`
+        : "disable-input max-w-[500px]";
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -63,7 +86,11 @@ export default function ProfileForm() {
 
         onSuccess: (data) => {
             setProfilePicture(data.profile_image);
-            localStorage.setItem("profilePicture", data.profile_image);
+            if (data.profile_image) {
+                localStorage.setItem("profilePicture", data.profile_image);
+            } else {
+                localStorage.removeItem("profilePicture");
+            }
         },
 
         onError: (err) => {
@@ -92,7 +119,11 @@ export default function ProfileForm() {
 
         onSuccess: (data) => {
             setProfilePicture(data.profile_image);
-            localStorage.setItem("profilePicture", data.profile_image);
+            if (data.profile_image) {
+                localStorage.setItem("profilePicture", data.profile_image);
+            } else {
+                localStorage.removeItem("profilePicture");
+            }
         },
 
         onError: (err) => {
@@ -106,7 +137,31 @@ export default function ProfileForm() {
 
         setFirstName(currentName.firstName);
         setLastName(currentName.lastName);
+        setProfileError("");
         setIsEditing(false);
+    };
+
+    const validateProfileChanges = () => {
+        if (!firstName.trim() || !lastName.trim()) {
+            setProfileError("First name and last name cannot be empty.");
+            return false;
+        }
+
+        if (isNameUnchanged) {
+            setProfileError("Please change your first name or last name before saving.");
+            return false;
+        }
+
+        setProfileError("");
+        return true;
+    };
+
+    const handleSaveProfile = () => {
+        if (!validateProfileChanges()) {
+            return;
+        }
+
+        profileSaveMutation.mutate();
     };
 
     const profileSaveMutation = useMutation({
@@ -121,7 +176,7 @@ export default function ProfileForm() {
 
             const data = await res.json();
 
-            if(!res.ok) {
+            if (!res.ok) {
                 throw new Error(data.message || "Failed to change name");
             }
 
@@ -137,6 +192,7 @@ export default function ProfileForm() {
             setLastName(updatedLastName);
             setName(updatedName);
             localStorage.setItem("name", updatedName);
+            setProfileError("");
             setIsEditing(false);
         },
 
@@ -153,7 +209,7 @@ export default function ProfileForm() {
                 <div className="h-px w-full bg-[#e5e5e5]" />
 
                 <div className={`flex items-start gap-x-4 ${isMobile ? "px-3" : ""}`}>
-                    <img src={profilePicture || placeholderPicture} alt="" className="w-15 h-15 sm:w-20 sm:h-20 lg:w-25 lg:h-25 rounded-full" />
+                    <img src={displayedProfilePicture} alt="" className="w-15 h-15 sm:w-20 sm:h-20 lg:w-25 lg:h-25 rounded-full" />
 
                     <div className="flex flex-col gap-y-2">
                         <div className="flex text-sm gap-x-2">
@@ -165,10 +221,9 @@ export default function ProfileForm() {
 
                             </button>
 
-                            <button onClick={() => imageRemoveMutation.mutate()} className=" cursor-pointer flex gap-x-1 secondary-button">
-                                {!imageRemoveMutation.isPending ? <><span>Remove Image</span></>
-                                    : <><Spinner className="size-5" /> <span>Removing...</span></>}
-                            </button>
+                            <RemoveImageDialog onRemove={() => imageRemoveMutation.mutate()}
+                                isPending={imageRemoveMutation.isPending}
+                                disabled={!hasProfilePicture} />
 
                             <input
                                 ref={fileInputRef}
@@ -193,8 +248,9 @@ export default function ProfileForm() {
                                 type="text"
                                 value={firstName}
                                 disabled={!isEditing}
-                                onChange={(e) => setFirstName(e.target.value)}
-                                className={isEditing ? "primary-input" : "disable-input max-w-[500px]"}
+                                onChange={(e) => { setFirstName(e.target.value); setProfileError("") }}
+                                className={firstNameInputClass}
+                                aria-invalid={isFirstNameEmpty || Boolean(profileError && isNameUnchanged)}
                             />
                         </div>
 
@@ -204,11 +260,18 @@ export default function ProfileForm() {
                                 type="text"
                                 value={lastName}
                                 disabled={!isEditing}
-                                onChange={(e) => setLastName(e.target.value)}
-                                className={isEditing ? "primary-input" : "disable-input max-w-[500px]"}
+                                onChange={(e) => { setLastName(e.target.value); setProfileError("") }}
+                                className={lastNameInputClass}
+                                aria-invalid={isLastNameEmpty || Boolean(profileError && isNameUnchanged)}
                             />
                         </div>
                     </div>
+
+                    {profileError && (
+                        <p className="text-sm text-red-600">
+                            {profileError}
+                        </p>
+                    )}
 
                     <div className="flex flex-col gap-y-1">
                         <span className="font-medium">Email</span>
@@ -228,15 +291,11 @@ export default function ProfileForm() {
                                 >
                                     Cancel
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={() => profileSaveMutation.mutate()}
-                                    className="primary-button cursor-pointer text-sm font-medium"
-                                    disabled={profileSaveMutation.isPending}
-                                >
-                                    {profileSaveMutation.isPending ? <><Spinner className="size-5" /> <span>Saving...</span></> 
-                                    : "Save Changes"}
-                                </button>
+                                <SaveProfileDialog
+                                    onSave={handleSaveProfile}
+                                    onBeforeOpen={validateProfileChanges}
+                                    isPending={profileSaveMutation.isPending}
+                                />
                             </>
                         ) : (
                             <button

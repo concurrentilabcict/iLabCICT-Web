@@ -2,6 +2,9 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { privateFetch } from "@/lib/api";
+import SavePasswordDialog from "./SavePasswordDialog";
+
 export default function AccountSecurity() {
 
     const isMobile = useMediaQuery("(max-width: 767px)");
@@ -9,10 +12,64 @@ export default function AccountSecurity() {
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [isMatch, setIsMatch] = useState(true);
+    const [passwordError, setPasswordError] = useState("");
+
+    const userId = localStorage.getItem("id");
+    const hasEmptyPasswordField = Boolean(passwordError) && (!currentPassword || !newPassword || !confirmPassword);
+    const currentPasswordInputClass = isChangingPassword
+        ? `primary-input w-full max-w-full! ${hasEmptyPasswordField && !currentPassword ? "border-red-600! focus:border-red-600!" : ""}`
+        : "disable-input w-full";
+    const newPasswordInputClass = isChangingPassword
+        ? `primary-input w-full ${(!isMatch || (hasEmptyPasswordField && !newPassword)) ? "border-red-600! focus:border-red-600!" : ""}`
+        : "disable-input w-full";
+    const confirmPasswordInputClass = isChangingPassword
+        ? `primary-input w-full ${(!isMatch || (hasEmptyPasswordField && !confirmPassword)) ? "border-red-600! focus:border-red-600!" : ""}`
+        : "disable-input w-full";
+
+    const validatePasswordChange = () => {
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            setPasswordError("Please fill out all password fields.");
+            setIsMatch(true);
+            return false;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setPasswordError("New password and confirm password do not match.");
+            setIsMatch(false);
+            return false;
+        }
+
+        setIsMatch(true);
+        setPasswordError("");
+        return true;
+    };
+
+    const handleSubmit = () => {
+        if (!validatePasswordChange()) {
+            return;
+        }
+
+        changePasswordMutation.mutate();
+    }
 
     const changePasswordMutation = useMutation({
         mutationFn: async () => {
 
+
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/reset-password/${userId}/`, {
+                method: "PATCH",
+                body: JSON.stringify({
+                    old_password: currentPassword,
+                    password: newPassword,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to change the password");
+            }
         }
     });
 
@@ -20,6 +77,8 @@ export default function AccountSecurity() {
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
+        setIsMatch(true);
+        setPasswordError("");
         setIsChangingPassword(false);
     };
 
@@ -39,8 +98,9 @@ export default function AccountSecurity() {
                                     type="password"
                                     value={currentPassword}
                                     disabled={!isChangingPassword}
-                                    onChange={(e) => setCurrentPassword(e.target.value)}
-                                    className={isChangingPassword ? "primary-input w-full max-w-full!" : "disable-input w-full"}
+                                    onChange={(e) => { setCurrentPassword(e.target.value); setPasswordError("") }}
+                                    className={currentPasswordInputClass}
+                                    aria-invalid={hasEmptyPasswordField && !currentPassword ? true : undefined}
                                 />
                             </div>
 
@@ -51,8 +111,9 @@ export default function AccountSecurity() {
                                         type="password"
                                         value={newPassword}
                                         disabled={!isChangingPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        className={isChangingPassword ? "primary-input w-full" : "disable-input w-full"}
+                                        onChange={(e) => { setNewPassword(e.target.value); setIsMatch(true); setPasswordError("") }}
+                                        className={newPasswordInputClass}
+                                        aria-invalid={!isMatch || (hasEmptyPasswordField && !newPassword)}
                                     />
                                 </div>
 
@@ -62,11 +123,18 @@ export default function AccountSecurity() {
                                         type="password"
                                         value={confirmPassword}
                                         disabled={!isChangingPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className={isChangingPassword ? "primary-input w-full" : "disable-input w-full"}
+                                        onChange={(e) => { setConfirmPassword(e.target.value); setIsMatch(true); setPasswordError("") }}
+                                        className={confirmPasswordInputClass}
+                                        aria-invalid={!isMatch || (hasEmptyPasswordField && !confirmPassword)}
                                     />
                                 </div>
                             </div>
+
+                            {passwordError && (
+                                <p className="text-sm text-red-600">
+                                    {passwordError}
+                                </p>
+                            )}
 
                             <div className="flex justify-end gap-x-2">
                                 {isChangingPassword ? (
@@ -78,12 +146,11 @@ export default function AccountSecurity() {
                                         >
                                             Cancel
                                         </button>
-                                        <button
-                                            type="button"
-                                            className="primary-button text-sm cursor-pointer font-medium"
-                                        >
-                                            Save Password
-                                        </button>
+                                        <SavePasswordDialog
+                                            onSave={handleSubmit}
+                                            onBeforeOpen={validatePasswordChange}
+                                            isPending={changePasswordMutation.isPending}
+                                        />
                                     </>
                                 ) : (
                                     <button
