@@ -2,7 +2,7 @@ import Logo from '@/assets/logo.png';
 import { User, LockKeyhole, Eye, EyeOff, X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { publicFetch } from '@/lib/api';
+import { createApiError, publicFetch, type ApiError } from '@/lib/api';
 import { useAuth } from '@/auth/useAuth';
 import { useMutation } from '@tanstack/react-query';
 import { Spinner } from "@/components/ui/spinner"
@@ -34,7 +34,10 @@ export default function LoginForm() {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error("Incorrect username and password.");
+                throw createApiError(
+                    res.status,
+                    data.message || "Failed to sign in."
+                );
             }
 
             return data;
@@ -51,8 +54,13 @@ export default function LoginForm() {
             navigate("/manage-ticket");
         },
 
-        onError: (err) => {
-            setError(err.message);
+        onError: (error: ApiError) => {
+            if (error.status === 500) {
+                setError("Server error. Please try again later.");
+                return;
+            }
+
+            setError("Something went wrong.");
         }
     });
 

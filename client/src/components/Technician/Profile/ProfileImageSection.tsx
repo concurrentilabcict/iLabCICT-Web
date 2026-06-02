@@ -4,7 +4,7 @@ import { Image } from "lucide-react";
 
 import placeholderPicture from "@/assets/profile-placeholder.png";
 import { useAuth } from "@/auth/useAuth";
-import { privateFetch } from "@/lib/api";
+import { createApiError, privateFetch, type ApiError } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
 import RemoveImageDialog from "./RemoveImageDialog";
 
@@ -63,7 +63,10 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.message || "Failed to change profile");
+                throw createApiError(
+                    res.status,
+                    data.message || "Failed to change profile"
+                );
             }
 
             return data;
@@ -74,9 +77,13 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
             toast.success("Profile image updated successfully.");
         },
 
-        onError: (err) => {
-            console.error(err);
-            toast.error("Failed to update profile image.");
+        onError: (error: ApiError) => {
+            if (error.status === 500) {
+                toast.error("Server error. Please try again later.");
+                return;
+            }
+
+            toast.error("Something went wrong.");
         }
     });
 
@@ -92,7 +99,10 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.message || "Failed to remove profile");
+                throw createApiError(
+                    res.status,
+                    data.message || "Failed to remove profile"
+                );
             }
 
             return data;
@@ -103,9 +113,13 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
             toast.success("Profile image removed successfully.");
         },
 
-        onError: (err) => {
-            console.error(err);
-            toast.error("Failed to remove profile image.");
+        onError: (error: ApiError) => {
+            if (error.status === 500) {
+                toast.error("Server error. Please try again later.");
+                return;
+            }
+
+            toast.error("Something went wrong.");
         }
     });
 

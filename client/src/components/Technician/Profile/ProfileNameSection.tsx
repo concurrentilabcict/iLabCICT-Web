@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import { useAuth } from "@/auth/useAuth";
-import { privateFetch } from "@/lib/api";
+import { createApiError, privateFetch, type ApiError } from "@/lib/api";
 import SaveProfileDialog from "./SaveProfileDialog";
 import toast from "react-hot-toast";
 
@@ -84,7 +84,10 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.message || "Failed to change name");
+                throw createApiError(
+                    res.status,
+                    data.message || "Failed to change name"
+                );
             }
 
             return data;
@@ -105,9 +108,13 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
             toast.success("Name updated successfully.");
         },
 
-        onError: (err) => {
-            console.error(err);
-            toast.error("Failed to update name.");
+        onError: (error: ApiError) => {
+            if (error.status === 500) {
+                toast.error("Server error. Please try again later.");
+                return;
+            }
+
+            toast.error("Something went wrong.");
         }
     });
 
