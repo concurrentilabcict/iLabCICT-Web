@@ -8,6 +8,7 @@ import ProfilePage from "./pages/Technician/ProfilePage"
 import NotificationPage from "./pages/Technician/NotificationPage"
 import WeeklyReportPage from "./pages/Technician/WeeklyReportPage"
 import { Toaster } from "react-hot-toast";
+import QrScannerPage from "./pages/Technician/QrScannerPage"
 
 function App() {
 
@@ -27,6 +28,8 @@ function App() {
           <NotificationPage /></ProtectedRoute>} />
           <Route path="/weekly-reports" element={<ProtectedRoute allowedRole="technician">
           <WeeklyReportPage /></ProtectedRoute>} />
+          <Route path="/qr-scanner" element={<ProtectedRoute allowedRole="technician">
+          <QrScannerPage /></ProtectedRoute>} />
       </Routes>
     </>
   )
