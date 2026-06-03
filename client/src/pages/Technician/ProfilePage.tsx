@@ -11,6 +11,7 @@ import {
   SidebarProvider,
   SidebarInset,
 } from "@/components/ui/sidebar";
+import NavBar from "@/components/Technician/NavBar/NavBar";
 
 
 export default function ProfilePage() {
@@ -24,7 +25,7 @@ export default function ProfilePage() {
     return (
         <>
             <SidebarProvider>
-                {isMobile ? null : <Sidebar />}
+                {isMobile ? <NavBar /> : <Sidebar />}
                 <SidebarInset>
                     <div className="min-h-screen ">
                         {isMobile ? <MobileHeader title="Profile" /> : <Header title="Profile" />}

@@ -1,12 +1,14 @@
 import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
-import { Flashlight } from "lucide-react";
+import { Flashlight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type QrScannerProps = {
     onScan?: (value: string) => void;
 };
 
 export function QrScanner({ onScan }: QrScannerProps) {
+    const navigate = useNavigate();
     const videoRef = useRef<HTMLVideoElement>(null);
     const controlsRef = useRef<IScannerControls | null>(null);
     const onScanRef = useRef(onScan);
@@ -89,6 +91,10 @@ export function QrScanner({ onScan }: QrScannerProps) {
         }
     };
 
+    const handleClose = () => {
+        navigate(-1);
+    };
+
     return (
         <section className="relative min-h-[100svh] overflow-hidden bg-black text-white">
             <style>
@@ -115,7 +121,39 @@ export function QrScanner({ onScan }: QrScannerProps) {
                 muted
             />
 
-            <div className="relative z-10 flex min-h-[100svh] flex-col items-center px-6 pb-10 pt-24">
+            <div className="relative z-10 flex min-h-[100svh] flex-col items-center px-3 pb-0 pt-3">
+                <div className="mb-10 mt-5 px-3 flex w-full items-center justify-between">
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="cursor-pointer flex flex-col items-center text-sm font-medium text-white/80 transition hover:text-white"
+                        aria-label="Close QR scanner"
+                    >
+                        <span className="z-20 grid size-16 place-items-center rounded-full border border-white/10 bg-white/10 transition">
+                            <X className="size-7" />
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleLightToggle}
+                        disabled={!isTorchAvailable}
+                        className={`cursor-pointer flex flex-col items-center text-sm font-medium transition ${isLightOn ? "text-green-400" : "text-white/80"
+                            } disabled:text-white/35`}
+                        aria-pressed={isLightOn}
+                        aria-label="Toggle flashlight"
+                    >
+                        <span
+                            className={`z-20 grid size-16 place-items-center rounded-full border transition ${isLightOn
+                                ? "border-green-400/40"
+                                : "border-white/10 bg-white/10"
+                                }`}
+                        >
+                            <Flashlight className="size-7" />
+                        </span>
+                    </button>
+                </div>
+
                 <div className="text-center z-20">
                     <h1 className="text-3xl font-semibold tracking-normal">Scan QR Code</h1>
                     <p className="mt-3 text-white/70">Align the QR code within the frame</p>
@@ -137,26 +175,7 @@ export function QrScanner({ onScan }: QrScannerProps) {
                         <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-[20px] border-b-4 border-r-4 border-white" />
                     </div>
 
-                    <div className="mt-10 flex items-center justify-center gap-12">
 
-                        <button
-                            type="button"
-                            onClick={handleLightToggle}
-                            disabled={!isTorchAvailable}
-                            className={`flex min-w-24 flex-col items-center gap-3 text-sm font-medium transition ${isLightOn ? "text-green-400" : "text-white/80"
-                                } disabled:text-white/35`}
-                            aria-pressed={isLightOn}
-                        >
-                            <span
-                                className={`grid size-16 place-items-center z-20 rounded-full border transition ${isLightOn
-                                    ? "border-green-400/40"
-                                    : "border-white/10 bg-white/10"
-                                    }`}
-                            >
-                                <Flashlight className="size-7" />
-                            </span>
-                        </button>
-                    </div>
                 </div>
             </div>
         </section>

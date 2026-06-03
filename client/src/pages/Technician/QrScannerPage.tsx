@@ -1,3 +1,4 @@
+import NavBar from "@/components/Technician/NavBar/NavBar";
 import { QrScanner } from "@/components/Technician/QrScanner/QrScanner";
 import { useState } from "react";
 
