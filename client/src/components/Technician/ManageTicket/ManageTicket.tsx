@@ -4,11 +4,18 @@ import { useEffect, useMemo, useState } from "react";
 import { privateFetch } from "@/lib/api";
 import type { Ticket } from "@/types/ticket";
 
+import {
+    Sheet,
+    SheetContent,
+} from "@/components/ui/sheet";
+
+import TicketDetails from "./TicketDetails";
+
 import type {
-  Status,
-  StatusFilter,
-  TicketType,
-  TicketTypeFilter,
+    Status,
+    StatusFilter,
+    TicketType,
+    TicketTypeFilter,
 } from "@/utils/ticket";
 
 type ManageTicketProps = {
@@ -36,6 +43,14 @@ export default function ManageTicket({
 
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+    const [sheetOpen, setSheetOpen] = useState(false);
+
+    const handleTicketClick = (ticket: Ticket) => {
+        setSelectedTicket(ticket);
+        setSheetOpen(true);
+    };
 
     const mapTicket = (ticket: any): Ticket => ({
         id: ticket.id,
@@ -166,11 +181,32 @@ export default function ManageTicket({
                         <div className="w-full" key={ticket.id}>
                             <ManageTicketCard status={status} type={type} title={ticket.title}
                                 complaintDescription={ticket.complaintDescription} reportedBy={reportedBy}
-                                ticketCode={ticket.ticketCode} room={room} computerCode={ticket.computer.computerCode} />
+                                ticketCode={ticket.ticketCode} room={room} computerCode={ticket.computer.computerCode}
+                                onClick={() => handleTicketClick(ticket)} />
                         </div>
                     );
                 })}
             </div>
+
+            <Sheet
+                open={sheetOpen}
+                onOpenChange={setSheetOpen}
+            >
+                <SheetContent
+                    side={isMobile ? "bottom" : "right"}
+                    className={
+                        isMobile
+                            ? "h-[90vh]"
+                            : "w-[1000px]!"
+                    }
+                >
+                    {selectedTicket && (
+                        <TicketDetails
+                            ticket={selectedTicket}
+                        />
+                    )}
+                </SheetContent>
+            </Sheet>
         </>
     );
 }   

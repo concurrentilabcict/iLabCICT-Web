@@ -26,6 +26,7 @@ type ManageTicketCardProps = {
   ticketCode: string;
   room: string;
   computerCode: string;
+  onClick?: () => void;
 };
 
 export default function ManageTicketCard({
@@ -37,6 +38,7 @@ export default function ManageTicketCard({
   ticketCode,
   room,
   computerCode,
+  onClick,
 }: ManageTicketCardProps) {
 
   const statusData = statusConfig[status];
@@ -45,9 +47,9 @@ export default function ManageTicketCard({
   const StatusIcon = statusData.icon;
 
   return (
-    <div
+    <div onClick={onClick}
       className="bg-white flex flex-col gap-y-2.5 border primary-border-color
-      rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px]"
+      rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px] cursor-pointer"
     >
 
       <div className="flex items-center gap-x-2">
