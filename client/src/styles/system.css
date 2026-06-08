@@ -9,7 +9,7 @@
 }
 
 .secondary-text-color {
-  @apply text-gray-500;
+   @apply text-muted-foreground;
 }
 
 .primary-border-color {

@@ -182,7 +182,7 @@ export default function ManageTicket({
                             <ManageTicketCard status={status} type={type} title={ticket.title}
                                 complaintDescription={ticket.complaintDescription} reportedBy={reportedBy}
                                 ticketCode={ticket.ticketCode} room={room} computerCode={ticket.computer.computerCode}
-                                onClick={() => handleTicketClick(ticket)} />
+                                date={ticket.createdAt} onClick={() => handleTicketClick(ticket)} />
                         </div>
                     );
                 })}

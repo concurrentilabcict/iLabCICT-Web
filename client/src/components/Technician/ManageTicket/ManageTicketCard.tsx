@@ -16,6 +16,7 @@ import type {
   Status,
   TicketType,
 } from "@/utils/ticket";
+import { formatDateTime } from "@/utils/string";
 
 type ManageTicketCardProps = {
   status: Status;
@@ -26,6 +27,7 @@ type ManageTicketCardProps = {
   ticketCode: string;
   room: string;
   computerCode: string;
+  date: string;
   onClick?: () => void;
 };
 
@@ -38,6 +40,7 @@ export default function ManageTicketCard({
   ticketCode,
   room,
   computerCode,
+  date,
   onClick,
 }: ManageTicketCardProps) {
 
@@ -116,7 +119,7 @@ export default function ManageTicketCard({
         <div className="flex items-center gap-x-1">
           <CalendarDays size={14} />
           <span className="text-sm">
-            May 13, 2026 2:45 PM
+            {formatDateTime(date)}
           </span>
         </div>
 
