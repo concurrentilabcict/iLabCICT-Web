@@ -6,7 +6,7 @@ type FilterProps = {
     onStatusChange: (status: StatusFilter) => void;
 };
 
-const statusOptions: StatusFilter[] = ["All", "Open", "Pending", "Resolved"];
+const statusOptions: StatusFilter[] = ["All", "Open", "Ongoing", "Resolved"];
 
 export default function Filter({
     selectedStatus,

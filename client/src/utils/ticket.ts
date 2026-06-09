@@ -2,7 +2,6 @@ import {
     Clock3,
     CircleDot,
     CheckCircle2,
-    LoaderCircle,
 } from "lucide-react";
 
 export const statusConfig = {
@@ -11,7 +10,7 @@ export const statusConfig = {
         className: "bg-blue-100 text-blue-700",
     },
 
-    Pending: {
+    Ongoing: {
         icon: Clock3,
         className: "bg-yellow-100 text-yellow-700",
     },

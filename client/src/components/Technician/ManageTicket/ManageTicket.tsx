@@ -1,7 +1,7 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ManageTicketCard from "./ManageTicketCard";
-import { useEffect, useMemo, useState } from "react";
-import { privateFetch } from "@/lib/api";
+import { useMemo, useState } from "react";
+import { createApiError, privateFetch } from "@/lib/api";
 import type { Ticket } from "@/types/ticket";
 
 import {
@@ -17,6 +17,7 @@ import type {
     TicketType,
     TicketTypeFilter,
 } from "@/utils/ticket";
+import { useQuery } from "@tanstack/react-query";
 
 type ManageTicketProps = {
     statusFilter: StatusFilter;
@@ -40,10 +41,6 @@ export default function ManageTicket({
 }: ManageTicketProps) {
 
     const isMobile = useMediaQuery("(max-width: 767px)");
-
-    const [tickets, setTickets] = useState<Ticket[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-
     const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -52,7 +49,18 @@ export default function ManageTicket({
         setSheetOpen(true);
     };
 
+    const normalizeStatus = (status: string) => {
+        switch (status) {
+            case "Ongoing":
+                return "In Progress";
+            default:
+                return status;
+        }
+    };
+
     const mapTicket = (ticket: any): Ticket => ({
+
+
         id: ticket.id,
 
         ticketCode: ticket.ticket_code,
@@ -93,32 +101,25 @@ export default function ManageTicket({
         updatedAt: ticket.updated_at,
     });
 
-    useEffect(() => {
-        const fetchTickets = async () => {
-            setIsLoading(true);
+    const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
+        queryKey: ["tickets"],
+        queryFn: async () => {
+            console.log("token", localStorage.getItem("accessToken"));
+            const res = await privateFetch("https://ilabcict-backend.onrender.com/api/tickets/");
 
-            try {
-                const res = await privateFetch("https://ilabcict-backend.onrender.com/api/tickets/");
+            const data = await res.json();
 
-                const data = await res.json();
+            console.log(res.status);
 
-                if (!res.ok) {
-                    console.error("Failed to fetch all tickets!");
-                }
-
-                const formattedTickets = data.map(mapTicket);
-
-                setTickets(formattedTickets);
-
-            } catch (err) {
-                console.error("Failed to fetch tickets: ", err);
-            } finally {
-                setIsLoading(false);
+            if (!res.ok) {
+                throw createApiError(res.status,
+                    data.message || "Failed to fetch tickets.");
             }
-        }
 
-        fetchTickets();
-    }, []);
+            return data.map(mapTicket);
+        },
+        // refetchInterval: 10000,
+    });
 
     const filteredTickets = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLowerCase();
