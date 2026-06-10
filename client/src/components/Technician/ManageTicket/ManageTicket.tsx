@@ -50,7 +50,7 @@ export default function ManageTicket({
 }: ManageTicketProps) {
 
     const isMobile = useMediaQuery("(max-width: 767px)");
-    const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+    const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
 
     const filterKey = JSON.stringify([statusFilter, typeFilter, searchQuery]);
@@ -61,17 +61,8 @@ export default function ManageTicket({
     const ITEMS_PER_PAGE = 10;
 
     const handleTicketClick = (ticket: Ticket) => {
-        setSelectedTicket(ticket);
+        setSelectedTicketId(ticket.id);
         setSheetOpen(true);
-    };
-
-    const normalizeStatus = (status: string) => {
-        switch (status) {
-            case "Ongoing":
-                return "In Progress";
-            default:
-                return status;
-        }
     };
 
     const mapTicket = (ticket: any): Ticket => ({
@@ -136,6 +127,11 @@ export default function ManageTicket({
         },
         // refetchInterval: 10000,
     });
+
+    const selectedTicket = useMemo(
+        () => tickets.find((t) => t.id === selectedTicketId) ?? null,
+        [tickets, selectedTicketId]
+    );
 
     const filteredTickets = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -228,33 +224,33 @@ export default function ManageTicket({
 
             <div className={`px-3 ${isMobile ? "mb-23" : "mb-10"}`}>
                 {totalPages > 1 && (
-                <Pagination className={`flex ${isMobile ? "justify-center" : "justify-end"}`}>
-                    <PaginationContent>
-                        <PaginationItem>
-                            <PaginationPrevious
-                                onClick={() => goToPage(currentPage - 1)}
-                            />
-                        </PaginationItem>
-
-                        {Array.from({ length: totalPages }, (_, i) => (
-                            <PaginationItem key={i + 1}>
-                                <PaginationLink
-                                    isActive={currentPage === i + 1}
-                                    onClick={() => goToPage(i + 1)}
-                                >
-                                    {i + 1}
-                                </PaginationLink>
+                    <Pagination className={`flex ${isMobile ? "justify-center" : "justify-end"}`}>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    onClick={() => goToPage(currentPage - 1)}
+                                />
                             </PaginationItem>
-                        ))}
 
-                        <PaginationItem>
-                            <PaginationNext
-                                onClick={() => goToPage(currentPage + 1)}
-                            />
-                        </PaginationItem>
-                    </PaginationContent>
-                </Pagination>
-            )}
+                            {Array.from({ length: totalPages }, (_, i) => (
+                                <PaginationItem key={i + 1}>
+                                    <PaginationLink
+                                        isActive={currentPage === i + 1}
+                                        onClick={() => goToPage(i + 1)}
+                                    >
+                                        {i + 1}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            ))}
+
+                            <PaginationItem>
+                                <PaginationNext
+                                    onClick={() => goToPage(currentPage + 1)}
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
             </div>
 
 

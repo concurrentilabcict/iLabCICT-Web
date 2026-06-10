@@ -10,6 +10,8 @@ import type { Ticket } from "@/types/ticket";
 import { Building2, Monitor, Layers2, User, CalendarDays } from "lucide-react";
 import { statusConfig, type Status } from "@/utils/ticket";
 import { capitalize, formatDateTime } from "@/utils/string";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createApiError, privateFetch } from "@/lib/api";
 
 type TicketDetailsProps = {
   ticket: Ticket;
@@ -21,6 +23,34 @@ export default function TicketDetails({
   const status = capitalize(ticket.status);
   const statusData = statusConfig[status as Status];
   const StatusIcon = statusData?.icon;
+
+  const queryClient = useQueryClient();
+
+  const ticketMutation = useMutation({
+    mutationFn: async () => {
+        const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/${ticket.id}/`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: "ongoing" }),
+        });
+
+        const data = await res.json();
+
+        if(!res.ok) {
+          throw createApiError(res.status, data.message || "Failed to start repair.");
+        }
+    },
+
+    onSuccess: () => { 
+      queryClient.invalidateQueries({
+        queryKey: ["tickets"],
+      });
+      console.log("Sumakses")
+    },
+
+    onError: () => {
+      
+    }
+  });
 
   return (
     <>
@@ -108,8 +138,8 @@ export default function TicketDetails({
       
       </div>
 
-      <SheetFooter>
-        <Button>
+      <SheetFooter className={`${ticket.status === "resolved" ? "hidden" : ""}`}>
+        <Button onClick={() => ticketMutation.mutate()}>
           Start Repair
         </Button>
 
