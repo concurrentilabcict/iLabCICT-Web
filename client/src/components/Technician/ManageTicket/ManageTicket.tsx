@@ -9,6 +9,15 @@ import {
     SheetContent,
 } from "@/components/ui/sheet";
 
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
+
 import TicketDetails from "./TicketDetails";
 
 import type {
@@ -43,6 +52,9 @@ export default function ManageTicket({
     const isMobile = useMediaQuery("(max-width: 767px)");
     const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     const handleTicketClick = (ticket: Ticket) => {
         setSelectedTicket(ticket);
@@ -155,23 +167,32 @@ export default function ManageTicket({
         });
     }, [tickets, statusFilter, typeFilter, searchQuery]);
 
+    const totalPages = Math.ceil(
+        filteredTickets.length / ITEMS_PER_PAGE
+    );
+
+    const paginatedTickets = filteredTickets.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
     return (
         <>
             <div className={`flex items-center w-full flex-col gap-3 px-3 py-3
-            sm:grid sm:grid-cols-2 ${isMobile ? "mb-23" : "mb-10"}`}>
+            sm:grid sm:grid-cols-2 mb-3`}>
                 {isLoading && (
                     <p className="col-span-full py-8 text-center secondary-text-color">
                         Loading tickets...
                     </p>
                 )}
 
-                {!isLoading && filteredTickets.length === 0 && (
+                {!isLoading && paginatedTickets.length === 0 && (
                     <p className="col-span-full py-8 text-center secondary-text-color">
                         No tickets found.
                     </p>
                 )}
 
-                {!isLoading && filteredTickets.map((ticket) => {
+                {!isLoading && paginatedTickets.map((ticket) => {
 
                     const status = formatLabel(ticket.status) as Status;
                     const type = formatLabel(ticket.type) as TicketType;
@@ -188,6 +209,44 @@ export default function ManageTicket({
                     );
                 })}
             </div>
+
+            <div className={`px-3 ${isMobile ? "mb-23" : "mb-10"}`}>
+                {totalPages > 1 && (
+                <Pagination className={`flex ${isMobile ? "justify-center" : "justify-end"}`}>
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() =>
+                                    setCurrentPage((p) => Math.max(1, p - 1))
+                                }
+                            />
+                        </PaginationItem>
+
+                        {Array.from({ length: totalPages }, (_, i) => (
+                            <PaginationItem key={i + 1}>
+                                <PaginationLink
+                                    isActive={currentPage === i + 1}
+                                    onClick={() => setCurrentPage(i + 1)}
+                                >
+                                    {i + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() =>
+                                    setCurrentPage((p) =>
+                                        Math.min(totalPages, p + 1)
+                                    )
+                                }
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
+            </div>
+
 
             <Sheet
                 open={sheetOpen}
