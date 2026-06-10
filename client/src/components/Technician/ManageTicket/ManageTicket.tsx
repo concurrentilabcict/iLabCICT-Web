@@ -53,7 +53,11 @@ export default function ManageTicket({
     const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
 
-    const [currentPage, setCurrentPage] = useState(1);
+    const filterKey = JSON.stringify([statusFilter, typeFilter, searchQuery]);
+    const [pagination, setPagination] = useState({
+        page: 1,
+        filterKey,
+    });
     const ITEMS_PER_PAGE = 10;
 
     const handleTicketClick = (ticket: Ticket) => {
@@ -171,6 +175,18 @@ export default function ManageTicket({
         filteredTickets.length / ITEMS_PER_PAGE
     );
 
+    const maxPage = Math.max(totalPages, 1);
+    const currentPage = pagination.filterKey === filterKey
+        ? Math.min(pagination.page, maxPage)
+        : 1;
+
+    const goToPage = (page: number) => {
+        setPagination({
+            page: Math.min(Math.max(page, 1), maxPage),
+            filterKey,
+        });
+    };
+
     const paginatedTickets = filteredTickets.slice(
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
@@ -216,9 +232,7 @@ export default function ManageTicket({
                     <PaginationContent>
                         <PaginationItem>
                             <PaginationPrevious
-                                onClick={() =>
-                                    setCurrentPage((p) => Math.max(1, p - 1))
-                                }
+                                onClick={() => goToPage(currentPage - 1)}
                             />
                         </PaginationItem>
 
@@ -226,7 +240,7 @@ export default function ManageTicket({
                             <PaginationItem key={i + 1}>
                                 <PaginationLink
                                     isActive={currentPage === i + 1}
-                                    onClick={() => setCurrentPage(i + 1)}
+                                    onClick={() => goToPage(i + 1)}
                                 >
                                     {i + 1}
                                 </PaginationLink>
@@ -235,11 +249,7 @@ export default function ManageTicket({
 
                         <PaginationItem>
                             <PaginationNext
-                                onClick={() =>
-                                    setCurrentPage((p) =>
-                                        Math.min(totalPages, p + 1)
-                                    )
-                                }
+                                onClick={() => goToPage(currentPage + 1)}
                             />
                         </PaginationItem>
                     </PaginationContent>
