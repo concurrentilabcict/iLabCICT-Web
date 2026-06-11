@@ -114,7 +114,7 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
                 return;
             }
 
-            toast.error("Something went wrong.");
+            toast.error("Failed to change name.");
         }
     });
 

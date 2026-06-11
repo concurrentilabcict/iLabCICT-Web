@@ -87,7 +87,7 @@ export default function AccountSecurity() {
                 return;
             }
 
-            toast.error("Something went wrong.");
+            toast.error("Failed to change the password.");
         }
     });
 

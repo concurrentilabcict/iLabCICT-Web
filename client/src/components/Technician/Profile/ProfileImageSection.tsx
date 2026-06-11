@@ -83,7 +83,7 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
                 return;
             }
 
-            toast.error("Something went wrong.");
+            toast.error("Failed to change profile.");
         }
     });
 
@@ -119,7 +119,7 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
                 return;
             }
 
-            toast.error("Something went wrong.");
+            toast.error("Failed to remove profile.");
         }
     });
 
@@ -130,6 +130,7 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
             <div className="flex flex-col gap-y-2">
                 <div className="flex text-sm gap-x-2">
                     <button
+                        disabled={imageChangeMutation.isPending}
                         onClick={() => fileInputRef.current?.click()}
                         className="cursor-pointer flex gap-x-1 items-center primary-button">
                         {!imageChangeMutation.isPending ? <><Image size={14} /> <span>Change Image</span></>

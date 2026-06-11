@@ -60,7 +60,7 @@ export default function LoginForm() {
                 return;
             }
 
-            setError("Something went wrong.");
+            setError("Incorrect username or password.");
         }
     });
 

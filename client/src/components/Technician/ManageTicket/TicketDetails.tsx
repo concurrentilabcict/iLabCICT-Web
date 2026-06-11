@@ -3,15 +3,18 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
+  SheetClose,
 } from "@/components/ui/sheet";
 
 import { Button } from "@/components/ui/button";
 import type { Ticket } from "@/types/ticket";
-import { Building2, Monitor, Layers2, User, CalendarDays } from "lucide-react";
+import { Building2, Monitor, Layers2, User, CalendarDays, Space } from "lucide-react";
 import { statusConfig, type Status } from "@/utils/ticket";
 import { capitalize, formatDateTime } from "@/utils/string";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createApiError, privateFetch } from "@/lib/api";
+import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import toast from "react-hot-toast";
+import { Spinner } from "@/components/ui/spinner"
 
 type TicketDetailsProps = {
   ticket: Ticket;
@@ -28,27 +31,33 @@ export default function TicketDetails({
 
   const ticketMutation = useMutation({
     mutationFn: async () => {
-        const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/${ticket.id}/`, {
-          method: "PATCH",
-          body: JSON.stringify({ status: "ongoing" }),
-        });
+      const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/${ticket.id}/`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "ongoing" }),
+      });
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if(!res.ok) {
-          throw createApiError(res.status, data.message || "Failed to start repair.");
-        }
+      if (!res.ok) {
+        throw createApiError(res.status, data.message || "Failed to start repair.");
+      }
     },
 
-    onSuccess: () => { 
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["tickets"],
       });
-      console.log("Sumakses")
+
+      toast.success("Repair started successfully.");
     },
 
-    onError: () => {
-      
+    onError: (error: ApiError) => {
+      if (error.status === 500) {
+        toast.error("Server error. Please try again later.");
+        return;
+      }
+
+      toast.error("Failed to start repair.");
     }
   });
 
@@ -59,13 +68,12 @@ export default function TicketDetails({
 
         <div className="flex items-center justify-between">
           <SheetDescription>
-          Ticket #{ticket.ticketCode}
-        </SheetDescription>
+            Ticket #{ticket.ticketCode}
+          </SheetDescription>
 
-         <div
-            className={`flex w-fit items-center gap-x-2 rounded-md px-3 py-1.5 ${
-              statusData?.className ?? "bg-gray-100 text-gray-700"
-            }`}
+          <div
+            className={`flex w-fit items-center gap-x-2 rounded-md px-3 py-1.5 ${statusData?.className ?? "bg-gray-100 text-gray-700"
+              }`}
           >
             {StatusIcon && <StatusIcon size={14} />}
             <span className="text-sm">{status || ticket.status}</span>
@@ -89,7 +97,7 @@ export default function TicketDetails({
           </div>
         </div>
 
-         <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-x-1.5 font-medium secondary-text-color">
             <Layers2 size={14} />
             <h3>Type</h3>
@@ -135,17 +143,18 @@ export default function TicketDetails({
           <span>{formatDateTime(ticket.createdAt)}</span>
         </div>
 
-      
+
       </div>
 
       <SheetFooter className={`${ticket.status === "resolved" ? "hidden" : ""}`}>
-        <Button onClick={() => ticketMutation.mutate()}>
-          Start Repair
+        <Button onClick={() => ticketMutation.mutate()} disabled={ticketMutation.isPending}>
+          {ticketMutation.isPending ? <><Spinner className="size-5" />Starting Repair...</>
+           : <span>Start Repair</span>}
         </Button>
 
-        <Button variant="outline">
-          Cancel
-        </Button>
+        <SheetClose asChild>
+          <Button disabled={ticketMutation.isPending} variant="outline">Close</Button>
+        </SheetClose>
       </SheetFooter>
     </>
   );
