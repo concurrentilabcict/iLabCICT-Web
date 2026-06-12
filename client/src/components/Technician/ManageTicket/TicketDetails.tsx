@@ -17,12 +17,11 @@ import toast from "react-hot-toast";
 import { Spinner } from "@/components/ui/spinner"
 
 type TicketDetailsProps = {
-  ticket: Ticket;
+ticket: Ticket;
+closeSheet: () => void;
 };
 
-export default function TicketDetails({
-  ticket,
-}: TicketDetailsProps) {
+export default function TicketDetails({ ticket, closeSheet }: TicketDetailsProps) {
   const status = capitalize(ticket.status);
   const statusData = statusConfig[status as Status];
   const StatusIcon = statusData?.icon;
@@ -43,12 +42,14 @@ export default function TicketDetails({
       }
     },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
         queryKey: ["tickets"],
       });
 
       toast.success("Repair started successfully.");
+
+      closeSheet();
     },
 
     onError: (error: ApiError) => {

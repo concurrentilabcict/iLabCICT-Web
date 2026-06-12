@@ -27,6 +27,7 @@ import type {
     TicketTypeFilter,
 } from "@/utils/ticket";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 type ManageTicketProps = {
     statusFilter: StatusFilter;
@@ -58,9 +59,17 @@ export default function ManageTicket({
         page: 1,
         filterKey,
     });
+
     const ITEMS_PER_PAGE = 10;
 
+    const navigate = useNavigate();
+
     const handleTicketClick = (ticket: Ticket) => {
+        if (ticket.status === "ongoing") {
+            navigate(`/manage-ticket/${ticket.id}`);
+            return;
+        }
+
         setSelectedTicketId(ticket.id);
         setSheetOpen(true);
     };
@@ -136,35 +145,42 @@ export default function ManageTicket({
     const filteredTickets = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLowerCase();
 
-        return tickets.filter((ticket) => {
-            const status = formatLabel(ticket.status) as Status;
-            const type = formatLabel(ticket.type) as TicketType;
+        return [...tickets]
+            .sort(
+                (a, b) =>
+                    new Date(a.createdAt).getTime() -
+                    new Date(b.createdAt).getTime()
+            )
+            .filter((ticket) => {
+                const status = formatLabel(ticket.status) as Status;
+                const type = formatLabel(ticket.type) as TicketType;
 
-            const matchesStatus =
-                statusFilter === "All" || status === statusFilter;
-            const matchesType =
-                typeFilter === "All" || type === typeFilter;
+                const matchesStatus =
+                    statusFilter === "All" || status === statusFilter;
+                const matchesType =
+                    typeFilter === "All" || type === typeFilter;
 
-            const searchableText = [
-                ticket.ticketCode,
-                ticket.title,
-                ticket.complaintDescription,
-                ticket.reportedBy.firstName,
-                ticket.reportedBy.lastName,
-                ticket.room.buildingName,
-                ticket.room.roomName,
-                ticket.computer.computerCode,
-                status,
-                type,
-            ]
-                .join(" ")
-                .toLowerCase();
+                const searchableText = [
+                    ticket.ticketCode,
+                    ticket.title,
+                    ticket.complaintDescription,
+                    ticket.reportedBy.firstName,
+                    ticket.reportedBy.lastName,
+                    ticket.room.buildingName,
+                    ticket.room.roomName,
+                    ticket.computer.computerCode,
+                    status,
+                    type,
+                ]
+                    .join(" ")
+                    .toLowerCase();
 
-            const matchesSearch =
-                normalizedQuery === "" || searchableText.includes(normalizedQuery);
+                const matchesSearch =
+                    normalizedQuery === "" ||
+                    searchableText.includes(normalizedQuery);
 
-            return matchesStatus && matchesType && matchesSearch;
-        });
+                return matchesStatus && matchesType && matchesSearch;
+            });
     }, [tickets, statusFilter, typeFilter, searchQuery]);
 
     const totalPages = Math.ceil(
@@ -269,6 +285,7 @@ export default function ManageTicket({
                     {selectedTicket && (
                         <TicketDetails
                             ticket={selectedTicket}
+                            closeSheet={() => setSheetOpen(false)}
                         />
                     )}
                 </SheetContent>
