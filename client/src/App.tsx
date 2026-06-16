@@ -10,6 +10,7 @@ import WeeklyReportPage from "./pages/Technician/WeeklyReportPage"
 import { Toaster } from "react-hot-toast";
 import QrScannerPage from "./pages/Technician/QrScannerPage"
 import ProcessTicket from "./components/Technician/ManageTicket/ProcessTicket"
+import ChatbotPage from "./pages/Technician/ChatBotPage"
 
 function App() {
 
@@ -33,6 +34,8 @@ function App() {
           <WeeklyReportPage /></ProtectedRoute>} />
           <Route path="/qr-scanner" element={<ProtectedRoute allowedRole="technician">
           <QrScannerPage /></ProtectedRoute>} />
+          <Route path="/chatbot" element={<ProtectedRoute allowedRole="technician">
+          <ChatbotPage /></ProtectedRoute>} />
       </Routes>
     </>
   )
