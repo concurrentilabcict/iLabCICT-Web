@@ -9,14 +9,6 @@ html.lenis body {
   scroll-behavior: auto !important;
 }
 
-html {
-  scrollbar-width: none; /* Firefox */
-}
-
-body::-webkit-scrollbar {
-  display: none; /* Chrome, Safari */
-}
-
 .primary-bg-color {
   @apply bg-[#bf3419];
 }

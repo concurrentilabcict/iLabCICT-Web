@@ -26,7 +26,7 @@ export default function ChatbotPage() {
             <SidebarProvider>
                 {isMobile ? null : <Sidebar />}
                 <SidebarInset>
-                    <div className="min-h-screen">
+                    <div>
                         {isMobile ? <MobileHeader title="Chatbot" /> : <Header title="Chatbot" />}
                         <div className="mx-auto max-w-[900px] md:px-10">
                             <Chatbot />
