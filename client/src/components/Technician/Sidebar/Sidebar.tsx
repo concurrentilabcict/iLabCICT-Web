@@ -30,8 +30,8 @@ const items = [
         icon: Monitor,
     },
     {
-        title: "Repairs",
-        url: "/repairs",
+        title: "Repair Logs",
+        url: "/repair-logs",
         icon: ClipboardList,
     },
     {
