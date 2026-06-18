@@ -17,5 +17,5 @@ export const formatDateTime = (dateString: string) => {
     hour12: true,
   });
 
-  return `${datePart} ${timePart}`;
+  return `${datePart} • ${timePart}`;
 };

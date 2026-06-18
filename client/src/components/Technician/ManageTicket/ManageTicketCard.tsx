@@ -44,12 +44,6 @@ export default function ManageTicketCard({
   onClick,
 }: ManageTicketCardProps) {
 
-  console.log("status", status);
-  console.log("statusData", statusConfig[status]);
-
-  console.log("type", type);
-  console.log("typeData", typeConfig[type]);
-
   const statusData = statusConfig[status];
   const typeData = typeConfig[type];
 

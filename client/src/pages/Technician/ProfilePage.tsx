@@ -29,7 +29,7 @@ export default function ProfilePage() {
                 <SidebarInset>
                     <div className="min-h-screen ">
                         {isMobile ? <MobileHeader title="Profile" /> : <Header title="Profile" />}
-                        <div className="mx-auto max-w-[1000px] pb-10">
+                        <div className="mx-auto max-w-[1000px]">
                             <Profile />
                         </div>
 
