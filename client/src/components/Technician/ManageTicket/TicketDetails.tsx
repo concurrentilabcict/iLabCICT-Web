@@ -69,7 +69,7 @@ export default function TicketDetails({ ticket, closeSheet }: TicketDetailsProps
 
         <div className="flex items-center justify-between">
           <SheetDescription>
-            Ticket #{ticket.ticketCode}
+            #{ticket.ticketCode}
           </SheetDescription>
 
           <div
@@ -136,7 +136,7 @@ export default function TicketDetails({ ticket, closeSheet }: TicketDetailsProps
           </p>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className={`flex items-center justify-between ${ticket.status === "resolved" ? "mb-5" : ""}`}>
           <div className="flex items-center gap-x-1.5 font-medium secondary-text-color">
             <CalendarDays size={14} />
             <h3>Date</h3>

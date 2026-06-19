@@ -54,15 +54,26 @@ export default function RepairLog({
     const technicianId = localStorage.getItem("id");
 
     const mapRepairLog = (repairLog: any): RepairLog => ({
-          id: repairLog.id,
-          repairLogCode: repairLog.repair_log_code,
-          type: repairLog.type ?? repairLog.ticket_type ?? repairLog.ticket?.type ?? "",
-          title: repairLog.title,
-          repairNotes: repairLog.repair_notes,
-          createdAt: repairLog.created_at,
+        id: repairLog.id,
+        ticket: {
+            id: repairLog.ticket.id,
+            type: repairLog.ticket.type,
+            reportedBy: {
+                id: repairLog.ticket.reported_by.id,
+                firstName: repairLog.ticket.reported_by.first_name,
+                lastName: repairLog.ticket.reported_by.last_name,
+            },
+        },
+        repairLogCode: repairLog.repair_log_code,
+        type:
+            repairLog.type ??
+            repairLog.ticket_type ??
+            repairLog.ticket?.type ??
+            "",
+        title: repairLog.title,
+        repairNotes: repairLog.repair_notes,
+        createdAt: repairLog.created_at,
     });
-
-    
 
     const { data: repairLogs = [], isLoading } = useQuery<RepairLog[]>({
         queryKey: ["repairLogs"],
