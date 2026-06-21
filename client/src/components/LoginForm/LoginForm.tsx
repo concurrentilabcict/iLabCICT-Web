@@ -18,6 +18,12 @@ export default function LoginForm() {
 
     const { login } = useAuth();
 
+    const handleSignIn = () => {
+        if (!loginMutation.isPending) {
+            loginMutation.mutate();
+        }
+    };
+
     const loginMutation = useMutation({
         mutationFn: async () => {
 
@@ -28,7 +34,7 @@ export default function LoginForm() {
 
             const res = await publicFetch("https://ilabcict-backend.onrender.com/api/auth/login/", {
                 method: "POST",
-                body: JSON.stringify({ username: email, password }),
+                body: JSON.stringify({ username: email.toLowerCase(), password }),
             });
 
             const data = await res.json();
@@ -81,7 +87,13 @@ export default function LoginForm() {
                         </button>
                     </div>}
 
-                <div className={`flex flex-col items-center w-full gap-y-5 ${error ? "mt-5" : "mt-5"}`}>
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSignIn();
+                    }}
+                    className={`flex flex-col items-center w-full gap-y-5 ${error ? "mt-5" : "mt-5"}`}
+                >
                     <div className="relative w-full max-w-sm">
                         <User
                             size={18}
@@ -122,16 +134,16 @@ export default function LoginForm() {
                         </button>
                     </div>
 
-                    <button className='w-full text-end primary-text-color font-semibold mb-5 cursor-pointer max-w-sm'>Forgot Password?</button>
+                    <button type="button" className='w-full text-end primary-text-color font-semibold mb-5 cursor-pointer max-w-sm'>Forgot Password?</button>
 
                     <button className=' primary-button rounded-full! w-full max-w-sm'
-                        onClick={() => loginMutation.mutate()}
+                        type="submit"
                         disabled={loginMutation.isPending}>
 
                         {loginMutation.isPending ? <><Spinner className='size-5' /> Signing in... </>
                             : <>Sign In</>}
                     </button>
-                </div>
+                </form>
             </div>
         </>
     );
