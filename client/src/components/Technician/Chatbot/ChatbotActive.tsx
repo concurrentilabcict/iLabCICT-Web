@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import type { FormEvent } from "react";
 import { Bot, Send } from "lucide-react";
 import type { ChatMessage } from "./Chatbot";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type ChatbotActiveProps = {
     message: string;
@@ -49,13 +51,14 @@ export default function ChatbotActive({
                                 </div>
                             )}
                             <div
-                                className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed md:max-w-[70%] md:text-base ${
-                                    chatMessage.role === "user"
+                                className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed md:max-w-[70%] md:text-base ${chatMessage.role === "user"
                                         ? "rounded-tr-sm bg-[#bf3419] text-white"
                                         : "rounded-tl-sm border bg-white"
-                                }`}
+                                    }`}
                             >
-                                {chatMessage.content}
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {chatMessage.content}
+                                </ReactMarkdown>
                             </div>
                         </div>
                     ))}

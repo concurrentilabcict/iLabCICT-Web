@@ -1,13 +1,15 @@
 import { FileText, FileWarning } from 'lucide-react';
 
 export const ticketTypeConfig = {
-    Report: {
+    report: {
         icon: FileWarning,
         className: "bg-red-100 text-red-700",
     },
 
-    Request: {
+    request: {
         icon: FileText,
         className: "bg-purple-100 text-purple-700",
     }
 }
+
+export type TicketType = keyof typeof ticketTypeConfig;
