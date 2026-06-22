@@ -3,6 +3,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/auth/useAuth";
 import PlaceHolder from "@/assets/profile-placeholder.png"
 import { useNavigate } from "react-router-dom";
+import DesktopNotification from "../Notification/DesktopNotification";
 
 type HeaderProps = {
     title: string;
@@ -27,9 +28,13 @@ export default function Header({ title }: HeaderProps) {
                 <h1 className="text-lg font-medium">{title}</h1>
             </div>
 
-            <button onClick={() => navigate("/profile")} className="cursor-pointer">
-                <img src={profilePicture || PlaceHolder} alt="User Profile" className="h-9 w-9 rounded-full object-cover" />
-            </button>
+            <div className="flex items-center gap-x-2">
+                <DesktopNotification />
+
+                <button onClick={() => navigate("/profile")} className="cursor-pointer">
+                    <img src={profilePicture || PlaceHolder} alt="User Profile" className="h-9 w-9 rounded-full object-cover" />
+                </button>
+            </div>
         </div>
     );
 }

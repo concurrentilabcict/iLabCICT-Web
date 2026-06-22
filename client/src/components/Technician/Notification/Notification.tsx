@@ -2,6 +2,8 @@ import { createApiError, privateFetch } from "@/lib/api";
 import NotificationCard from "./NotificationCard";
 import { useQuery } from "@tanstack/react-query";
 import type { Notification } from "@/types/notification";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import MobileNotification from "./MobileNotification";
 
 export default function Notification() {
 
@@ -15,6 +17,7 @@ export default function Notification() {
     });
 
     const userId = localStorage.getItem("id");
+    const isMobile = useMediaQuery("(max-width: 767px)");
 
     const { data: notifications = [], isLoading, isError } = useQuery<Notification[]>({
         queryKey: ["notifications"],
@@ -61,14 +64,8 @@ export default function Notification() {
 
     return(
         <>
-            <div className="flex flex-col py-3">
-                {notifications.map((notification) => (
-                    <NotificationCard
-                        key={notification.id}
-                        notification={notification}
-                    />
-                ))}
-            </div>
+        {isMobile ? <MobileNotification notifications={notifications} /> : null}
+            
         </>
     );
 }

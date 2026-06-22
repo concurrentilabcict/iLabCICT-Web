@@ -10,7 +10,8 @@ export default function NotificationCard({ notification }: NotificationProps) {
 
     return (
         <>
-            <div className="flex gap-x-3.5 items-start px-3 bg-accent pb-3">
+            <div className={`flex gap-x-3.5 items-start px-3 py-2.5
+                 ${notification.status === "unread" ? "bg-accent" : null}`}>
                 <div className={`p-2.5 rounded-lg mt-0.5 ${config.className}`}>
                         <Icon size={18} />
                     </div>
