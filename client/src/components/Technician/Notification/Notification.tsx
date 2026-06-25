@@ -1,21 +1,11 @@
 import { createApiError, privateFetch } from "@/lib/api";
-import NotificationCard from "./NotificationCard";
 import { useQuery } from "@tanstack/react-query";
 import type { Notification } from "@/types/notification";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import MobileNotification from "./MobileNotification";
+import { mapNotification } from "@/utils/notification";
 
 export default function Notification() {
-
-    const mapNotification = (notification: any): Notification => ({
-        id: notification.id,
-        title: notification.title,
-        header: notification.header,
-        ticketType: notification.ticket_type,
-        status: notification.status,
-        createdAt: notification.created_at,
-    });
-
     const userId = localStorage.getItem("id");
     const isMobile = useMediaQuery("(max-width: 767px)");
 
@@ -62,10 +52,9 @@ export default function Notification() {
         );
     }
 
-    return(
+    return (
         <>
-        {isMobile ? <MobileNotification notifications={notifications} /> : null}
-            
+            {isMobile ? <MobileNotification notifications={notifications} /> : null}
         </>
     );
 }
