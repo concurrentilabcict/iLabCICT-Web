@@ -30,8 +30,10 @@ function App() {
           <ManageTicketPage /></ProtectedRoute>} />
           <Route path="/manage-ticket/:id" element={<ProtectedRoute allowedRole="technician">
           <ProcessTicket /></ProtectedRoute>} />
+          <Route path="/manage-ticket" element={
+            <ManageTicketPage />} />
           <Route path="/profile" element={<ProtectedRoute allowedRole="technician">
-          <ProfilePage /></ProtectedRoute>} />
+            <ProfilePage /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute allowedRole="technician">
           <NotificationPage /></ProtectedRoute>} />
           <Route path="/weekly-reports" element={<ProtectedRoute allowedRole="technician">
@@ -45,7 +47,7 @@ function App() {
           <Route path="/chatbot" element={<ProtectedRoute allowedRole="technician">
           <ChatbotPage /></ProtectedRoute>} />
 
-            <Route path="/manage-laboratory" element={<ProtectedRoute allowedRole="technician">
+          <Route path="/manage-laboratory" element={<ProtectedRoute allowedRole="technician">
             <LaboratoryPage /></ProtectedRoute>}/>  
           <Route path="/manage-laboratory/:room" element={<ProtectedRoute allowedRole="technician">
             <ComputerListPage /></ProtectedRoute>}/>
@@ -56,4 +58,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

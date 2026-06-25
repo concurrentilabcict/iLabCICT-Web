@@ -32,9 +32,10 @@ export default function NavBar() {
             </button>
 
             <button
+                onClick={()=> navigate("/manage-laboratory")}
                 type="button"
                 className={`flex flex-col items-center gap-y-1 cursor-pointer
-                ${pathname === "/manage-laboratory"
+                ${pathname.startsWith("/manage-laboratory") 
                     ? "primary-text-color"
                     : "secondary-text-color"
                 }`}

@@ -12,6 +12,10 @@
    @apply text-muted-foreground;
 }
 
+.muted-text-color {
+  @apply text-gray-400;
+}
+
 .primary-border-color {
   @apply border-[#e5e5e5];
 }
