@@ -34,6 +34,8 @@ export default function Header({ title }: HeaderProps) {
             <div className="flex items-center gap-x-2">
                 <DesktopNotification />
 
+                <div className="h-6 w-px bg-gray-300 ml-1 mr-2" />
+
                 <button onClick={() => navigate("/profile")} className="cursor-pointer">
                     <img src={profilePicture || PlaceHolder} alt="User Profile" className="h-9 w-9 rounded-full object-cover" />
                 </button>
