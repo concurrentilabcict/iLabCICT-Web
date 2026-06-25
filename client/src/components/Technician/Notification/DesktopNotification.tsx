@@ -12,15 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import type { Notification } from "@/types/notification";
 import MobileNotification from "./MobileNotification";
-
-const mapNotification = (notification: any): Notification => ({
-    id: notification.id,
-    title: notification.title,
-    header: notification.header,
-    ticketType: notification.ticket_type,
-    status: notification.status,
-    createdAt: notification.created_at,
-});
+import { mapNotification } from "@/utils/notification";
 
 export default function DesktopNotification() {
     const userId = localStorage.getItem("id");

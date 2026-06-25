@@ -1,7 +1,7 @@
 import { useAuth } from "@/auth/useAuth";
-import { ScrollText } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PlaceHolder from "@/assets/profile-placeholder.png"
+import { getTechnicianNavIcon } from "../navigation";
 
 type MobileHeaderProps = {
     title: string;
@@ -11,12 +11,14 @@ export default function MobileHeader({ title }: MobileHeaderProps) {
 
     const { profilePicture } = useAuth();
     const navigate = useNavigate();
+    const { pathname } = useLocation();
+    const HeaderIcon = getTechnicianNavIcon(pathname);
 
     return (
         <div className="bg-white flex items-center justify-between p-5 border-b border-b-[#e5e5e5]">
             <div className="flex items-center gap-x-2">
                 <div className="primary-bg-color rounded-sm p-2">
-                    <ScrollText size={18} className="text-white" />
+                    <HeaderIcon size={18} className="text-white" />
                 </div>
                 <h1 className="text-lg font-medium">{title}</h1>
             </div>

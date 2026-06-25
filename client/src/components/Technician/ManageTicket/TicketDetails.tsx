@@ -8,7 +8,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import type { Ticket } from "@/types/ticket";
-import { Building2, Monitor, Layers2, User, CalendarDays, Space } from "lucide-react";
+import { Building2, Monitor, Layers2, User, CalendarDays, ImageOff } from "lucide-react";
 import { statusConfig, type Status } from "@/utils/ticket";
 import { capitalize, formatDateTime } from "@/utils/string";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -84,12 +84,17 @@ export default function TicketDetails({ ticket, closeSheet }: TicketDetailsProps
 
       <div className="flex flex-1 flex-col gap-6 px-4">
         <div className="flex flex-col gap-y-2">
-          {ticket.issueImage && (
+          {ticket.issueImage ? (
             <img
               src={ticket.issueImage}
               alt={ticket.title}
               className="h-50 w-full rounded-lg object-cover"
             />
+          ) : (
+            <div className="flex h-50 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted/40 text-muted-foreground">
+              <ImageOff size={28} />
+              <span className="text-sm font-medium">No image attached</span>
+            </div>
           )}
 
           <div>

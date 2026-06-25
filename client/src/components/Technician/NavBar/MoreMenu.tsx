@@ -40,7 +40,7 @@ export default function MoreMenu({ isActive }: MoreMenuProps) {
                 align="end"
                 sideOffset={20}
             >
-                <DropdownMenuItem onSelect={() => navigate("/weekly-report")}>
+                <DropdownMenuItem onSelect={() => navigate("/weekly-reports")}>
                     <FileText className="mr-2 h-4 w-4" />
                     Weekly Report
                 </DropdownMenuItem>
