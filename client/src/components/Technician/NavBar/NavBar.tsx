@@ -44,6 +44,7 @@ export default function NavBar() {
             </button>
 
             <button
+                onClick={() => navigate("/qr-scanner")}
                 type="button"
                 className='primary-bg-color flex flex-col items-center gap-y-1
                 rounded-full px-3 py-3 text-white'
@@ -52,6 +53,7 @@ export default function NavBar() {
             </button>
 
             <button
+                onClick={() => navigate("/repair-logs")}
                 type="button"
                 className={`flex flex-col items-center gap-y-1 cursor-pointer
                 ${pathname === "/repair-logs"
