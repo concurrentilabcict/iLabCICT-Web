@@ -24,7 +24,7 @@ export const technicianNavItems: TechnicianNavItem[] = [
     },
     {
         title: "Laboratory",
-        url: "/laboratory",
+        url: "/manage-laboratory",
         icon: Monitor,
     },
     {
