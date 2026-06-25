@@ -12,6 +12,9 @@ import QrScannerPage from "./pages/Technician/QrScannerPage"
 import ProcessTicket from "./components/Technician/ManageTicket/ProcessTicket"
 import ChatbotPage from "./pages/Technician/ChatBotPage"
 import RepairLogPage from "./pages/Technician/RepairLogPage"
+import LaboratoryPage from "./pages/Technician/LaboratoryPage"
+import ComputerListPage from "./pages/Technician/ComputerListPage"
+import ComputerInformationPage from "./pages/Technician/ComputerInformationPage"
 
 function App() {
 
@@ -41,6 +44,13 @@ function App() {
           <QrScannerPage /></ProtectedRoute>} />
           <Route path="/chatbot" element={<ProtectedRoute allowedRole="technician">
           <ChatbotPage /></ProtectedRoute>} />
+
+            <Route path="/manage-laboratory" element={<ProtectedRoute allowedRole="technician">
+            <LaboratoryPage /></ProtectedRoute>}/>  
+          <Route path="/manage-laboratory/:room" element={<ProtectedRoute allowedRole="technician">
+            <ComputerListPage /></ProtectedRoute>}/>
+          <Route path="/manage-laboratory/:room/:code" element={<ProtectedRoute allowedRole="technician">
+          <ComputerInformationPage /></ProtectedRoute>}/>
       </Routes>
     </>
   )
