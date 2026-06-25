@@ -11,35 +11,12 @@ import {
     useSidebar,
     SidebarGroupLabel,
 } from "@/components/ui/sidebar";
-import { ScrollText, Monitor, ClipboardList, BookOpen } from "lucide-react";
 
 import { NavLink, useLocation } from "react-router-dom";
 
 import Logo from "@/assets/logo.png";
 import ProfileFooter from "./ProfileFooter";
-
-const items = [
-    {
-        title: "Tickets",
-        url: "/manage-ticket",
-        icon: ScrollText,
-    },
-    {
-        title: "Laboratory",
-        url: "/laboratory",
-        icon: Monitor,
-    },
-    {
-        title: "Repair Logs",
-        url: "/repair-logs",
-        icon: ClipboardList,
-    },
-    {
-        title: "Weekly Reports",
-        url: "/weekly-reports",
-        icon: BookOpen,
-    },
-];
+import { technicianNavItems } from "../navigation";
 
 export default function Sidebar() {
     const { state } = useSidebar();
@@ -88,11 +65,11 @@ export default function Sidebar() {
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {items.map((item) => (
+                            {technicianNavItems.map((item) => (
                                 <SidebarMenuItem key={item.url}>
                                     <SidebarMenuButton
                                         asChild
-                                        isActive={location.pathname === item.url}
+                                        isActive={location.pathname === item.url || location.pathname.startsWith(`${item.url}/`)}
                                         className="
                                         py-5
                                         mb-1

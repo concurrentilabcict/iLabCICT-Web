@@ -1,9 +1,10 @@
-import { Menu, ScrollText } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/auth/useAuth";
 import PlaceHolder from "@/assets/profile-placeholder.png"
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import DesktopNotification from "../Notification/DesktopNotification";
+import { getTechnicianNavIcon } from "../navigation";
 
 type HeaderProps = {
     title: string;
@@ -14,6 +15,8 @@ export default function Header({ title }: HeaderProps) {
 
     const { profilePicture } = useAuth();
     const navigate = useNavigate();
+    const { pathname } = useLocation();
+    const HeaderIcon = getTechnicianNavIcon(pathname);
 
     return (
         <div className="bg-white flex items-center justify-between p-5 border-b border-b-[#e5e5e5]">
@@ -23,7 +26,7 @@ export default function Header({ title }: HeaderProps) {
                 </button>
 
                 <div className="primary-bg-color rounded-sm p-2">
-                    <ScrollText size={18} className="text-white" />
+                    <HeaderIcon size={18} className="text-white" />
                 </div>
                 <h1 className="text-lg font-medium">{title}</h1>
             </div>

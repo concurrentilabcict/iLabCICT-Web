@@ -65,7 +65,7 @@ export default function NavBar() {
 
             <MoreMenu
                 isActive={
-                    pathname === "/weekly-report" ||
+                    pathname === "/weekly-reports" ||
                     pathname === "/notifications"
                 }
             />
