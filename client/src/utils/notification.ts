@@ -57,3 +57,9 @@ export const mapNotification = (notification: unknown): Notification => {
         createdAt: getString(source, "created_at") ?? getString(source, "createdAt") ?? new Date().toISOString(),
     };
 };
+
+export const sortNotificationsByNewest = (notifications: Notification[]) => {
+    return [...notifications].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+};

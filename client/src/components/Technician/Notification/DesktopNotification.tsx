@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import type { Notification } from "@/types/notification";
 import MobileNotification from "./MobileNotification";
-import { mapNotification } from "@/utils/notification";
+import { mapNotification, sortNotificationsByNewest } from "@/utils/notification";
 
 export default function DesktopNotification() {
     const userId = localStorage.getItem("id");
@@ -32,7 +32,7 @@ export default function DesktopNotification() {
 
             const notificationList = Array.isArray(data) ? data : data.notifications;
 
-            return notificationList.map(mapNotification);
+            return sortNotificationsByNewest(notificationList.map(mapNotification));
         },
         enabled: Boolean(userId),
     });

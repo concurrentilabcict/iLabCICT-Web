@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Notification } from "@/types/notification";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import MobileNotification from "./MobileNotification";
-import { mapNotification } from "@/utils/notification";
+import { mapNotification, sortNotificationsByNewest } from "@/utils/notification";
 
 export default function Notification() {
     const userId = localStorage.getItem("id");
@@ -23,7 +23,7 @@ export default function Notification() {
 
             const notificationList = Array.isArray(data) ? data : data.notifications;
 
-            return notificationList.map(mapNotification);
+            return sortNotificationsByNewest(notificationList.map(mapNotification));
         },
         // refetchInterval: 10000,
     });
