@@ -78,12 +78,10 @@ export default function RepairLog({
     const { data: repairLogs = [], isLoading } = useQuery<RepairLog[]>({
         queryKey: ["repairLogs"],
         queryFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/repair-logs/technician?technician-id=${technicianId}`);
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/repair-logs/?technician-id=${technicianId}`);
 
             const data = await res.json();
-
-            console.log(res.status);
-
+            
             if (!res.ok) {
                 throw createApiError(res.status,
                     data.message || "Failed to fetch repair logs.");
