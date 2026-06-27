@@ -1,6 +1,7 @@
 import type { Notification } from "@/types/notification";
 import NotificationCard from "./NotificationCard";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type MobileNotificationProps = {
     notifications: Notification[];
@@ -12,6 +13,7 @@ const notificationFilters: NotificationFilter[] = ["All", "Unread", "Read"];
 
 export default function MobileNotification({ notifications }: MobileNotificationProps) {
     const [selectedFilter, setSelectedFilter] = useState<NotificationFilter>("All");
+    const navigate = useNavigate();
 
     const filteredNotifications = useMemo(() => {
         if (selectedFilter === "All") {
@@ -57,6 +59,7 @@ export default function MobileNotification({ notifications }: MobileNotification
                             <NotificationCard
                                 key={notification.id}
                                 notification={notification}
+                                onClick={() => navigate(`/manage-ticket?ticket=${notification.ticket.id}`)}
                             />
                         ))
                     ) : (

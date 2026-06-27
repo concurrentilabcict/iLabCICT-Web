@@ -27,7 +27,7 @@ import type {
     TicketTypeFilter,
 } from "@/utils/ticket";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 
 type ManageTicketProps = {
     statusFilter: StatusFilter;
@@ -63,6 +63,8 @@ export default function ManageTicket({
     const ITEMS_PER_PAGE = 10;
 
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const notificationTicketId = searchParams.get("ticket");
 
     const handleTicketClick = (ticket: Ticket) => {
         if (ticket.status === "ongoing") {
@@ -117,15 +119,14 @@ export default function ManageTicket({
         updatedAt: ticket.updated_at,
     });
 
+    const technicianId = localStorage.getItem("id");
+
     const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
         queryKey: ["tickets"],
         queryFn: async () => {
-            console.log("token", localStorage.getItem("accessToken"));
-            const res = await privateFetch("https://ilabcict-backend.onrender.com/api/tickets/");
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/?technician-id=${technicianId}`);
 
             const data = await res.json();
-
-            console.log(res.status);
 
             if (!res.ok) {
                 throw createApiError(res.status,
@@ -137,10 +138,22 @@ export default function ManageTicket({
         // refetchInterval: 10000,
     });
 
-    const selectedTicket = useMemo(
+    const manuallySelectedTicket = useMemo(
         () => tickets.find((t) => t.id === selectedTicketId) ?? null,
         [tickets, selectedTicketId]
     );
+
+    const notificationTicket = useMemo(() => {
+        const ticketId = Number(notificationTicketId);
+
+        if (!notificationTicketId || !Number.isInteger(ticketId)) {
+            return null;
+        }
+
+        return tickets.find((ticket) => ticket.id === ticketId) ?? null;
+    }, [notificationTicketId, tickets]);
+
+    const selectedTicket = notificationTicket ?? manuallySelectedTicket;
 
     const filteredTickets = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -203,6 +216,18 @@ export default function ManageTicket({
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
+
+    if (notificationTicket?.status.toLowerCase() === "ongoing") {
+        return <Navigate to={`/manage-ticket/${notificationTicket.id}`} replace />;
+    }
+
+    const handleSheetOpenChange = (open: boolean) => {
+        setSheetOpen(open);
+
+        if (!open && notificationTicketId) {
+            setSearchParams({}, { replace: true });
+        }
+    };
 
     return (
         <>
@@ -271,8 +296,8 @@ export default function ManageTicket({
 
 
             <Sheet
-                open={sheetOpen}
-                onOpenChange={setSheetOpen}
+                open={sheetOpen || Boolean(notificationTicket)}
+                onOpenChange={handleSheetOpenChange}
             >
                 <SheetContent
                     side={isMobile ? "bottom" : "right"}

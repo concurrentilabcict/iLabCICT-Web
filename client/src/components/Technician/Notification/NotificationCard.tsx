@@ -3,16 +3,24 @@ import { User } from "lucide-react";
 import type { NotificationProps } from "@/types/notification";
 import { formatRelativeTime } from "@/utils/string";
 
-export default function NotificationCard({ notification }: NotificationProps) {
+type NotificationCardProps = NotificationProps & {
+    onClick: () => void;
+};
+
+export default function NotificationCard({ notification, onClick }: NotificationCardProps) {
 
     const config = ticketTypeConfig[notification.ticket.type];
     const Icon = config.icon;
     const reportedBy = `${notification.ticket.reportedBy.firstName} ${notification.ticket.reportedBy.lastName}`;
 
     return (
-        <>
-            <div className={`flex gap-x-3.5 items-start px-3 py-2.5
-                 ${notification.status.toLowerCase() === "unread" ? "bg-accent" : null}`}>
+        <button
+            type="button"
+            onClick={onClick}
+            className={`flex w-full cursor-pointer gap-x-3.5 items-start px-3 py-2.5 text-left transition-colors hover:bg-accent
+                 ${notification.status.toLowerCase() === "unread" ? "bg-accent" : ""}`}
+            aria-label={`Open ticket: ${notification.ticket.title}`}
+        >
                 <div className={`p-2.5 rounded-lg mt-0.5 ${config.className}`}>
                     <Icon size={18} />
                 </div>
@@ -30,8 +38,6 @@ export default function NotificationCard({ notification }: NotificationProps) {
                         <span className="text-xs secondary-text-color">{formatRelativeTime(notification.createdAt)}</span>
                     </div>
                 </div>
-            </div>
-             
-        </>
+        </button>
     );
 }
