@@ -2,19 +2,21 @@ import { Navigate } from "react-router-dom";
 import { type ReactNode } from "react";
 import { useAuth } from "../auth/useAuth";
 
+export type AppRole = "admin" | "technician";
+
 type ProtectedRouteProps = {
     children: ReactNode;
-    allowedRole: string;
+    allowedRoles: readonly AppRole[];
 }
 
-export function ProtectedRoute({ children, allowedRole }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
     const { isAuthenticated, role } = useAuth();
 
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 
-    if (allowedRole !== role) {
+    if (!allowedRoles.some((allowedRole) => allowedRole === role)) {
         return <Navigate to="/unauthorized" replace />;
     }
 
@@ -30,7 +32,7 @@ export function PublicRoute({ children }: { children: ReactNode }) {
         }
 
         if(role === "admin") {
-            return <Navigate to="/admin" replace />;
+            return <Navigate to="/manage-ticket" replace />;
         }
     }
 
