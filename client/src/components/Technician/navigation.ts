@@ -10,13 +10,13 @@ import {
     type LucideIcon,
 } from "lucide-react";
 
-type TechnicianNavItem = {
+type NavItem = {
     title: string;
     url: string;
     icon: LucideIcon;
 };
 
-export const technicianNavItems: TechnicianNavItem[] = [
+export const technicianNavItems: NavItem[] = [
     {
         title: "Tickets",
         url: "/manage-ticket",
@@ -39,7 +39,40 @@ export const technicianNavItems: TechnicianNavItem[] = [
     },
 ];
 
-const headerOnlyNavItems: TechnicianNavItem[] = [
+export const adminNavItems: NavItem[] = [
+    {
+        title: "Dashboard",
+        url: "/dashboard",
+        icon: ScrollText,
+    },
+    {
+        title: "Ticket Management",
+        url: "/manage-ticket",
+        icon: ScrollText,
+    },
+    {
+        title: "Laboratory Management",
+        url: "/manage-laboratory",
+        icon: Monitor,
+    },
+    {
+        title: "User Management",
+        url: "/wala-pa-sorry",
+        icon: ClipboardList,
+    },
+    {
+        title: "Technician Reports",
+        url: "/wala-pa-sorry",
+        icon: Monitor,
+    },
+    {
+        title: "Repair Logs",
+        url: "/wala-pa-sorry",
+        icon: ClipboardList,
+    },
+]
+
+const headerOnlyNavItems: NavItem[] = [
     {
         title: "Notifications",
         url: "/notifications",

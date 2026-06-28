@@ -16,11 +16,16 @@ import { NavLink, useLocation } from "react-router-dom";
 
 import Logo from "@/assets/logo.png";
 import ProfileFooter from "./ProfileFooter";
-import { technicianNavItems } from "../navigation";
+import { adminNavItems, technicianNavItems } from "../navigation";
+import { useAuth } from "@/auth/useAuth";
 
 export default function Sidebar() {
     const { state } = useSidebar();
     const location = useLocation();
+
+    const { role } = useAuth();
+
+    const navItems = role === "technician" ? technicianNavItems : adminNavItems;
 
     return (
         <ShadSidebar collapsible="icon" className="flex">
@@ -65,7 +70,7 @@ export default function Sidebar() {
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {technicianNavItems.map((item) => (
+                            {navItems.map((item) => (
                                 <SidebarMenuItem key={item.url}>
                                     <SidebarMenuButton
                                         asChild

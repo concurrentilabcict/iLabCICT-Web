@@ -39,7 +39,7 @@ function App() {
 
           <Route path="/manage-ticket/:id" element={<ProtectedRoute allowedRoles={["technician"]}>
           <ProcessTicket /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute allowedRoles={["technician"]}>
+          <Route path="/profile" element={<ProtectedRoute allowedRoles={["technician", "admin"]}>
             <ProfilePage /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute allowedRoles={["technician"]}>
           <NotificationPage /></ProtectedRoute>} />
