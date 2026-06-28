@@ -53,6 +53,9 @@ function App() {
             <ComputerListPage /></ProtectedRoute>}/>
           <Route path="/manage-laboratory/:room/:code" element={<ProtectedRoute allowedRole="technician">
           <ComputerInformationPage /></ProtectedRoute>}/>
+
+          <Route path="/manage-ticket" element={
+            <ManageTicketPage />} />
       </Routes>
     </>
   )
