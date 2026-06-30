@@ -22,7 +22,7 @@ export default function Filter({
                         key={status}
                         type="button"
                         onClick={() => onStatusChange(status)}
-                        className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                        className={`shrink-0 cursor-pointer rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                             isSelected
                                 ? "primary-bg-color text-white"
                                 : "bg-white border primary-border-color secondary-text-color hover:bg-gray-50"

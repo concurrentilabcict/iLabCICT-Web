@@ -50,7 +50,7 @@ export default function SaveProfileDialog({ onSave, onBeforeOpen, isPending }: S
                     </AlertDialogTitle>
 
                     <AlertDialogDescription>
-                        Your profile name will be updated after you confirm.
+                        Your profile details will be updated after you confirm.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 

@@ -25,37 +25,46 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
     const [isEditing, setIsEditing] = useState(false);
     const [firstName, setFirstName] = useState(initialName.firstName);
     const [lastName, setLastName] = useState(initialName.lastName);
+    const [email, setEmail] = useState(localStorage.getItem("email") || "");
     const [profileError, setProfileError] = useState("");
 
     const userId = localStorage.getItem("id");
     const currentName = splitFullName(name);
     const isFirstNameEmpty = Boolean(profileError) && !firstName.trim();
     const isLastNameEmpty = Boolean(profileError) && !lastName.trim();
-    const isNameUnchanged = firstName.trim() === currentName.firstName && lastName.trim() === currentName.lastName;
+    const isEmailEmpty = Boolean(profileError) && !email.trim();
+    const isProfileUnchanged =
+        firstName.trim() === currentName.firstName &&
+        lastName.trim() === currentName.lastName &&
+        email.trim() === (localStorage.getItem("email") || "");
     const firstNameInputClass = isEditing
-        ? `primary-input ${isFirstNameEmpty || (profileError && isNameUnchanged) ? "border-red-600! focus:border-red-600!" : ""}`
+        ? `primary-input ${isFirstNameEmpty || (profileError && isProfileUnchanged) ? "border-red-600! focus:border-red-600!" : ""}`
         : "disable-input max-w-[500px]";
     const lastNameInputClass = isEditing
-        ? `primary-input ${isLastNameEmpty || (profileError && isNameUnchanged) ? "border-red-600! focus:border-red-600!" : ""}`
+        ? `primary-input ${isLastNameEmpty || (profileError && isProfileUnchanged) ? "border-red-600! focus:border-red-600!" : ""}`
         : "disable-input max-w-[500px]";
+    const emailInputClass = isEditing
+        ? `primary-input max-w-full! mb-1.5 ${isEmailEmpty || (profileError && isProfileUnchanged) ? "border-red-600! focus:border-red-600!" : ""}`
+        : "disable-input mb-1.5 w-full";
 
     const handleCancelEdit = () => {
         const currentName = splitFullName(name);
 
         setFirstName(currentName.firstName);
         setLastName(currentName.lastName);
+        setEmail(localStorage.getItem("email") || "");
         setProfileError("");
         setIsEditing(false);
     };
 
     const validateProfileChanges = () => {
-        if (!firstName.trim() || !lastName.trim()) {
-            setProfileError("First name and last name cannot be empty.");
+        if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+            setProfileError("First name, last name, and email cannot be empty.");
             return false;
         }
 
-        if (isNameUnchanged) {
-            setProfileError("Please change your first name or last name before saving.");
+        if (isProfileUnchanged) {
+            setProfileError("Please change your name or email before saving.");
             return false;
         }
 
@@ -78,6 +87,7 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
                 body: JSON.stringify({
                     first_name: firstName.trim(),
                     last_name: lastName.trim(),
+                    email: email.trim(),
                 }),
             });
 
@@ -96,16 +106,19 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
         onSuccess: (data) => {
             const updatedFirstName = data.first_name ?? firstName.trim();
             const updatedLastName = data.last_name ?? lastName.trim();
+            const updatedEmail = data.email ?? email.trim();
             const updatedName = `${updatedFirstName} ${updatedLastName}`.trim();
 
             setFirstName(updatedFirstName);
             setLastName(updatedLastName);
+            setEmail(updatedEmail);
             setName(updatedName);
             localStorage.setItem("name", updatedName);
+            localStorage.setItem("email", updatedEmail);
             setProfileError("");
             setIsEditing(false);
 
-            toast.success("Name updated successfully.");
+            toast.success("Profile updated successfully.");
         },
 
         onError: (error: ApiError) => {
@@ -114,7 +127,7 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
                 return;
             }
 
-            toast.error("Failed to change name.");
+            toast.error("Failed to update profile.");
         }
     });
 
@@ -129,7 +142,7 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
                         disabled={!isEditing}
                         onChange={(e) => { setFirstName(e.target.value); setProfileError("") }}
                         className={firstNameInputClass}
-                        aria-invalid={isFirstNameEmpty || Boolean(profileError && isNameUnchanged)}
+                        aria-invalid={isFirstNameEmpty || Boolean(profileError && isProfileUnchanged)}
                     />
                 </div>
 
@@ -141,7 +154,7 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
                         disabled={!isEditing}
                         onChange={(e) => { setLastName(e.target.value); setProfileError("") }}
                         className={lastNameInputClass}
-                        aria-invalid={isLastNameEmpty || Boolean(profileError && isNameUnchanged)}
+                        aria-invalid={isLastNameEmpty || Boolean(profileError && isProfileUnchanged)}
                     />
                 </div>
             </div>
@@ -155,7 +168,14 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
             <div className="flex flex-col gap-y-1">
                 <span className="font-medium">Email</span>
                 <div className="flex sm:justify-between sm:items-center flex-col gap-y-1 sm:flex-row sm:gap-x-3">
-                    <input type="text" className="disable-input mb-1.5 w-full" placeholder="patricksoriaga14@gmail.com" />
+                    <input
+                        type="email"
+                        value={email}
+                        disabled={!isEditing}
+                        onChange={(e) => { setEmail(e.target.value); setProfileError("") }}
+                        className={emailInputClass}
+                        aria-invalid={isEmailEmpty || Boolean(profileError && isProfileUnchanged)}
+                    />
                 </div>
             </div>
 
