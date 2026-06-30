@@ -54,7 +54,8 @@ export default function LoginForm() {
 
             login({
                 id: data.id, accessToken: data.access, refreshToken: data.refresh,
-                name: name, role: data.role, profilePicture: data.profile_image,
+                name: name, email: data.email ?? email.trim().toLowerCase(),
+                role: data.role, profilePicture: data.profile_image,
             });
 
             navigate("/manage-ticket");
