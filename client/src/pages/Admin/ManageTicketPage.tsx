@@ -16,7 +16,7 @@ export default function ManageTicketPage() {
             <SidebarProvider>
                 <Sidebar />
                 <SidebarInset>
-                    <div className="min-h-screen bg-[#f8fafc]">
+                    <div className="min-h-screen bg-[#fbfbfb]">
                         <Header title="Manage Ticket" />
                         <div className="mx-auto max-w-[1040px] px-10">
                             <ManageTicket />

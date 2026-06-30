@@ -44,7 +44,7 @@ export default function ManageTicket() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="bg-accent">Ticket ID</TableHead>
+              <TableHead className="bg-muted">Ticket ID</TableHead>
               <TableHead>Issue</TableHead>
               <TableHead>Requester</TableHead>
               <TableHead>Laboratory</TableHead>
