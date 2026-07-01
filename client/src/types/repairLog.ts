@@ -12,7 +12,6 @@ export type RepairLog = {
     id: number;
     ticket: Ticket;
     repairLogCode: string;
-    type: string;
     title: string;
     repairNotes: string;
     createdAt: string;

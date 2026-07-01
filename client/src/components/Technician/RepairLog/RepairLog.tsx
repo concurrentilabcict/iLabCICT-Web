@@ -25,6 +25,23 @@ type RepairLogProps = {
     searchQuery: string;
 };
 
+type ApiRepairLog = {
+    id: number;
+    ticket: {
+        id: number;
+        type: string;
+        reported_by: {
+            id: number;
+            first_name: string;
+            last_name: string;
+        };
+    };
+    repair_log_code: string;
+    title: string;
+    repair_notes: string;
+    created_at: string;
+};
+
 const formatLabel = (text: string) => {
     return text
         .replace(/_/g, " ")
@@ -53,7 +70,7 @@ export default function RepairLog({
 
     const technicianId = localStorage.getItem("id");
 
-    const mapRepairLog = (repairLog: any): RepairLog => ({
+    const mapRepairLog = (repairLog: ApiRepairLog): RepairLog => ({
         id: repairLog.id,
         ticket: {
             id: repairLog.ticket.id,
@@ -65,11 +82,6 @@ export default function RepairLog({
             },
         },
         repairLogCode: repairLog.repair_log_code,
-        type:
-            repairLog.type ??
-            repairLog.ticket_type ??
-            repairLog.ticket?.type ??
-            "",
         title: repairLog.title,
         repairNotes: repairLog.repair_notes,
         createdAt: repairLog.created_at,
@@ -107,7 +119,7 @@ export default function RepairLog({
                     new Date(b.createdAt).getTime()
             )
             .filter((repairLog) => {
-                const type = formatLabel(repairLog.type);
+                const type = formatLabel(repairLog.ticket.type);
                 const matchesType =
                     typeFilter === "All" || type === typeFilter;
 
