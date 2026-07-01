@@ -1,4 +1,23 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { MoreHorizontal } from "lucide-react";
+
 import TicketToolbar from "./TicketToolbar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import {
   Table,
   TableBody,
@@ -7,91 +26,281 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { createApiError, privateFetch } from "@/lib/api";
+import type { Ticket } from "@/types/ticket";
 
-const tickets = [
-  {
-    id: "TK-001",
-    issue: "Projector not working",
-    requester: "John Doe",
-    laboratory: "Lab 1",
-    status: "Pending",
-    date: "Jun 29, 2026",
+type ApiTicket = {
+  id: number;
+  ticket_code: string;
+  reported_by: {
+    id: number;
+    first_name: string;
+    last_name: string;
+  };
+  assigned_to: {
+    id: number;
+    first_name: string;
+    last_name: string;
+  };
+  room: {
+    id: number;
+    room_name: string;
+    building_name: string;
+  };
+  computer: {
+    id: number;
+    computer_code: string;
+  };
+  type: string;
+  title: string;
+  complaint_description: string;
+  issue_image: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
+
+const ITEMS_PER_PAGE = 10;
+
+const formatLabel = (text: string) =>
+  text
+    .replace(/_/g, " ")
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+
+const formatDate = (date: string) =>
+  new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(date));
+
+const mapTicket = (ticket: ApiTicket): Ticket => ({
+  id: ticket.id,
+  ticketCode: ticket.ticket_code,
+  reportedBy: {
+    id: ticket.reported_by.id,
+    firstName: ticket.reported_by.first_name,
+    lastName: ticket.reported_by.last_name,
   },
-  {
-    id: "TK-002",
-    issue: "Computer won't boot",
-    requester: "Jane Smith",
-    laboratory: "Lab 2",
-    status: "Ongoing",
-    date: "Jun 28, 2026",
+  assignedTo: {
+    id: ticket.assigned_to.id,
+    firstName: ticket.assigned_to.first_name,
+    lastName: ticket.assigned_to.last_name,
   },
-  {
-    id: "TK-003",
-    issue: "Internet connection lost",
-    requester: "Michael Reyes",
-    laboratory: "Lab 3",
-    status: "Resolved",
-    date: "Jun 27, 2026",
+  room: {
+    id: ticket.room.id,
+    roomName: ticket.room.room_name,
+    buildingName: ticket.room.building_name,
   },
-];
+  computer: {
+    id: ticket.computer.id,
+    computerCode: ticket.computer.computer_code,
+  },
+  type: ticket.type,
+  title: ticket.title,
+  complaintDescription: ticket.complaint_description,
+  issueImage: ticket.issue_image,
+  status: ticket.status,
+  createdAt: ticket.created_at,
+  updatedAt: ticket.updated_at,
+});
+
+const getStatusClasses = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "open":
+      return "bg-blue-100 text-blue-700";
+    case "ongoing":
+      return "bg-yellow-100 text-yellow-700";
+    case "resolved":
+      return "bg-green-100 text-green-700";
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+};
 
 export default function ManageTicket() {
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  const [page, setPage] = useState(1);
+
+  const {
+    data: tickets = [],
+    isLoading,
+    isError,
+  } = useQuery<Ticket[]>({
+    queryKey: ["admin-tickets"],
+    queryFn: async () => {
+      const response = await privateFetch(
+        "https://ilabcict-backend.onrender.com/api/tickets/"
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw createApiError(
+          response.status,
+          data.message || "Failed to fetch tickets."
+        );
+      }
+
+      return (data as ApiTicket[]).map(mapTicket);
+    },
+  });
+
+  const totalPages = Math.ceil(tickets.length / ITEMS_PER_PAGE);
+  const maxPage = Math.max(totalPages, 1);
+  const currentPage = Math.min(page, maxPage);
+
+  const goToPage = (nextPage: number) => {
+    setPage(Math.min(Math.max(nextPage, 1), maxPage));
+  };
+
+  const paginatedTickets = tickets.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
-    <div className="flex flex-col p-3 w-full gap-4">
+    <div className="flex w-full flex-col gap-4 p-3 mt-5">
       <TicketToolbar />
 
-      <div className="rounded-2xl border bg-white overflow-hidden border-primary-color">
+      <div className="overflow-hidden rounded-2xl border border-primary-color bg-white">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="bg-muted">Ticket ID</TableHead>
-              <TableHead>Issue</TableHead>
-              <TableHead>Requester</TableHead>
-              <TableHead>Laboratory</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created</TableHead>
+              <TableHead className="bg-muted">Faculty</TableHead>
+              <TableHead className="bg-muted">Technician</TableHead>
+              <TableHead className="bg-muted">Type</TableHead>
+              <TableHead className="bg-muted">Status</TableHead>
+              <TableHead className="bg-muted">Created</TableHead>
+              <TableHead className="bg-muted text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {tickets.map((ticket) => (
-              <TableRow
-                key={ticket.id}
-                className="cursor-pointer hover:bg-muted/50"
-              >
-                <TableCell className="font-medium">
-                  {ticket.id}
+            {isLoading && (
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="h-24 text-center secondary-text-color"
+                >
+                  Loading tickets...
                 </TableCell>
-
-                <TableCell>{ticket.issue}</TableCell>
-
-                <TableCell>{ticket.requester}</TableCell>
-
-                <TableCell>{ticket.laboratory}</TableCell>
-
-                <TableCell>
-                  <span
-                    className={`
-                      rounded-full px-3 py-1 text-xs font-medium
-                      ${
-                        ticket.status === "Pending"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : ticket.status === "Ongoing"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-green-100 text-green-700"
-                      }
-                    `}
-                  >
-                    {ticket.status}
-                  </span>
-                </TableCell>
-
-                <TableCell>{ticket.date}</TableCell>
               </TableRow>
-            ))}
+            )}
+
+            {isError && (
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="h-24 text-center text-red-500"
+                >
+                  Failed to load tickets.
+                </TableCell>
+              </TableRow>
+            )}
+
+            {!isLoading && !isError && paginatedTickets.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="h-24 text-center secondary-text-color"
+                >
+                  No tickets found.
+                </TableCell>
+              </TableRow>
+            )}
+
+            {!isLoading &&
+              !isError &&
+              paginatedTickets.map((ticket) => {
+                const faculty = `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`;
+                const technician = `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`;
+                const status = formatLabel(ticket.status);
+
+                return (
+                  <TableRow key={ticket.id} className="hover:bg-muted/50">
+                    <TableCell className="font-medium">
+                      {ticket.ticketCode}
+                    </TableCell>
+                    <TableCell>{faculty}</TableCell>
+                    <TableCell>{technician}</TableCell>
+                    <TableCell>{formatLabel(ticket.type)}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`rounded-full px-3 py-1 text-sm font-medium ${getStatusClasses(
+                          ticket.status
+                        )}`}
+                      >
+                        {status}
+                      </span>
+                    </TableCell>
+                    <TableCell>{formatDate(ticket.createdAt)}</TableCell>
+                    <TableCell className="text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            aria-label={`Actions for ${ticket.ticketCode}`}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Ticket</DropdownMenuItem>
+                          <DropdownMenuItem>
+                            Assign Technician
+                          </DropdownMenuItem>
+                          <div className="my-1 h-px w-full bg-border" />
+                          <DropdownMenuItem className="text-red-500">
+                            Delete Ticket
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
           </TableBody>
         </Table>
       </div>
+
+      {totalPages > 1 && (
+        <Pagination
+          className={`flex ${isMobile ? "justify-center" : "justify-end"}`}
+        >
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => goToPage(currentPage - 1)}
+              />
+            </PaginationItem>
+
+            {Array.from({ length: totalPages }, (_, index) => (
+              <PaginationItem key={index + 1}>
+                <PaginationLink
+                  isActive={currentPage === index + 1}
+                  onClick={() => goToPage(index + 1)}
+                >
+                  {index + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => goToPage(currentPage + 1)}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 }
