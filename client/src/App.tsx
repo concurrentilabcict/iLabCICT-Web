@@ -11,11 +11,12 @@ import { Toaster } from "react-hot-toast";
 import QrScannerPage from "./pages/Technician/QrScannerPage"
 import ProcessTicket from "./components/Technician/ManageTicket/ProcessTicket"
 import ChatbotPage from "./pages/Technician/ChatBotPage"
-import RepairLogPage from "./pages/Technician/RepairLogPage"
+import TechnicianRepairLog from "./pages/Technician/RepairLogPage"
 import LaboratoryPage from "./pages/Technician/LaboratoryPage"
 import ComputerListPage from "./pages/Technician/ComputerListPage"
 import ComputerInformationPage from "./pages/Technician/ComputerInformationPage"
 import AdminManageTicket from "./pages/Admin/ManageTicketPage"
+import AdminRepairLog from "./pages/Admin/RepairLogPage"
 import UnauthorizedPage from "./pages/UnauthorizedPage"
 import { useAuth } from "./auth/useAuth"
 
@@ -46,8 +47,9 @@ function App() {
           <Route path="/weekly-reports" element={<ProtectedRoute allowedRoles={["technician"]}>
           <WeeklyReportPage /></ProtectedRoute>} />
 
-          <Route path="/repair-logs" element={<ProtectedRoute allowedRoles={["technician"]}>
-          <RepairLogPage /></ProtectedRoute>} />
+          <Route path="/repair-logs" element={<ProtectedRoute allowedRoles={["technician", "admin"]}>
+            {role === "technician" ? <TechnicianRepairLog /> : <AdminRepairLog />}
+          </ProtectedRoute>} />
           
           <Route path="/qr-scanner" element={<ProtectedRoute allowedRoles={["technician"]}>
           <QrScannerPage /></ProtectedRoute>} />

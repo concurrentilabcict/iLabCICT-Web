@@ -67,7 +67,7 @@ export const adminNavItems: NavItem[] = [
     },
     {
         title: "Repair Logs",
-        url: "/wala-pa-sorry",
+        url: "/repair-logs",
         icon: ClipboardList,
     },
 ]

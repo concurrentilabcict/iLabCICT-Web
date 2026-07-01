@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import { DatePicker } from './DatePicker';
+import { DatePicker } from '../DatePicker/DatePicker';
 
 const statusOptions: StatusFilter[] = ['All', 'Open', 'Ongoing', 'Resolved'];
 const typeOptions: TicketTypeFilter[] = ['All', 'Request', 'Report'];
