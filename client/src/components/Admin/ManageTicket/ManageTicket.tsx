@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 
@@ -29,6 +29,7 @@ import {
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { createApiError, privateFetch } from "@/lib/api";
 import type { Ticket } from "@/types/ticket";
+import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
 
 type ApiTicket = {
   id: number;
@@ -125,6 +126,10 @@ const getStatusClasses = (status: string) => {
 export default function ManageTicket() {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
+  const [typeFilter, setTypeFilter] = useState<TicketTypeFilter>("All");
+  const [dateFilter, setDateFilter] = useState<Date>();
 
   const {
     data: tickets = [],
@@ -149,7 +154,45 @@ export default function ManageTicket() {
     },
   });
 
-  const totalPages = Math.ceil(tickets.length / ITEMS_PER_PAGE);
+  const filteredTickets = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    return tickets.filter((ticket) => {
+      const faculty = `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`;
+      const technician = `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`;
+      const type = formatLabel(ticket.type);
+      const status = formatLabel(ticket.status);
+      const created = formatDate(ticket.createdAt);
+      const searchableText = [
+        ticket.ticketCode,
+        faculty,
+        technician,
+        type,
+        status,
+        created,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch =
+        normalizedQuery === "" || searchableText.includes(normalizedQuery);
+      const matchesStatus =
+        statusFilter === "All" || status === statusFilter;
+      const matchesType = typeFilter === "All" || type === typeFilter;
+      const matchesDate =
+        !dateFilter ||
+        new Date(ticket.createdAt).toDateString() === dateFilter.toDateString();
+
+      return matchesSearch && matchesStatus && matchesType && matchesDate;
+    });
+  }, [tickets, searchQuery, statusFilter, typeFilter, dateFilter]);
+
+  const updateFilter = (update: () => void) => {
+    update();
+    setPage(1);
+  };
+
+  const totalPages = Math.ceil(filteredTickets.length / ITEMS_PER_PAGE);
   const maxPage = Math.max(totalPages, 1);
   const currentPage = Math.min(page, maxPage);
 
@@ -157,14 +200,29 @@ export default function ManageTicket() {
     setPage(Math.min(Math.max(nextPage, 1), maxPage));
   };
 
-  const paginatedTickets = tickets.slice(
+  const paginatedTickets = filteredTickets.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
   return (
     <div className="flex w-full flex-col gap-4 p-3 mt-5">
-      <TicketToolbar />
+      <TicketToolbar
+        tickets={filteredTickets}
+        isLoading={isLoading}
+        searchQuery={searchQuery}
+        onSearchQueryChange={(query) =>
+          updateFilter(() => setSearchQuery(query))
+        }
+        selectedStatus={statusFilter}
+        onStatusChange={(status) =>
+          updateFilter(() => setStatusFilter(status))
+        }
+        selectedType={typeFilter}
+        onTypeChange={(type) => updateFilter(() => setTypeFilter(type))}
+        selectedDate={dateFilter}
+        onDateChange={(date) => updateFilter(() => setDateFilter(date))}
+      />
 
       <div className="overflow-hidden rounded-2xl border border-primary-color bg-white">
         <Table>
