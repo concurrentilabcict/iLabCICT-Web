@@ -2,12 +2,23 @@ import { ChevronDown, Download, Search, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { StatusFilter, TicketTypeFilter } from '@/utils/ticket';
 import type { Ticket } from '@/types/ticket';
+
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { DatePicker } from '../DatePicker/DatePicker';
 
@@ -147,65 +158,101 @@ export default function TicketToolbar({
 
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-x-3">
-                    <DropdownMenu
+                    <Popover
                         open={openFilter === 'status'}
                         onOpenChange={(isOpen) => setOpenFilter(isOpen ? 'status' : null)}
                     >
-                        <DropdownMenuTrigger asChild>
+                        <PopoverTrigger asChild>
                             <button
                                 type="button"
                                 className="bg-white flex items-center justify-between gap-x-5 px-3 py-2 border primary-border-color rounded-xl cursor-pointer min-w-36"
                             >
-                                <span>{selectedStatus === "All" ? "All Status" : selectedStatus}</span>
+                                <span>
+                                    {selectedStatus === "All" ? "All Status" : selectedStatus}
+                                </span>
+
                                 <ChevronDown
                                     size={14}
                                     className={`transition-transform ${openFilter === 'status' ? 'rotate-180' : ''}`}
                                 />
                             </button>
-                        </DropdownMenuTrigger>
+                        </PopoverTrigger>
 
-                        <DropdownMenuContent align="start" sideOffset={8} className="rounded-xl">
-                            {statusOptions.map((status) => (
-                                <DropdownMenuItem
-                                    key={status}
-                                    className={`px-3 py-2 ${selectedStatus === status ? 'font-medium' : ''}`}
-                                    onSelect={() => onStatusChange(status)}
-                                >
-                                    {status}
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        <PopoverContent
+                            align="start"
+                            className="w-50 p-1 rounded-3xl"
+                        >
+                            <Command>
+                                <CommandInput placeholder="Status" />
 
-                    <DropdownMenu
+                                <CommandList>
+                                    <CommandEmpty>No status found.</CommandEmpty>
+
+                                    <CommandGroup className="p-2">
+                                        {statusOptions.map((status) => (
+                                            <CommandItem
+                                                key={status}
+                                                onSelect={() => onStatusChange(status)}
+                                                className={`flex items-center gap-3 rounded-2xl py-2 cursor-pointer ${selectedStatus === status ? "bg-muted data-selected:bg-muted" : ""
+                                                    }`}
+                                            >
+                                                <Checkbox checked={selectedStatus === status} />
+                                                <span>{status}</span>
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+
+                    <Popover
                         open={openFilter === 'type'}
                         onOpenChange={(isOpen) => setOpenFilter(isOpen ? 'type' : null)}
                     >
-                        <DropdownMenuTrigger asChild>
+                        <PopoverTrigger asChild>
                             <button
                                 type="button"
                                 className="bg-white flex items-center justify-between gap-x-5 px-3 py-2 border primary-border-color rounded-xl cursor-pointer min-w-36"
                             >
-                                <span>{selectedType === "All" ? "All Type" : selectedType}</span>
+                                <span>
+                                    {selectedType === "All" ? "All Type" : selectedType}
+                                </span>
+
                                 <ChevronDown
                                     size={14}
                                     className={`transition-transform ${openFilter === 'type' ? 'rotate-180' : ''}`}
                                 />
                             </button>
-                        </DropdownMenuTrigger>
+                        </PopoverTrigger>
 
-                        <DropdownMenuContent align="start" sideOffset={8} className="rounded-xl">
-                            {typeOptions.map((type) => (
-                                <DropdownMenuItem
-                                    key={type}
-                                    className={`px-3 py-2 ${selectedType === type ? 'font-medium' : ''}`}
-                                    onSelect={() => onTypeChange(type)}
-                                >
-                                    {type}
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        <PopoverContent
+                            align="start"
+                            className="w-50 p-1 rounded-3xl"
+                        >
+                            <Command>
+                                <CommandInput placeholder="Type" />
+
+                                <CommandList>
+                                    <CommandEmpty>No type found.</CommandEmpty>
+
+                                    <CommandGroup className="p-2">
+                                        {typeOptions.map((type) => (
+                                            <CommandItem
+                                                key={type}
+                                                onSelect={() => onTypeChange(type)}
+                                                className={`flex items-center gap-3 rounded-2xl py-2 cursor-pointer ${selectedType === type ? "bg-muted data-selected:bg-muted" : ""
+                                                    }`}
+                                            >
+                                                <Checkbox checked={selectedType === type} />
+                                                <span>{type}</span>
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
                 </div>
 
                 <DatePicker date={selectedDate} onDateChange={onDateChange} />

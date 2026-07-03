@@ -30,6 +30,7 @@ export function DatePicker({ date, onDateChange }: DatePickerProps) {
               font-normal
               h-[42px] px-3
               text-base
+              cursor-pointer
             "
           >
             {date ? format(date, "dd/MM/yyyy") : "dd/mm/yyyy"}
