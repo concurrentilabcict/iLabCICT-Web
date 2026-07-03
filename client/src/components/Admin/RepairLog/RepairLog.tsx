@@ -28,38 +28,24 @@ import {
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { createApiError, privateFetch } from "@/lib/api";
-import type { Ticket } from "@/types/ticket";
-import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
+import type { RepairLog as RepairLogType } from "@/types/repairLog";
+import type { TicketTypeFilter } from "@/utils/ticket";
 
-type ApiTicket = {
+type ApiRepairLog = {
   id: number;
-  ticket_code: string;
-  reported_by: {
+  ticket: {
     id: number;
-    first_name: string;
-    last_name: string;
+    type: string;
+    reported_by: {
+      id: number;
+      first_name: string;
+      last_name: string;
+    };
   };
-  assigned_to: {
-    id: number;
-    first_name: string;
-    last_name: string;
-  };
-  room: {
-    id: number;
-    room_name: string;
-    building_name: string;
-  };
-  computer: {
-    id: number;
-    computer_code: string;
-  };
-  type: string;
+  repair_log_code: string;
   title: string;
-  complaint_description: string;
-  issue_image: string | null;
-  status: string;
+  repair_notes: string;
   created_at: string;
-  updated_at: string;
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -79,96 +65,66 @@ const formatDate = (date: string) =>
     year: "numeric",
   }).format(new Date(date));
 
-const mapTicket = (ticket: ApiTicket): Ticket => ({
-  id: ticket.id,
-  ticketCode: ticket.ticket_code,
-  reportedBy: {
-    id: ticket.reported_by.id,
-    firstName: ticket.reported_by.first_name,
-    lastName: ticket.reported_by.last_name,
+const mapRepairLog = (repairLog: ApiRepairLog): RepairLogType => ({
+  id: repairLog.id,
+  ticket: {
+    id: repairLog.ticket.id,
+    type: repairLog.ticket.type,
+    reportedBy: {
+      id: repairLog.ticket.reported_by.id,
+      firstName: repairLog.ticket.reported_by.first_name,
+      lastName: repairLog.ticket.reported_by.last_name,
+    },
   },
-  assignedTo: {
-    id: ticket.assigned_to.id,
-    firstName: ticket.assigned_to.first_name,
-    lastName: ticket.assigned_to.last_name,
-  },
-  room: {
-    id: ticket.room.id,
-    roomName: ticket.room.room_name,
-    buildingName: ticket.room.building_name,
-  },
-  computer: {
-    id: ticket.computer.id,
-    computerCode: ticket.computer.computer_code,
-  },
-  type: ticket.type,
-  title: ticket.title,
-  complaintDescription: ticket.complaint_description,
-  issueImage: ticket.issue_image,
-  status: ticket.status,
-  createdAt: ticket.created_at,
-  updatedAt: ticket.updated_at,
+  repairLogCode: repairLog.repair_log_code,
+  title: repairLog.title,
+  repairNotes: repairLog.repair_notes,
+  createdAt: repairLog.created_at,
 });
 
-const getStatusClasses = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "open":
-      return "bg-blue-100 text-blue-700";
-    case "ongoing":
-      return "bg-yellow-100 text-yellow-700";
-    case "resolved":
-      return "bg-green-100 text-green-700";
-    default:
-      return "bg-gray-100 text-gray-700";
-  }
-};
-
-export default function ManageTicket() {
+export default function RepairLog() {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [typeFilter, setTypeFilter] = useState<TicketTypeFilter>("All");
   const [dateFilter, setDateFilter] = useState<Date>();
 
   const {
-    data: tickets = [],
+    data: repairLogs = [],
     isLoading,
     isError,
-  } = useQuery<Ticket[]>({
-    queryKey: ["admin-tickets"],
+  } = useQuery<RepairLogType[]>({
+    queryKey: ["admin-repair-logs"],
     queryFn: async () => {
       const response = await privateFetch(
-        "https://ilabcict-backend.onrender.com/api/tickets/"
+        "https://ilabcict-backend.onrender.com/api/repair-logs/"
       );
       const data = await response.json();
 
       if (!response.ok) {
         throw createApiError(
           response.status,
-          data.message || "Failed to fetch tickets."
+          data.message || "Failed to fetch repair logs."
         );
       }
 
-      return (data as ApiTicket[]).map(mapTicket);
+      return (data as ApiRepairLog[]).map(mapRepairLog);
     },
   });
 
-  const filteredTickets = useMemo(() => {
+  const filteredRepairLogs = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return tickets.filter((ticket) => {
-      const faculty = `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`;
-      const technician = `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`;
-      const type = formatLabel(ticket.type);
-      const status = formatLabel(ticket.status);
-      const created = formatDate(ticket.createdAt);
+    return repairLogs.filter((repairLog) => {
+      const faculty = `${repairLog.ticket.reportedBy.firstName} ${repairLog.ticket.reportedBy.lastName}`;
+      const type = formatLabel(repairLog.ticket.type);
+      const created = formatDate(repairLog.createdAt);
       const searchableText = [
-        ticket.ticketCode,
+        repairLog.repairLogCode,
+        repairLog.title,
+        repairLog.repairNotes,
         faculty,
-        technician,
         type,
-        status,
         created,
       ]
         .join(" ")
@@ -176,23 +132,21 @@ export default function ManageTicket() {
 
       const matchesSearch =
         normalizedQuery === "" || searchableText.includes(normalizedQuery);
-      const matchesStatus =
-        statusFilter === "All" || status === statusFilter;
       const matchesType = typeFilter === "All" || type === typeFilter;
       const matchesDate =
         !dateFilter ||
-        new Date(ticket.createdAt).toDateString() === dateFilter.toDateString();
+        new Date(repairLog.createdAt).toDateString() === dateFilter.toDateString();
 
-      return matchesSearch && matchesStatus && matchesType && matchesDate;
+      return matchesSearch && matchesType && matchesDate;
     });
-  }, [tickets, searchQuery, statusFilter, typeFilter, dateFilter]);
+  }, [repairLogs, searchQuery, typeFilter, dateFilter]);
 
   const updateFilter = (update: () => void) => {
     update();
     setPage(1);
   };
 
-  const totalPages = Math.ceil(filteredTickets.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredRepairLogs.length / ITEMS_PER_PAGE);
   const maxPage = Math.max(totalPages, 1);
   const currentPage = Math.min(page, maxPage);
 
@@ -200,23 +154,19 @@ export default function ManageTicket() {
     setPage(Math.min(Math.max(nextPage, 1), maxPage));
   };
 
-  const paginatedTickets = filteredTickets.slice(
+  const paginatedRepairLogs = filteredRepairLogs.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
   return (
-    <div className="flex w-full flex-col gap-4 p-3 mt-5">
+    <div className="mt-5 flex w-full flex-col gap-4 p-3">
       <LogToolbar
-        tickets={filteredTickets}
+        repairLogs={filteredRepairLogs}
         isLoading={isLoading}
         searchQuery={searchQuery}
         onSearchQueryChange={(query) =>
           updateFilter(() => setSearchQuery(query))
-        }
-        selectedStatus={statusFilter}
-        onStatusChange={(status) =>
-          updateFilter(() => setStatusFilter(status))
         }
         selectedType={typeFilter}
         onTypeChange={(type) => updateFilter(() => setTypeFilter(type))}
@@ -228,11 +178,9 @@ export default function ManageTicket() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="bg-muted">Ticket ID</TableHead>
+              <TableHead className="bg-muted">Repair Log ID</TableHead>
               <TableHead className="bg-muted">Faculty</TableHead>
               <TableHead className="bg-muted">Technician</TableHead>
-              <TableHead className="bg-muted">Type</TableHead>
-              <TableHead className="bg-muted">Status</TableHead>
               <TableHead className="bg-muted">Created</TableHead>
               <TableHead className="bg-muted text-center">Actions</TableHead>
             </TableRow>
@@ -242,10 +190,10 @@ export default function ManageTicket() {
             {isLoading && (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={6}
                   className="h-24 text-center secondary-text-color"
                 >
-                  Loading tickets...
+                  Loading repair logs...
                 </TableCell>
               </TableRow>
             )}
@@ -253,50 +201,38 @@ export default function ManageTicket() {
             {isError && (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={6}
                   className="h-24 text-center text-red-500"
                 >
-                  Failed to load tickets.
+                  Failed to load repair logs.
                 </TableCell>
               </TableRow>
             )}
 
-            {!isLoading && !isError && paginatedTickets.length === 0 && (
+            {!isLoading && !isError && paginatedRepairLogs.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={6}
                   className="h-24 text-center secondary-text-color"
                 >
-                  No tickets found.
+                  No repair logs found.
                 </TableCell>
               </TableRow>
             )}
 
             {!isLoading &&
               !isError &&
-              paginatedTickets.map((ticket) => {
-                const faculty = `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`;
-                const technician = `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`;
-                const status = formatLabel(ticket.status);
+              paginatedRepairLogs.map((repairLog) => {
+                const faculty = `${repairLog.ticket.reportedBy.firstName} ${repairLog.ticket.reportedBy.lastName}`;
 
                 return (
-                  <TableRow key={ticket.id} className="hover:bg-muted/50">
+                  <TableRow key={repairLog.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
-                      {ticket.ticketCode}
+                      {repairLog.repairLogCode}
                     </TableCell>
                     <TableCell>{faculty}</TableCell>
-                    <TableCell>{technician}</TableCell>
-                    <TableCell>{formatLabel(ticket.type)}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`rounded-full px-3 py-1 text-sm font-medium ${getStatusClasses(
-                          ticket.status
-                        )}`}
-                      >
-                        {status}
-                      </span>
-                    </TableCell>
-                    <TableCell>{formatDate(ticket.createdAt)}</TableCell>
+                    <TableCell>N/A</TableCell>
+                    <TableCell>{formatDate(repairLog.createdAt)}</TableCell>
                     <TableCell className="text-center">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -304,21 +240,14 @@ export default function ManageTicket() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            aria-label={`Actions for ${ticket.ticketCode}`}
+                            aria-label={`Actions for ${repairLog.repairLogCode}`}
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Ticket</DropdownMenuItem>
-                          <DropdownMenuItem>
-                            Assign Technician
-                          </DropdownMenuItem>
-                          <div className="my-1 h-px w-full bg-border" />
-                          <DropdownMenuItem className="text-red-500">
-                            Delete Ticket
-                          </DropdownMenuItem>
+                          <DropdownMenuItem>View Repair Log</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

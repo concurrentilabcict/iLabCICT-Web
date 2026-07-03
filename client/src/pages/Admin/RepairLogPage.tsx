@@ -5,7 +5,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useEffect } from "react";
 
 
-export default function ManageTicketPage() {
+export default function RepairLogPage() {
 
     useEffect(() => {
         document.title = "Repair Logs | IlabCICT"
@@ -17,7 +17,7 @@ export default function ManageTicketPage() {
                 <Sidebar />
                 <SidebarInset>
                     <div className="min-h-screen bg-[#fbfbfb]">
-                        <Header title="Manage Ticket" />
+                        <Header title="Repair Logs" />
                         <div className="mx-auto max-w-[1040px] px-10">
                             <RepairLog />
                         </div>
