@@ -2,8 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 
-import LogToolbar from "./UserToolbar";
-import type { TechnicianFilter } from "./UserToolbar";
+import UserToolbar, { type RoleFilter } from "./UserToolbar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,28 +28,24 @@ import {
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { createApiError, privateFetch } from "@/lib/api";
-import type { RepairLog as RepairLogType } from "@/types/repairLog";
-import type { TicketTypeFilter } from "@/utils/ticket";
+import type { User } from "@/types/manageUser";
 
-type ApiRepairLog = {
+type ApiUser = {
   id: number;
-  ticket: {
-    id: number;
-    type: string;
-    reported_by: {
-      id: number;
-      first_name: string;
-      last_name: string;
-    };
-    assigned_to: {
-      id: number;
-      first_name: string;
-      last_name: string;
-    };
-  };
-  repair_log_code: string;
-  title: string;
-  repair_notes: string;
+  userCode?: string;
+  user_code?: string;
+  username: string;
+  email: string;
+  firstName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+  role: string;
+  profileImage?: string;
+  profile_image?: string;
+  isActive?: boolean;
+  is_active?: boolean;
+  createdAt?: string;
   created_at: string;
 };
 
@@ -71,75 +66,66 @@ const formatDate = (date: string) =>
     year: "numeric",
   }).format(new Date(date));
 
-const mapRepairLog = (repairLog: ApiRepairLog): RepairLogType => ({
-  id: repairLog.id,
-  ticket: {
-    id: repairLog.ticket.id,
-    type: repairLog.ticket.type,
-    reportedBy: {
-      id: repairLog.ticket.reported_by.id,
-      firstName: repairLog.ticket.reported_by.first_name,
-      lastName: repairLog.ticket.reported_by.last_name,
-    },
-    assignedTo: {
-      id: repairLog.ticket.assigned_to.id,
-      firstName: repairLog.ticket.assigned_to.first_name,
-      lastName: repairLog.ticket.assigned_to.last_name,
-    },
-  },
-  repairLogCode: repairLog.repair_log_code,
-  title: repairLog.title,
-  repairNotes: repairLog.repair_notes,
-  createdAt: repairLog.created_at,
+const getUsersFromResponse = (data: ApiUser[] | { results?: ApiUser[] }) =>
+  Array.isArray(data) ? data : data.results ?? [];
+
+const mapUser = (user: ApiUser): User => ({
+  id: user.id,
+  userCode: user.userCode ?? user.user_code ?? String(user.id),
+  username: user.username,
+  email: user.email,
+  firstName: user.firstName ?? user.first_name ?? "",
+  lastName: user.lastName ?? user.last_name ?? "",
+  role: user.role,
+  profileImage: user.profileImage ?? user.profile_image ?? "",
+  isActive: user.isActive ?? user.is_active ?? false,
+  createdAt: user.createdAt ?? user.created_at,
 });
 
 export default function ManageUser() {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState<TicketTypeFilter>("All");
-  const [technicianFilter, setTechnicianFilter] =
-    useState<TechnicianFilter>("All Technician");
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("All Role");
   const [dateFilter, setDateFilter] = useState<Date>();
 
   const {
-    data: repairLogs = [],
+    data: users = [],
     isLoading,
     isError,
-  } = useQuery<RepairLogType[]>({
-    queryKey: ["admin-repair-logs"],
+  } = useQuery<User[]>({
+    queryKey: ["admin-users"],
     queryFn: async () => {
       const response = await privateFetch(
-        "https://ilabcict-backend.onrender.com/api/repair-logs/"
+        "https://ilabcict-backend.onrender.com/api/users/"
       );
       const data = await response.json();
 
       if (!response.ok) {
         throw createApiError(
           response.status,
-          data.message || "Failed to fetch repair logs."
+          data.message || "Failed to fetch users."
         );
       }
 
-      return (data as ApiRepairLog[]).map(mapRepairLog);
+      return getUsersFromResponse(data as ApiUser[] | { results?: ApiUser[] }).map(
+        mapUser
+      );
     },
   });
 
-  const filteredRepairLogs = useMemo(() => {
+  const filteredUsers = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return repairLogs.filter((repairLog) => {
-      const faculty = `${repairLog.ticket.reportedBy.firstName} ${repairLog.ticket.reportedBy.lastName}`;
-      const technician = `${repairLog.ticket.assignedTo.firstName} ${repairLog.ticket.assignedTo.lastName}`;
-      const type = formatLabel(repairLog.ticket.type);
-      const created = formatDate(repairLog.createdAt);
+    return users.filter((user) => {
+      const name = `${user.firstName} ${user.lastName}`.trim() || user.username;
+      const role = formatLabel(user.role);
+      const created = formatDate(user.createdAt);
       const searchableText = [
-        repairLog.repairLogCode,
-        repairLog.title,
-        repairLog.repairNotes,
-        faculty,
-        technician,
-        type,
+        user.userCode,
+        name,
+        user.email,
+        role,
         created,
       ]
         .join(" ")
@@ -147,24 +133,21 @@ export default function ManageUser() {
 
       const matchesSearch =
         normalizedQuery === "" || searchableText.includes(normalizedQuery);
-      const matchesType = typeFilter === "All" || type === typeFilter;
-      const matchesTechnician =
-        technicianFilter === "All Technician" ||
-        technician === technicianFilter;
+      const matchesRole = roleFilter === "All Role" || role === roleFilter;
       const matchesDate =
         !dateFilter ||
-        new Date(repairLog.createdAt).toDateString() === dateFilter.toDateString();
+        new Date(user.createdAt).toDateString() === dateFilter.toDateString();
 
-      return matchesSearch && matchesType && matchesTechnician && matchesDate;
+      return matchesSearch && matchesRole && matchesDate;
     });
-  }, [repairLogs, searchQuery, typeFilter, technicianFilter, dateFilter]);
+  }, [users, searchQuery, roleFilter, dateFilter]);
 
   const updateFilter = (update: () => void) => {
     update();
     setPage(1);
   };
 
-  const totalPages = Math.ceil(filteredRepairLogs.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
   const maxPage = Math.max(totalPages, 1);
   const currentPage = Math.min(page, maxPage);
 
@@ -172,26 +155,22 @@ export default function ManageUser() {
     setPage(Math.min(Math.max(nextPage, 1), maxPage));
   };
 
-  const paginatedRepairLogs = filteredRepairLogs.slice(
+  const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
   return (
     <div className="mt-5 flex w-full flex-col gap-4 p-3">
-      <LogToolbar
-        repairLogs={filteredRepairLogs}
+      <UserToolbar
+        users={filteredUsers}
         isLoading={isLoading}
         searchQuery={searchQuery}
         onSearchQueryChange={(query) =>
           updateFilter(() => setSearchQuery(query))
         }
-        selectedType={typeFilter}
-        onTypeChange={(type) => updateFilter(() => setTypeFilter(type))}
-        selectedTechnician={technicianFilter}
-        onTechnicianChange={(technician) =>
-          updateFilter(() => setTechnicianFilter(technician))
-        }
+        selectedRole={roleFilter}
+        onRoleChange={(role) => updateFilter(() => setRoleFilter(role))}
         selectedDate={dateFilter}
         onDateChange={(date) => updateFilter(() => setDateFilter(date))}
       />
@@ -200,9 +179,10 @@ export default function ManageUser() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="bg-muted">Repair Log ID</TableHead>
-              <TableHead className="bg-muted">Faculty</TableHead>
-              <TableHead className="bg-muted">Technician</TableHead>
+              <TableHead className="bg-muted">User ID</TableHead>
+              <TableHead className="bg-muted">Name</TableHead>
+              <TableHead className="bg-muted">Email</TableHead>
+              <TableHead className="bg-muted">Role</TableHead>
               <TableHead className="bg-muted">Created</TableHead>
               <TableHead className="bg-muted text-center">Actions</TableHead>
             </TableRow>
@@ -215,7 +195,7 @@ export default function ManageUser() {
                   colSpan={6}
                   className="h-24 text-center secondary-text-color"
                 >
-                  Loading repair logs...
+                  Loading users...
                 </TableCell>
               </TableRow>
             )}
@@ -226,36 +206,37 @@ export default function ManageUser() {
                   colSpan={6}
                   className="h-24 text-center text-red-500"
                 >
-                  Failed to load repair logs.
+                  Failed to load users.
                 </TableCell>
               </TableRow>
             )}
 
-            {!isLoading && !isError && paginatedRepairLogs.length === 0 && (
+            {!isLoading && !isError && paginatedUsers.length === 0 && (
               <TableRow>
                 <TableCell
                   colSpan={6}
                   className="h-24 text-center secondary-text-color"
                 >
-                  No repair logs found.
+                  No users found.
                 </TableCell>
               </TableRow>
             )}
 
             {!isLoading &&
               !isError &&
-              paginatedRepairLogs.map((repairLog) => {
-                const faculty = `${repairLog.ticket.reportedBy.firstName} ${repairLog.ticket.reportedBy.lastName}`;
-                const technician = `${repairLog.ticket.assignedTo.firstName} ${repairLog.ticket.assignedTo.lastName}`;
+              paginatedUsers.map((user) => {
+                const name =
+                  `${user.firstName} ${user.lastName}`.trim() || user.username;
 
                 return (
-                  <TableRow key={repairLog.id} className="hover:bg-muted/50">
+                  <TableRow key={user.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
-                      {repairLog.repairLogCode}
+                      {user.userCode}
                     </TableCell>
-                    <TableCell>{faculty}</TableCell>
-                    <TableCell>{technician}</TableCell>
-                    <TableCell>{formatDate(repairLog.createdAt)}</TableCell>
+                    <TableCell>{name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{formatLabel(user.role)}</TableCell>
+                    <TableCell>{formatDate(user.createdAt)}</TableCell>
                     <TableCell className="text-center">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -263,14 +244,14 @@ export default function ManageUser() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            aria-label={`Actions for ${repairLog.repairLogCode}`}
+                            aria-label={`Actions for ${user.userCode}`}
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Repair Log</DropdownMenuItem>
+                          <DropdownMenuItem>View User</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
