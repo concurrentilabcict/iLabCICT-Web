@@ -19,6 +19,7 @@ import AdminManageTicket from "./pages/Admin/ManageTicketPage"
 import AdminRepairLog from "./pages/Admin/RepairLogPage"
 import UnauthorizedPage from "./pages/UnauthorizedPage"
 import { useAuth } from "./auth/useAuth"
+import ManageUserPage from "./pages/Admin/ManageUserPage"
 
 function App() {
 
@@ -26,7 +27,7 @@ function App() {
 
   return (
     <>
-    <Toaster position="top-center" toastOptions={{duration: 3000, }} />
+      <Toaster position="top-center" toastOptions={{ duration: 3000, }} />
       <Routes>
         <Route path="/" element={<PublicRoute><SmoothScrolling>
           <LandingPage /></SmoothScrolling></PublicRoute>} />
@@ -38,31 +39,35 @@ function App() {
           </ProtectedRoute>
         } />
 
-          <Route path="/manage-ticket/:id" element={<ProtectedRoute allowedRoles={["technician"]}>
+        <Route path="/manage-ticket/:id" element={<ProtectedRoute allowedRoles={["technician"]}>
           <ProcessTicket /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute allowedRoles={["technician", "admin"]}>
-            <ProfilePage /></ProtectedRoute>} />
-          <Route path="/notifications" element={<ProtectedRoute allowedRoles={["technician"]}>
+
+        <Route path="/manage-user" element={<ProtectedRoute allowedRoles={["admin"]}>
+          <ManageUserPage /></ProtectedRoute>} />
+
+        <Route path="/profile" element={<ProtectedRoute allowedRoles={["technician", "admin"]}>
+          <ProfilePage /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute allowedRoles={["technician"]}>
           <NotificationPage /></ProtectedRoute>} />
-          <Route path="/weekly-reports" element={<ProtectedRoute allowedRoles={["technician"]}>
+        <Route path="/weekly-reports" element={<ProtectedRoute allowedRoles={["technician"]}>
           <WeeklyReportPage /></ProtectedRoute>} />
 
-          <Route path="/repair-logs" element={<ProtectedRoute allowedRoles={["technician", "admin"]}>
-            {role === "technician" ? <TechnicianRepairLog /> : <AdminRepairLog />}
-          </ProtectedRoute>} />
-          
-          <Route path="/qr-scanner" element={<ProtectedRoute allowedRoles={["technician"]}>
+        <Route path="/repair-logs" element={<ProtectedRoute allowedRoles={["technician", "admin"]}>
+          {role === "technician" ? <TechnicianRepairLog /> : <AdminRepairLog />}
+        </ProtectedRoute>} />
+
+        <Route path="/qr-scanner" element={<ProtectedRoute allowedRoles={["technician"]}>
           <QrScannerPage /></ProtectedRoute>} />
-          <Route path="/chatbot" element={<ProtectedRoute allowedRoles={["technician"]}>
+        <Route path="/chatbot" element={<ProtectedRoute allowedRoles={["technician"]}>
           <ChatbotPage /></ProtectedRoute>} />
 
-          <Route path="/manage-laboratory" element={<ProtectedRoute allowedRoles={["technician"]}>
-            <LaboratoryPage /></ProtectedRoute>}/>  
-          <Route path="/manage-laboratory/:room" element={<ProtectedRoute allowedRoles={["technician"]}>
-            <ComputerListPage /></ProtectedRoute>}/>
-          <Route path="/manage-laboratory/:room/:code" element={<ProtectedRoute allowedRoles={["technician"]}>
-          <ComputerInformationPage /></ProtectedRoute>}/>
-          <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route path="/manage-laboratory" element={<ProtectedRoute allowedRoles={["technician"]}>
+          <LaboratoryPage /></ProtectedRoute>} />
+        <Route path="/manage-laboratory/:room" element={<ProtectedRoute allowedRoles={["technician"]}>
+          <ComputerListPage /></ProtectedRoute>} />
+        <Route path="/manage-laboratory/:room/:code" element={<ProtectedRoute allowedRoles={["technician"]}>
+          <ComputerInformationPage /></ProtectedRoute>} />
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       </Routes>
     </>

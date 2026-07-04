@@ -57,7 +57,7 @@ export const adminNavItems: NavItem[] = [
     },
     {
         title: "User Management",
-        url: "/wala-pa-sorry",
+        url: "/manage-user",
         icon: ClipboardList,
     },
     {

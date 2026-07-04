@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 
-import LogToolbar from "./LogToolbar";
-import type { TechnicianFilter } from "./LogToolbar";
+import LogToolbar from "./UserToolbar";
+import type { TechnicianFilter } from "./UserToolbar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -93,7 +93,7 @@ const mapRepairLog = (repairLog: ApiRepairLog): RepairLogType => ({
   createdAt: repairLog.created_at,
 });
 
-export default function RepairLog() {
+export default function ManageUser() {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");

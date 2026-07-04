@@ -35,6 +35,11 @@ type ApiRepairLog = {
             first_name: string;
             last_name: string;
         };
+        assigned_to: {
+            id: number;
+            first_name: string;
+            last_name: string;
+        };
     };
     repair_log_code: string;
     title: string;
@@ -79,6 +84,11 @@ export default function RepairLog({
                 id: repairLog.ticket.reported_by.id,
                 firstName: repairLog.ticket.reported_by.first_name,
                 lastName: repairLog.ticket.reported_by.last_name,
+            },
+            assignedTo: {
+                id: repairLog.ticket.assigned_to.id,
+                firstName: repairLog.ticket.assigned_to.first_name,
+                lastName: repairLog.ticket.assigned_to.last_name,
             },
         },
         repairLogCode: repairLog.repair_log_code,

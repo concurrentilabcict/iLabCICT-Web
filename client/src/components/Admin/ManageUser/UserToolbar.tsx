@@ -60,7 +60,7 @@ const formatDate = (date: string) =>
 
 const escapeCsvCell = (value: string) => `"${value.replace(/"/g, '""')}"`;
 
-export default function LogToolbar({
+export default function UserToolbar({
   repairLogs,
   isLoading = false,
   searchQuery,

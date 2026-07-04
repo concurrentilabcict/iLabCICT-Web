@@ -5,7 +5,12 @@ export type Ticket = {
         id: number;
         firstName: string;
         lastName: string;
-    }
+    };
+    assignedTo: {
+        id: number;
+        firstName: string;
+        lastName: string;
+    };
 }
 
 export type RepairLog = {
