@@ -83,16 +83,28 @@ export default function SearchFilter() {
                             All
                         </button>
                         <button className='block w-full text-left px-3 py-2 hover:bg-gray-100' onClick={() => {
-                            setFilter('Available');
+                            setFilter('Operational');
                             setIsFilterOpen(false);
                         }}>
-                            Available
+                            Opearational
                         </button>
                         <button className='block w-full text-left px-3 py-2 hover:bg-gray-100' onClick={() => {
                             setFilter('Maintenance');
                             setIsFilterOpen(false);
                         }}>
                             Maintenance
+                        </button>
+                        <button className='block w-full text-left px-3 py-2 hover:bg-gray-100' onClick={() => {
+                            setFilter('Maintenance');
+                            setIsFilterOpen(false);
+                        }}>
+                            Degraded
+                        </button>
+                        <button className='block w-full text-left px-3 py-2 hover:bg-gray-100' onClick={() => {
+                            setFilter('Maintenance');
+                            setIsFilterOpen(false);
+                        }}>
+                            Out of Service
                         </button>
                     </div>
                 )}

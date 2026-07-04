@@ -7,9 +7,13 @@ import Sidebar from "@/components/Technician/Sidebar/Sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Laboratory from "@/components/Technician/Laboratory/Laboratory";
-
+import type{ StatusFilter } from "@/utils/room";
+import { useState } from "react";
 
 export default function LaboratoryPage(){
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const [StatusFilter, setStatusFilter] = useState<StatusFilter>("All");
 
     const isMobile = useMediaQuery("(max-width: 767px)");
 
@@ -23,7 +27,10 @@ export default function LaboratoryPage(){
                              <div className="mx-auto max-w-[1000px]">
                                 <Filter/>
                                 <SearchFilter/>
-                                <Laboratory/>
+                                <Laboratory
+                                    statusFilter={StatusFilter}
+                                    searchQuery={searchQuery}
+                                />
                              </div>
                         </div>
                     </SidebarInset>
