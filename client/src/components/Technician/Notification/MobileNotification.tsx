@@ -2,6 +2,8 @@ import type { Notification } from "@/types/notification";
 import NotificationCard from "./NotificationCard";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
+import { privateFetch } from "@/lib/api";
 
 type MobileNotificationProps = {
     notifications: Notification[];
@@ -29,6 +31,26 @@ export default function MobileNotification({ notifications }: MobileNotification
         });
     }, [notifications, selectedFilter]);
 
+    const queryClient = useQueryClient();
+
+    const changeStatusMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/notifications/${id}/`, {
+                method: "PATCH",
+                body: JSON.stringify({ status: "read" }),
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to update notification status");
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["notifications"],
+            });
+        }
+    });
+
     return (
         <>
             <div className="flex flex-col py-3">
@@ -41,11 +63,10 @@ export default function MobileNotification({ notifications }: MobileNotification
                                 key={filter}
                                 type="button"
                                 onClick={() => setSelectedFilter(filter)}
-                                className={`rounded-full px-4 py-1.5 cursor-pointer text-base transition-colors ${
-                                    isSelected
+                                className={`rounded-full px-4 py-1.5 cursor-pointer text-base transition-colors ${isSelected
                                         ? "primary-bg-color text-white"
                                         : "text-black hover:bg-accent"
-                                }`}
+                                    }`}
                             >
                                 {filter}
                             </button>
@@ -59,7 +80,9 @@ export default function MobileNotification({ notifications }: MobileNotification
                             <NotificationCard
                                 key={notification.id}
                                 notification={notification}
-                                onClick={() => navigate(`/manage-ticket?ticket=${notification.ticket.id}`)}
+                                onClick={() => {
+                                    navigate(`/manage-ticket?ticket=${notification.ticket.id}`);
+                                    changeStatusMutation.mutate(notification.id.toString())}}
                             />
                         ))
                     ) : (
