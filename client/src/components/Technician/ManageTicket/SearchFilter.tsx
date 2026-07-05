@@ -1,6 +1,12 @@
 import { Search, Funnel, ChevronDown, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { TicketTypeFilter } from '@/utils/ticket';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type SearchFilterProps = {
     searchQuery: string;
@@ -21,7 +27,6 @@ export default function SearchFilter({
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
 
-    const filterRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     const isSearchActive = isFocused || searchQuery.trim() !== '';
@@ -31,31 +36,6 @@ export default function SearchFilter({
         setIsFocused(false);
         searchInputRef.current?.blur();
     };
-
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (
-                filterRef.current &&
-                !filterRef.current.contains(event.target as Node)
-            ) {
-                setIsFilterOpen(false);
-            }
-        }
-
-        function handleEscape(event: KeyboardEvent) {
-            if (event.key === 'Escape') {
-                setIsFilterOpen(false);
-            }
-        }
-
-        document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('keydown', handleEscape);
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('keydown', handleEscape);
-        };
-    }, []);
 
     return (
         <div className="flex items-center justify-between gap-x-2 px-3 py-3">
@@ -93,51 +73,46 @@ export default function SearchFilter({
                 )}
             </div>
 
-            <div
-                ref={filterRef}
-                className={`relative ${isSearchActive ? 'hidden md:block' : ''}`}
-            >
-                <button
-                    type="button"
-                    onClick={() => setIsFilterOpen((isOpen) => !isOpen)}
-                    className='bg-white flex items-center gap-x-5 px-3 py-2 border primary-border-color rounded-md
-             cursor-pointer secondary-text-color justify-between md:w-35'
-                    aria-expanded={isFilterOpen}
-                    aria-haspopup="listbox"
+            <div className={isSearchActive ? 'hidden md:block' : ''}>
+                <DropdownMenu
+                    open={isFilterOpen}
+                    onOpenChange={setIsFilterOpen}
                 >
-                    <div className='flex items-center gap-x-1'>
-                        <Funnel size={14} />
-                        <span>{selectedType}</span>
-                    </div>
-                    <ChevronDown
-                        size={14}
-                        className={`transition-transform ${isFilterOpen ? 'rotate-180' : ''}`}
-                    />
-                </button>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            type="button"
+                            className='bg-white flex items-center gap-x-5 px-3 py-2 border primary-border-color rounded-md
+                 cursor-pointer secondary-text-color justify-between md:w-35'
+                        >
+                            <div className='flex items-center gap-x-1'>
+                                <Funnel size={14} />
+                                <span>{selectedType}</span>
+                            </div>
+                            <ChevronDown
+                                size={14}
+                                className={`transition-transform ${isFilterOpen ? 'rotate-180' : ''}`}
+                            />
+                        </button>
+                    </DropdownMenuTrigger>
 
-                {isFilterOpen && (
-                    <div
-                        className='absolute right-0 top-full z-10 mt-2 w-full rounded-md bg-white
-                         border primary-border-color shadow-sm overflow-hidden'
-                        role="listbox"
+                    <DropdownMenuContent
+                        align="end"
+                        sideOffset={8}
+                        className="rounded-md"
                     >
                         {typeOptions.map((type) => (
-                            <button
+                            <DropdownMenuItem
                                 key={type}
-                                type="button"
-                                className={`block w-full text-left px-3 py-2 hover:bg-gray-100 ${
+                                className={`px-3 py-2 ${
                                     selectedType === type ? 'font-medium' : ''
                                 }`}
-                                onClick={() => {
-                                    onTypeChange(type);
-                                    setIsFilterOpen(false);
-                                }}
+                                onSelect={() => onTypeChange(type)}
                             >
                                 {type}
-                            </button>
+                            </DropdownMenuItem>
                         ))}
-                    </div>
-                )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </div>
     );

@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/sheet";
 
 import { CalendarDays, FileText, Layers2 } from "lucide-react";
-import { capitalize, formatDateTime } from "@/utils/string";
+import { formatDateTime } from "@/utils/string";
 import type { RepairLog } from "@/types/repairLog";
 
 type TicketDetailsProps = {
@@ -37,14 +37,6 @@ export default function RepairLogDetails({ repairLog, closeSheet }: TicketDetail
             <h3>Repair Notes</h3>
           </div>
           <p>{repairLog.repairNotes}</p>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-x-1.5 font-medium secondary-text-color">
-            <Layers2 size={14} />
-            <h3>Type</h3>
-          </div>
-          <span>{capitalize(repairLog.type)}</span>
         </div>
 
         <div className="flex items-center justify-between">
