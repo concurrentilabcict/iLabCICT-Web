@@ -1,14 +1,14 @@
-import ManageTicket from "@/components/Admin/ManageTicket/ManageTicket";
+import Dashboard from "@/components/Admin/Dashboard/Dashboard";
 import Header from "@/components/Technician/Header/Header";
 import Sidebar from "@/components/Technician/Sidebar/Sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useEffect } from "react";
 
 
-export default function ManageTicketPage() {
+export default function DashboardPage() {
 
     useEffect(() => {
-        document.title = "Manage Ticket | IlabCICT"
+        document.title = "Dashboard | IlabCICT"
     }, []);
 
     return(
@@ -17,9 +17,9 @@ export default function ManageTicketPage() {
                 <Sidebar />
                 <SidebarInset>
                     <div className="min-h-screen bg-[#fbfbfb]">
-                        <Header title="Manage Ticket" />
-                        <div className="mx-auto max-w-[1040px] px-10">
-                            <ManageTicket />
+                        <Header title="Dashboard" />
+                        <div className="mx-auto w-auto max-w-[1400px] px-5">
+                            <Dashboard />
                         </div>
                     </div>
                 </SidebarInset>

@@ -152,6 +152,7 @@ function Sidebar({
   side = "left",
   variant = "sidebar",
   collapsible = "offcanvas",
+  compactOverlay = false,
   className,
   children,
   dir,
@@ -160,8 +161,9 @@ function Sidebar({
   side?: "left" | "right"
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
+  compactOverlay?: boolean
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, state, setOpen, openMobile, setOpenMobile } = useSidebar()
 
   if (collapsible === "none") {
     return (
@@ -213,11 +215,21 @@ function Sidebar({
       data-side={side}
       data-slot="sidebar"
     >
+      {compactOverlay && state === "expanded" && (
+        <button
+          type="button"
+          aria-label="Collapse sidebar"
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-[9] hidden bg-black/10 backdrop-blur-xs lg:block xl:hidden"
+        />
+      )}
+
       {/* This is what handles the sidebar gap on desktop */}
       <div
         data-slot="sidebar-gap"
         className={cn(
           "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
+          compactOverlay && "lg:w-(--sidebar-width-icon) xl:w-(--sidebar-width)",
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"

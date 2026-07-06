@@ -20,6 +20,7 @@ import AdminRepairLog from "./pages/Admin/RepairLogPage"
 import UnauthorizedPage from "./pages/UnauthorizedPage"
 import { useAuth } from "./auth/useAuth"
 import ManageUserPage from "./pages/Admin/ManageUserPage"
+import DashboardPage from "./pages/Admin/DashboardPage"
 
 function App() {
 
@@ -44,6 +45,8 @@ function App() {
 
         <Route path="/manage-user" element={<ProtectedRoute allowedRoles={["admin"]}>
           <ManageUserPage /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}>
+          <DashboardPage /></ProtectedRoute>} />
 
         <Route path="/profile" element={<ProtectedRoute allowedRoles={["technician", "admin"]}>
           <ProfilePage /></ProtectedRoute>} />
