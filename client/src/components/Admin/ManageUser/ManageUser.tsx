@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 
+import UserDetails from "./UserDetails";
+import UserForm from "./UserForm";
 import UserToolbar, { type RoleFilter } from "./UserToolbar";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   Pagination,
   PaginationContent,
@@ -69,6 +72,9 @@ const formatDate = (date: string) =>
 const getUsersFromResponse = (data: ApiUser[] | { results?: ApiUser[] }) =>
   Array.isArray(data) ? data : data.results ?? [];
 
+const sortByNewest = (firstUser: User, secondUser: User) =>
+  Date.parse(secondUser.createdAt) - Date.parse(firstUser.createdAt);
+
 const mapUser = (user: ApiUser): User => ({
   id: user.id,
   userCode: user.userCode ?? user.user_code ?? String(user.id),
@@ -88,6 +94,9 @@ export default function ManageUser() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("All Role");
   const [dateFilter, setDateFilter] = useState<Date>();
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [sheetMode, setSheetMode] = useState<"details" | "add">("details");
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const {
     data: users = [],
@@ -139,7 +148,7 @@ export default function ManageUser() {
         new Date(user.createdAt).toDateString() === dateFilter.toDateString();
 
       return matchesSearch && matchesRole && matchesDate;
-    });
+    }).sort(sortByNewest);
   }, [users, searchQuery, roleFilter, dateFilter]);
 
   const updateFilter = (update: () => void) => {
@@ -155,25 +164,47 @@ export default function ManageUser() {
     setPage(Math.min(Math.max(nextPage, 1), maxPage));
   };
 
+  const handleUserClick = (user: User) => {
+    setSelectedUser(user);
+    setSheetMode("details");
+    setSheetOpen(true);
+  };
+
+  const handleAddUserClick = () => {
+    setSelectedUser(null);
+    setSheetMode("add");
+    setSheetOpen(true);
+  };
+
+  const handleSheetOpenChange = (open: boolean) => {
+    setSheetOpen(open);
+
+    if (!open) {
+      setSelectedUser(null);
+    }
+  };
+
   const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
   return (
-    <div className="mt-5 flex w-full flex-col gap-4 p-3">
-      <UserToolbar
-        users={filteredUsers}
-        isLoading={isLoading}
-        searchQuery={searchQuery}
-        onSearchQueryChange={(query) =>
-          updateFilter(() => setSearchQuery(query))
-        }
-        selectedRole={roleFilter}
-        onRoleChange={(role) => updateFilter(() => setRoleFilter(role))}
-        selectedDate={dateFilter}
-        onDateChange={(date) => updateFilter(() => setDateFilter(date))}
-      />
+    <>
+      <div className="mt-5 flex w-full flex-col gap-4 p-3">
+        <UserToolbar
+          users={filteredUsers}
+          isLoading={isLoading}
+          searchQuery={searchQuery}
+          onSearchQueryChange={(query) =>
+            updateFilter(() => setSearchQuery(query))
+          }
+          selectedRole={roleFilter}
+          onRoleChange={(role) => updateFilter(() => setRoleFilter(role))}
+          selectedDate={dateFilter}
+          onDateChange={(date) => updateFilter(() => setDateFilter(date))}
+          onAddUser={handleAddUserClick}
+        />
 
       <div className="overflow-hidden rounded-2xl border border-primary-color bg-white">
         <Table>
@@ -229,7 +260,19 @@ export default function ManageUser() {
                   `${user.firstName} ${user.lastName}`.trim() || user.username;
 
                 return (
-                  <TableRow key={user.id} className="hover:bg-muted/50">
+                  <TableRow
+                    key={user.id}
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => handleUserClick(user)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleUserClick(user);
+                      }
+                    }}
+                    className="cursor-pointer hover:bg-muted/50"
+                  >
                     <TableCell className="font-medium">
                       {user.userCode}
                     </TableCell>
@@ -237,7 +280,10 @@ export default function ManageUser() {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{formatLabel(user.role)}</TableCell>
                     <TableCell>{formatDate(user.createdAt)}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell
+                      className="text-center"
+                      onClick={(event) => event.stopPropagation()}
+                    >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -251,7 +297,11 @@ export default function ManageUser() {
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View User</DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleUserClick(user)}
+                          >
+                            View User
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -293,5 +343,19 @@ export default function ManageUser() {
         </Pagination>
       )}
     </div>
+
+      <Sheet open={sheetOpen} onOpenChange={handleSheetOpenChange}>
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className={isMobile ? "h-[90vh]" : "w-[420px]!"}
+        >
+          {sheetMode === "add" ? (
+            <UserForm closeSheet={() => setSheetOpen(false)} />
+          ) : (
+            selectedUser && <UserDetails user={selectedUser} />
+          )}
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
