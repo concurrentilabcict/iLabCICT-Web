@@ -2,13 +2,13 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { privateFetch, createApiError } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import type { Room } from "@/types/room";
-import RevisedRoomCard from "./RevisedRoomCard";
 import RoomCard from "./RoomCard";
 import { useMemo } from "react";
-import type { Status, StatusFilter } from "@/utils/room";
+import type { Status, StatusFilter, Floor, FloorFilter } from "@/utils/room";
 
 type LaboratoryProps = {
     statusFilter: StatusFilter,
+    floorFilter: FloorFilter,
     searchQuery: string
 }
 const formatLabel = (text: string) => {
@@ -32,6 +32,7 @@ const floorConverter = (floor: number) => {
 
 export default function Laboratory({
     statusFilter,
+    floorFilter,
     searchQuery
 }: LaboratoryProps){
     
@@ -86,16 +87,22 @@ export default function Laboratory({
             )
             .filter((room) => {
                 const status = formatLabel(room.status) as Status
+                const floor = room.floorNumber as Floor
 
                 const matchesStatus = 
                     statusFilter === "All" || status === statusFilter
 
+                const matchesFloor = 
+                    floorFilter === "All" || floor === floorFilter
+
                 const searchableText = [
                     room.roomName,
                     room.buildingName,
-                    room.assignedCustodian,
+                    room.assignedCustodian.lastName,
+                    room.assignedCustodian.firstName,
                     room.floorNumber,
-                    status
+                    status,
+                    floor
                 ]
                     .join(" ")
                     .toLowerCase();
@@ -104,9 +111,9 @@ export default function Laboratory({
                     normalizedQuery === "" ||
                     searchableText.includes(normalizedQuery)
 
-                return matchesStatus && matchesSearch
+                return matchesStatus && matchesSearch && matchesFloor
             })
-    }, [rooms, statusFilter, searchQuery])
+    }, [rooms, statusFilter, floorFilter, searchQuery])
 
     return(
         <div className={`flex items-center w-full flex-col gap-3 px-3 py-3
@@ -125,8 +132,8 @@ export default function Laboratory({
 
 
                     return(
-                        <RevisedRoomCard key={room.id}
-                            status={status} location={location} assignedCustodian={custodian}
+                        <RoomCard key={room.id}
+                            status={status} location={location} assignedCustodian={custodian} roomName={room.roomName}
                             computerCount={room.computerCount} activeIssuesCount={room.activeIssuesCount}
                         />
                     )
