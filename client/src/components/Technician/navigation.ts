@@ -3,10 +3,13 @@ import {
     BookOpen,
     Bot,
     ClipboardList,
+    FileChartColumn,
+    LayoutDashboard,
     Monitor,
     ScanQrCode,
     ScrollText,
     User,
+    Wrench,
     type LucideIcon,
 } from "lucide-react";
 
@@ -43,7 +46,7 @@ export const adminNavItems: NavItem[] = [
     {
         title: "Dashboard",
         url: "/dashboard",
-        icon: ScrollText,
+        icon: LayoutDashboard,
     },
     {
         title: "Ticket Management",
@@ -63,12 +66,12 @@ export const adminNavItems: NavItem[] = [
     {
         title: "Technician Reports",
         url: "/weekly-reports",
-        icon: Monitor,
+        icon: FileChartColumn,
     },
     {
         title: "Repair Logs",
         url: "/repair-logs",
-        icon: ClipboardList,
+        icon: Wrench,
     },
 ]
 

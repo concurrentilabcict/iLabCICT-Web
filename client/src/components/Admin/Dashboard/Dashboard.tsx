@@ -184,7 +184,7 @@ export default function Dashboard() {
                 <LaboratoryStatus />
             </div>
 
-            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,55fr)_minmax(360px,45fr)]">
                 <RecentTicket />
                 <RecentUser />
             </div>
