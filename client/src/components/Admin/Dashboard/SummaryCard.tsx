@@ -99,8 +99,8 @@ export default function SummaryCard({
         bg-linear-to-b
         from-white
         via-[#bf3419]/5
-        via-50%
-        to-[#bf3419]/10
+        via-80%
+        to-[#bf3419]/5
         px-4 py-5
         sm:px-5 sm:py-6
       "

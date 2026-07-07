@@ -5,6 +5,7 @@ import { MoreHorizontal } from "lucide-react";
 import UserDetails from "./UserDetails";
 import UserForm from "./UserForm";
 import UserToolbar, { type RoleFilter } from "./UserToolbar";
+import placeholderPicture from "@/assets/profile-placeholder.png";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -258,6 +259,9 @@ export default function ManageUser() {
               paginatedUsers.map((user) => {
                 const name =
                   `${user.firstName} ${user.lastName}`.trim() || user.username;
+                const displayedProfilePicture = user.profileImage?.trim()
+                  ? user.profileImage
+                  : placeholderPicture;
 
                 return (
                   <TableRow
@@ -276,7 +280,16 @@ export default function ManageUser() {
                     <TableCell className="font-medium">
                       {user.userCode}
                     </TableCell>
-                    <TableCell>{name}</TableCell>
+                    <TableCell>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <img
+                          src={displayedProfilePicture}
+                          alt={name}
+                          className="h-8 w-8 shrink-0 rounded-full object-cover"
+                        />
+                        <span className="truncate">{name}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{formatLabel(user.role)}</TableCell>
                     <TableCell>{formatDate(user.createdAt)}</TableCell>
