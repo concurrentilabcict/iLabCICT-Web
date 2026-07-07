@@ -10,6 +10,8 @@ import { createApiError, privateFetch } from "@/lib/api";
 import SummaryCard from "./SummaryCard";
 import TicketChart from "./TicketChart";
 import LaboratoryStatus from "./LaboratoryStatus";
+import RecentTicket from "./RecentTicket";
+import RecentUser from "./RecentUser";
 
 type TicketStatus = "open" | "ongoing" | "resolved";
 
@@ -180,6 +182,11 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,70fr)_minmax(280px,30fr)]">
                 <TicketChart />
                 <LaboratoryStatus />
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                <RecentTicket />
+                <RecentUser />
             </div>
         </div>
     );

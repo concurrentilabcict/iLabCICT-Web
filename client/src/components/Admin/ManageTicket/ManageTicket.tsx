@@ -4,6 +4,7 @@ import { MoreHorizontal } from "lucide-react";
 
 import TicketDetails from "./TicketDetails";
 import TicketToolbar from "./TicketToolbar";
+import placeholderPicture from "@/assets/profile-placeholder.png";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -40,11 +41,15 @@ type ApiTicket = {
     id: number;
     first_name: string;
     last_name: string;
+    profileImage?: string;
+    profile_image?: string;
   };
   assigned_to: {
     id: number;
     first_name: string;
     last_name: string;
+    profileImage?: string;
+    profile_image?: string;
   };
   room: {
     id: number;
@@ -91,11 +96,15 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
     id: ticket.reported_by.id,
     firstName: ticket.reported_by.first_name,
     lastName: ticket.reported_by.last_name,
+    profileImage:
+      ticket.reported_by.profileImage ?? ticket.reported_by.profile_image ?? "",
   },
   assignedTo: {
     id: ticket.assigned_to.id,
     firstName: ticket.assigned_to.first_name,
     lastName: ticket.assigned_to.last_name,
+    profileImage:
+      ticket.assigned_to.profileImage ?? ticket.assigned_to.profile_image ?? "",
   },
   room: {
     id: ticket.room.id,
@@ -127,6 +136,9 @@ const getStatusClasses = (status: string) => {
       return "bg-gray-100 text-gray-700";
   }
 };
+
+const getProfilePicture = (profileImage?: string) =>
+  profileImage?.trim() ? profileImage : placeholderPicture;
 
 export default function ManageTicket() {
   const isMobile = useMediaQuery("(max-width: 767px)");
@@ -317,8 +329,26 @@ export default function ManageTicket() {
                     <TableCell className="font-medium">
                       {ticket.ticketCode}
                     </TableCell>
-                    <TableCell>{faculty}</TableCell>
-                    <TableCell>{technician}</TableCell>
+                    <TableCell>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <img
+                          src={getProfilePicture(ticket.reportedBy.profileImage)}
+                          alt={faculty}
+                          className="h-8 w-8 shrink-0 rounded-full object-cover"
+                        />
+                        <span className="truncate">{faculty}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <img
+                          src={getProfilePicture(ticket.assignedTo.profileImage)}
+                          alt={technician}
+                          className="h-8 w-8 shrink-0 rounded-full object-cover"
+                        />
+                        <span className="truncate">{technician}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>{formatLabel(ticket.type)}</TableCell>
                     <TableCell>
                       <span

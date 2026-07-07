@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, MoreHorizontal, Search, X } from "lucide-react";
 
-import TicketDetails from "./TicketDetails";
+import UserDetails from "../ManageUser/UserDetails";
 import placeholderPicture from "@/assets/profile-placeholder.png";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,47 +36,32 @@ import {
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { createApiError, privateFetch } from "@/lib/api";
-import type { Ticket } from "@/types/ticket";
-import type { TicketTypeFilter } from "@/utils/ticket";
+import type { User } from "@/types/manageUser";
 
-type ApiTicket = {
+type ApiUser = {
   id: number;
-  ticket_code: string;
-  reported_by: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    profileImage?: string;
-    profile_image?: string;
-  };
-  assigned_to: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    profileImage?: string;
-    profile_image?: string;
-  };
-  room: {
-    id: number;
-    room_name: string;
-    building_name: string;
-  };
-  computer: {
-    id: number;
-    computer_code: string;
-  };
-  type: string;
-  title: string;
-  complaint_description: string;
-  issue_image: string | null;
-  status: string;
+  userCode?: string;
+  user_code?: string;
+  username: string;
+  email: string;
+  firstName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+  role: string;
+  profileImage?: string;
+  profile_image?: string;
+  isActive?: boolean;
+  is_active?: boolean;
+  createdAt?: string;
   created_at: string;
-  updated_at: string;
 };
 
-const TICKETS_URL = "https://ilabcict-backend.onrender.com/api/tickets/";
+type RoleFilter = "All Role" | "Technician" | "Faculty";
+
+const USERS_URL = "https://ilabcict-backend.onrender.com/api/users/";
 const RECENT_LIMIT = 8;
-const typeOptions: TicketTypeFilter[] = ["All", "Request", "Report"];
+const roleOptions: RoleFilter[] = ["All Role", "Technician", "Faculty"];
 
 const formatLabel = (text: string) =>
   text
@@ -86,128 +71,88 @@ const formatLabel = (text: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 
-const getStatusClasses = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "open":
-      return "bg-blue-100 text-blue-700";
-    case "ongoing":
-      return "bg-yellow-100 text-yellow-700";
-    case "resolved":
-      return "bg-green-100 text-green-700";
-    default:
-      return "bg-gray-100 text-gray-700";
-  }
-};
+const getUsersFromResponse = (data: ApiUser[] | { results?: ApiUser[] }) =>
+  Array.isArray(data) ? data : data.results ?? [];
 
-const sortByLatestUpdate = (firstTicket: Ticket, secondTicket: Ticket) =>
-  Date.parse(secondTicket.updatedAt) - Date.parse(firstTicket.updatedAt);
+const sortByNewest = (firstUser: User, secondUser: User) =>
+  Date.parse(secondUser.createdAt) - Date.parse(firstUser.createdAt);
 
-const mapTicket = (ticket: ApiTicket): Ticket => ({
-  id: ticket.id,
-  ticketCode: ticket.ticket_code,
-  reportedBy: {
-    id: ticket.reported_by.id,
-    firstName: ticket.reported_by.first_name,
-    lastName: ticket.reported_by.last_name,
-    profileImage:
-      ticket.reported_by.profileImage ?? ticket.reported_by.profile_image ?? "",
-  },
-  assignedTo: {
-    id: ticket.assigned_to.id,
-    firstName: ticket.assigned_to.first_name,
-    lastName: ticket.assigned_to.last_name,
-    profileImage:
-      ticket.assigned_to.profileImage ?? ticket.assigned_to.profile_image ?? "",
-  },
-  room: {
-    id: ticket.room.id,
-    roomName: ticket.room.room_name,
-    buildingName: ticket.room.building_name,
-  },
-  computer: {
-    id: ticket.computer.id,
-    computerCode: ticket.computer.computer_code,
-  },
-  type: ticket.type,
-  title: ticket.title,
-  complaintDescription: ticket.complaint_description,
-  issueImage: ticket.issue_image,
-  status: ticket.status,
-  createdAt: ticket.created_at,
-  updatedAt: ticket.updated_at,
+const mapUser = (user: ApiUser): User => ({
+  id: user.id,
+  userCode: user.userCode ?? user.user_code ?? String(user.id),
+  username: user.username,
+  email: user.email,
+  firstName: user.firstName ?? user.first_name ?? "",
+  lastName: user.lastName ?? user.last_name ?? "",
+  role: user.role,
+  profileImage: user.profileImage ?? user.profile_image ?? "",
+  isActive: user.isActive ?? user.is_active ?? false,
+  createdAt: user.createdAt ?? user.created_at,
 });
 
-async function fetchTickets() {
-  const response = await privateFetch(TICKETS_URL);
+async function fetchUsers() {
+  const response = await privateFetch(USERS_URL);
   const data = await response.json();
 
   if (!response.ok) {
     throw createApiError(
       response.status,
-      data.message || "Failed to fetch recent tickets."
+      data.message || "Failed to fetch recent users."
     );
   }
 
-  return (data as ApiTicket[]).map(mapTicket);
+  return getUsersFromResponse(data as ApiUser[] | { results?: ApiUser[] }).map(
+    mapUser
+  );
 }
 
-const getProfilePicture = (profileImage?: string) =>
-  profileImage?.trim() ? profileImage : placeholderPicture;
-
-export default function RecentTicket() {
+export default function RecentUser() {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState<TicketTypeFilter>("All");
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("All Role");
   const [openFilter, setOpenFilter] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const {
-    data: tickets = [],
+    data: users = [],
     isLoading,
     isError,
-  } = useQuery<Ticket[]>({
-    queryKey: ["admin-dashboard-recent-tickets"],
-    queryFn: fetchTickets,
+  } = useQuery<User[]>({
+    queryKey: ["admin-dashboard-recent-users"],
+    queryFn: fetchUsers,
     staleTime: 60_000,
   });
 
-  const recentTickets = useMemo(() => {
+  const recentUsers = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return tickets
-      .filter((ticket) => {
-        const faculty = `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`;
-        const type = formatLabel(ticket.type);
-        const status = formatLabel(ticket.status);
-        const searchableText = [
-          ticket.ticketCode,
-          faculty,
-          type,
-          status,
-          ticket.title,
-        ]
+    return users
+      .filter((user) => {
+        const name = `${user.firstName} ${user.lastName}`.trim() || user.username;
+        const role = formatLabel(user.role);
+        const searchableText = [user.userCode, name, role]
           .join(" ")
           .toLowerCase();
 
         const matchesSearch =
           normalizedQuery === "" || searchableText.includes(normalizedQuery);
-        const matchesType = typeFilter === "All" || type === typeFilter;
+        const matchesRole = roleFilter === "All Role" || role === roleFilter;
 
-        return matchesSearch && matchesType;
+        return matchesSearch && matchesRole;
       })
-      .sort(sortByLatestUpdate)
+      .sort(sortByNewest)
       .slice(0, RECENT_LIMIT);
-  }, [tickets, searchQuery, typeFilter]);
+  }, [users, searchQuery, roleFilter]);
 
   const clearSearch = () => {
     setSearchQuery("");
     searchInputRef.current?.focus();
   };
 
-  const handleTicketClick = (ticket: Ticket) => {
-    setSelectedTicket(ticket);
+  const handleUserClick = (user: User) => {
+    setSelectedUser(user);
     setSheetOpen(true);
   };
 
@@ -215,7 +160,7 @@ export default function RecentTicket() {
     setSheetOpen(open);
 
     if (!open) {
-      setSelectedTicket(null);
+      setSelectedUser(null);
     }
   };
 
@@ -224,7 +169,7 @@ export default function RecentTicket() {
       <section className="flex min-w-0 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <h2 className="text-lg font-semibold tracking-tight text-zinc-800">
-            Recent Tickets
+            Recent Users
           </h2>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -238,7 +183,7 @@ export default function RecentTicket() {
                 type="text"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search tickets..."
+                placeholder="Search users..."
                 className="primary-border-color w-full rounded-xl border bg-white py-2 pl-9 pr-9 text-sm outline-none focus:border-black!"
               />
 
@@ -260,7 +205,7 @@ export default function RecentTicket() {
                   type="button"
                   className="primary-border-color flex min-w-32 cursor-pointer items-center justify-between gap-x-4 rounded-xl border bg-white px-3 py-2 text-sm"
                 >
-                  <span>{typeFilter === "All" ? "All Type" : typeFilter}</span>
+                  <span>{roleFilter}</span>
                   <ChevronDown
                     size={14}
                     className={`transition-transform ${
@@ -270,27 +215,27 @@ export default function RecentTicket() {
                 </button>
               </PopoverTrigger>
 
-              <PopoverContent align="end" className="w-48 rounded-3xl p-1">
+              <PopoverContent align="end" className="w-52 rounded-3xl p-1">
                 <Command>
-                  <CommandInput placeholder="Type" />
+                  <CommandInput placeholder="Role" />
                   <CommandList>
-                    <CommandEmpty>No type found.</CommandEmpty>
+                    <CommandEmpty>No role found.</CommandEmpty>
                     <CommandGroup className="p-2">
-                      {typeOptions.map((type) => (
+                      {roleOptions.map((role) => (
                         <CommandItem
-                          key={type}
+                          key={role}
                           onSelect={() => {
-                            setTypeFilter(type);
+                            setRoleFilter(role);
                             setOpenFilter(false);
                           }}
                           className={`flex cursor-pointer items-center gap-3 rounded-2xl py-2 ${
-                            typeFilter === type
+                            roleFilter === role
                               ? "bg-muted data-selected:bg-muted"
                               : ""
                           }`}
                         >
-                          <Checkbox checked={typeFilter === type} />
-                          <span>{type}</span>
+                          <Checkbox checked={roleFilter === role} />
+                          <span>{role}</span>
                         </CommandItem>
                       ))}
                     </CommandGroup>
@@ -305,10 +250,9 @@ export default function RecentTicket() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="bg-muted">Ticket ID</TableHead>
-                <TableHead className="bg-muted">Faculty</TableHead>
-                <TableHead className="bg-muted">Type</TableHead>
-                <TableHead className="bg-muted">Status</TableHead>
+                <TableHead className="bg-muted">User ID</TableHead>
+                <TableHead className="bg-muted">Name</TableHead>
+                <TableHead className="bg-muted">Role</TableHead>
                 <TableHead className="bg-muted text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -317,76 +261,70 @@ export default function RecentTicket() {
               {isLoading && (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={4}
                     className="h-24 text-center secondary-text-color"
                   >
-                    Loading tickets...
+                    Loading users...
                   </TableCell>
                 </TableRow>
               )}
 
               {isError && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-red-500">
-                    Failed to load tickets.
+                  <TableCell colSpan={4} className="h-24 text-center text-red-500">
+                    Failed to load users.
                   </TableCell>
                 </TableRow>
               )}
 
-              {!isLoading && !isError && recentTickets.length === 0 && (
+              {!isLoading && !isError && recentUsers.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={4}
                     className="h-24 text-center secondary-text-color"
                   >
-                    No tickets found.
+                    No users found.
                   </TableCell>
                 </TableRow>
               )}
 
               {!isLoading &&
                 !isError &&
-                recentTickets.map((ticket) => {
-                  const faculty = `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`;
-                  const status = formatLabel(ticket.status);
+                recentUsers.map((user) => {
+                  const name =
+                    `${user.firstName} ${user.lastName}`.trim() || user.username;
+                  const displayedProfilePicture = user.profileImage?.trim()
+                    ? user.profileImage
+                    : placeholderPicture;
 
                   return (
                     <TableRow
-                      key={ticket.id}
+                      key={user.id}
                       tabIndex={0}
                       role="button"
-                      onClick={() => handleTicketClick(ticket)}
+                      onClick={() => handleUserClick(user)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
-                          handleTicketClick(ticket);
+                          handleUserClick(user);
                         }
                       }}
                       className="cursor-pointer"
                     >
                       <TableCell className="font-medium">
-                        {ticket.ticketCode}
+                        {user.userCode}
                       </TableCell>
                       <TableCell>
                         <div className="flex min-w-0 items-center gap-3">
                           <img
-                            src={getProfilePicture(ticket.reportedBy.profileImage)}
-                            alt={faculty}
+                            src={displayedProfilePicture}
+                            alt={name}
                             className="h-8 w-8 shrink-0 rounded-full object-cover"
                           />
-                          <span className="truncate">{faculty}</span>
+                          <span className="truncate">{name}</span>
                         </div>
                       </TableCell>
-                      <TableCell>{formatLabel(ticket.type)}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`rounded-full px-3 py-1 text-sm font-medium ${getStatusClasses(
-                            ticket.status
-                          )}`}
-                        >
-                          {status}
-                        </span>
-                      </TableCell>
+                      <TableCell>{formatLabel(user.role)}</TableCell>
                       <TableCell
                         className="text-center"
                         onClick={(event) => event.stopPropagation()}
@@ -397,17 +335,15 @@ export default function RecentTicket() {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8"
-                              aria-label={`Actions for ${ticket.ticketCode}`}
+                              aria-label={`Actions for ${user.userCode}`}
                             >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
 
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => handleTicketClick(ticket)}
-                            >
-                              View Ticket
+                            <DropdownMenuItem onClick={() => handleUserClick(user)}>
+                              View User
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -423,9 +359,9 @@ export default function RecentTicket() {
       <Sheet open={sheetOpen} onOpenChange={handleSheetOpenChange}>
         <SheetContent
           side={isMobile ? "bottom" : "right"}
-          className={isMobile ? "h-[90vh]" : "w-[520px]!"}
+          className={isMobile ? "h-[90vh]" : "w-[420px]!"}
         >
-          {selectedTicket && <TicketDetails ticket={selectedTicket} />}
+          {selectedUser && <UserDetails user={selectedUser} />}
         </SheetContent>
       </Sheet>
     </>
