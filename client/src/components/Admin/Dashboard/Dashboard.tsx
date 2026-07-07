@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createApiError, privateFetch } from "@/lib/api";
 import SummaryCard from "./SummaryCard";
 import TicketChart from "./TicketChart";
+import LaboratoryStatus from "./LaboratoryStatus";
 
 type TicketStatus = "open" | "ongoing" | "resolved";
 
@@ -176,9 +177,9 @@ export default function Dashboard() {
                 ))}
             </div>
 
-            <div className="grid grid-cols-[minmax(0,65fr)_minmax(0,35fr)] gap-3">
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,70fr)_minmax(280px,30fr)]">
                 <TicketChart />
-                <h1>LaboratoryStatus here</h1>
+                <LaboratoryStatus />
             </div>
         </div>
     );
