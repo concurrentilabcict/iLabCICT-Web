@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { createApiError, privateFetch } from "@/lib/api";
 import SummaryCard from "./SummaryCard";
+import TicketChart from "./TicketChart";
 
 type TicketStatus = "open" | "ongoing" | "resolved";
 
@@ -84,32 +85,6 @@ function formatDuration(duration: number | null) {
     return `${minutes}m`;
 }
 
-function getChange(
-    current: number,
-    previous: number,
-    increaseIsGood: boolean
-) {
-    if (previous === 0) {
-        if (current === 0) {
-            return { change: "0%", changeStatus: "neutral" as const };
-        }
-
-        return {
-            change: "New",
-            changeStatus: increaseIsGood ? "good" as const : "bad" as const,
-        };
-    }
-
-    const percentage = ((current - previous) / previous) * 100;
-    const roundedPercentage = Math.round(percentage);
-    const improved = increaseIsGood ? percentage >= 0 : percentage <= 0;
-
-    return {
-        change: `${roundedPercentage > 0 ? "+" : ""}${roundedPercentage}%`,
-        changeStatus: improved ? "good" as const : "bad" as const,
-    };
-}
-
 export default function Dashboard() {
     const { data, isLoading, isError } = useQuery<DashboardTickets>({
         queryKey: ["admin-dashboard-tickets"],
@@ -129,15 +104,10 @@ export default function Dashboard() {
     const ongoingTickets = data?.ongoing ?? [];
     const resolvedTickets = data?.resolved ?? [];
 
-    const openThisMonth = ticketsInMonth(openTickets, "created_at", 0).length;
-    const openLastMonth = ticketsInMonth(openTickets, "created_at", -1).length;
-    const ongoingThisMonth = ticketsInMonth(ongoingTickets, "created_at", 0).length;
-    const ongoingLastMonth = ticketsInMonth(ongoingTickets, "created_at", -1).length;
     const resolvedThisMonth = ticketsInMonth(resolvedTickets, "updated_at", 0);
     const resolvedLastMonth = ticketsInMonth(resolvedTickets, "updated_at", -1);
 
     const currentAverage = averageResolutionMs(resolvedThisMonth);
-    const previousAverage = averageResolutionMs(resolvedLastMonth);
 
     const unavailable = {
         change: isLoading ? "Loading" : "Unavailable",
@@ -151,7 +121,11 @@ export default function Dashboard() {
             value: isLoading || isError ? "—" : String(openTickets.length),
             ...(isLoading || isError
                 ? unavailable
-                : getChange(openThisMonth, openLastMonth, false)),
+                : {
+                    change: "Awaiting action",
+                    changeStatus: "neutral" as const,
+                    caption: "",
+                }),
             icon: Inbox,
         },
         {
@@ -159,7 +133,11 @@ export default function Dashboard() {
             value: isLoading || isError ? "—" : String(ongoingTickets.length),
             ...(isLoading || isError
                 ? unavailable
-                : getChange(ongoingThisMonth, ongoingLastMonth, false)),
+                : {
+                    change: "Currently in progress",
+                    changeStatus: "neutral" as const,
+                    caption: "",
+                }),
             icon: Wrench,
         },
         {
@@ -167,34 +145,40 @@ export default function Dashboard() {
             value: isLoading || isError ? "—" : String(resolvedThisMonth.length),
             ...(isLoading || isError
                 ? unavailable
-                : getChange(
-                    resolvedThisMonth.length,
-                    resolvedLastMonth.length,
-                    true
-                )),
+                : {
+                    change: String(resolvedLastMonth.length),
+                    changeStatus: "neutral" as const,
+                    caption: "resolved last month",
+                }),
             icon: CircleCheckBig,
         },
         {
-            title: "Avg. Resolution Time",
+            title: "Est. Resolution Time",
             value: isLoading || isError ? "—" : formatDuration(currentAverage),
             ...(isLoading || isError
                 ? unavailable
-                : currentAverage === null || previousAverage === null
-                    ? {
-                        change: "No prior data",
-                        changeStatus: "neutral" as const,
-                        caption: "",
-                    }
-                    : getChange(currentAverage, previousAverage, false)),
+                : {
+                    change: currentAverage === null
+                        ? "No resolved tickets this month"
+                        : "Based on latest ticket update",
+                    changeStatus: "neutral" as const,
+                    caption: "",
+                }),
             icon: Clock3,
         },
     ];
 
     return(
-        <div className="grid grid-cols-4 gap-3">
-            {summaryCards.map((card) => (
-                <SummaryCard key={card.title} {...card} />
-            ))}
+        <div className="space-y-3 py-3">
+            <div className="grid grid-cols-4 gap-3">
+                {summaryCards.map((card) => (
+                    <SummaryCard key={card.title} {...card} />
+                ))}
+            </div>
+
+            <div className="grid grid-cols-[minmax(0,65fr)_minmax(0,35fr)] gap-3">
+                <TicketChart />
+            </div>
         </div>
     );
 }

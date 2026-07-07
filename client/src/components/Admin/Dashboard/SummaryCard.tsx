@@ -28,15 +28,17 @@ export default function SummaryCard({
       className="
         min-w-0
         w-full
-        h-full
+        h-[174px]
         flex
         flex-col
+        justify-between
         rounded-2xl
         border
         border-gray-200
-        bg-gradient-to-br
+        bg-linear-to-b
         from-white
         via-[#bf3419]/5
+        via-50%
         to-[#bf3419]/10
         px-4 py-5
         sm:px-5 sm:py-6
@@ -63,7 +65,7 @@ export default function SummaryCard({
         />
       </div>
 
-      <h2 className="mt-auto break-words pt-8 text-2xl font-medium tracking-tight text-zinc-800 sm:pt-12 sm:text-3xl">
+      <h2 className="wrap-break-word text-2xl font-medium tracking-tight text-zinc-800 sm:text-3xl">
         {value}
       </h2>
     </div>
