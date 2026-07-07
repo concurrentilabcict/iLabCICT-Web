@@ -178,6 +178,7 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-[minmax(0,65fr)_minmax(0,35fr)] gap-3">
                 <TicketChart />
+                <h1>LaboratoryStatus here</h1>
             </div>
         </div>
     );

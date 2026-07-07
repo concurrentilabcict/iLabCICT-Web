@@ -62,7 +62,7 @@ export const adminNavItems: NavItem[] = [
     },
     {
         title: "Technician Reports",
-        url: "/wala-pa-sorry",
+        url: "/weekly-reports",
         icon: Monitor,
     },
     {

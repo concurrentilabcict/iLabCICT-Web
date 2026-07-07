@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 
 type SummaryCardProps = {
@@ -9,6 +10,22 @@ type SummaryCardProps = {
   icon: LucideIcon;
 };
 
+const COUNT_ANIMATION_DURATION = 900;
+
+function hasNumber(value: string) {
+  return /\d/.test(value);
+}
+
+function getAnimatedValue(value: string, progress: number) {
+  return value.replace(/\d+/g, (match) => {
+    const target = Number(match);
+
+    if (!Number.isFinite(target)) return match;
+
+    return String(Math.round(target * progress));
+  });
+}
+
 export default function SummaryCard({
   title,
   value,
@@ -17,6 +34,50 @@ export default function SummaryCard({
   caption = "from last month",
   icon: Icon,
 }: SummaryCardProps) {
+  const [animationProgress, setAnimationProgress] = useState(1);
+  const shouldAnimateValue = useMemo(() => hasNumber(value), [value]);
+
+  useEffect(() => {
+    if (!shouldAnimateValue) {
+      setAnimationProgress(1);
+      return;
+    }
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    if (reduceMotion) {
+      setAnimationProgress(1);
+      return;
+    }
+
+    let animationFrame = 0;
+    const startedAt = performance.now();
+
+    setAnimationProgress(0);
+
+    const animateValue = (time: number) => {
+      const elapsed = time - startedAt;
+      const nextProgress = Math.min(elapsed / COUNT_ANIMATION_DURATION, 1);
+      const easedProgress = 1 - Math.pow(1 - nextProgress, 3);
+
+      setAnimationProgress(easedProgress);
+
+      if (nextProgress < 1) {
+        animationFrame = requestAnimationFrame(animateValue);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animateValue);
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [shouldAnimateValue, value]);
+
+  const displayValue = shouldAnimateValue
+    ? getAnimatedValue(value, animationProgress)
+    : value;
+
   const changeColor = {
     good: "text-emerald-500",
     bad: "text-red-500",
@@ -65,8 +126,11 @@ export default function SummaryCard({
         />
       </div>
 
-      <h2 className="wrap-break-word text-2xl font-medium tracking-tight text-zinc-800 sm:text-3xl">
-        {value}
+      <h2
+        aria-label={value}
+        className="wrap-break-word text-2xl font-medium tracking-tight text-zinc-800 sm:text-3xl"
+      >
+        {displayValue}
       </h2>
     </div>
   );
