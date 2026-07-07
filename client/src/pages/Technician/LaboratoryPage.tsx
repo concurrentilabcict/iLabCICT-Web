@@ -14,7 +14,7 @@ export default function LaboratoryPage(){
 
     const [searchQuery, setSearchQuery] = useState("");
     const [StatusFilter, setStatusFilter] = useState<StatusFilter>("All");
-    const [FloorFilter, setFloorFilter] = useState<FloorFilter>("All")
+    const [FloorFilter, setFloorFilter] = useState<FloorFilter>("All");
 
     const isMobile = useMediaQuery("(max-width: 767px)");
 

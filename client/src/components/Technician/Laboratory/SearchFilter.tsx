@@ -53,7 +53,7 @@ export default function SearchFilter({
                     type="text"
                     value={searchQuery}
                     onChange={(event) => onSearchChange(event.target.value)}
-                    placeholder="Search Tickets..."
+                    placeholder="Search Rooms..."
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     className="bg-white w-full rounded-md border primary-border-color py-2 pl-10 pr-10 

@@ -1,7 +1,13 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import { Download, Upload, Plus } from "lucide-react"
 
-export default function ButtonGroup(){
+type ButtonGroupType = {
+    custodianName: string,
+}
+
+export default function ButtonGroup({
+    custodianName
+}: ButtonGroupType){
 
     const isMobile = useMediaQuery("(max-width: 767px)")
 
@@ -44,9 +50,7 @@ export default function ButtonGroup(){
             </div>
 
             <div className="flex gap-1">
-                <span className="text-sm secondary-text-color">Custodian: Limuel Camangon</span>
-                <span className="text-sm secondary-text-color">•</span>
-                <span className="text-sm secondary-text-color">Time: 8am - 5pm</span>
+                <span className="text-sm secondary-text-color">Custodian: {custodianName}</span>
             </div>
         </div>
             

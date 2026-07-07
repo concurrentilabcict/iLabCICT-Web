@@ -58,7 +58,7 @@ export default function Laboratory({
         updatedAt: room.updated_at
     });
 
-    const { data: rooms = [], isLoading} = useQuery<Room[]>({
+    const { data: rooms = [], isLoading } = useQuery<Room[]>({
         queryKey: ["rooms"],
         queryFn: async () => {
             const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/`)
@@ -72,8 +72,6 @@ export default function Laboratory({
             return data.map(mapRoom)
         },
     });
-
-    
 
 
     const filteredRooms = useMemo(() => {
@@ -132,7 +130,7 @@ export default function Laboratory({
 
 
                     return(
-                        <RoomCard key={room.id}
+                        <RoomCard key={room.id} roomId={room.id}
                             status={status} location={location} assignedCustodian={custodian} roomName={room.roomName}
                             computerCount={room.computerCount} activeIssuesCount={room.activeIssuesCount}
                         />

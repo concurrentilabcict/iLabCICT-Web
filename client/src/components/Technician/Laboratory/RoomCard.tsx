@@ -8,10 +8,12 @@ type RoomCardProps = {
     assignedCustodian: string,
     roomName: string,
     computerCount: number,
-    activeIssuesCount: number
+    activeIssuesCount: number,
+    roomId: number
 }
 
 export default function RoomCard({
+    roomId,
     status,
     location,
     assignedCustodian,
@@ -79,7 +81,7 @@ export default function RoomCard({
 
                 <div className="flex w-full gap-2">
                     <button
-                        onClick={()=> navigate("/manage-laboratory/sdl1")}
+                        onClick={()=> navigate(`/manage-laboratory/${roomId}`)}
                         type="button"
                         className="flex w-full justify-center gap-2.5 bg-white primary-bg-color shrink-0 rounded-md px-4 py-2 text-sm font-medium text-white"
                         >

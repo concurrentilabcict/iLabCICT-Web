@@ -1,32 +1,56 @@
-import { LaptopMinimal, Calendar, SquarePen, Trash, HardDrive} from "lucide-react";
+import { LaptopMinimal, Calendar, SquarePen, Trash, HardDrive, History} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { statusConfig, type Status } from "@/utils/computer";
+import { formatDateTime } from "@/utils/string";
 
 
-export default function ComputerCard(){
+type CompCardType = {
+    computerCode: string,
+    operatingSystem: string,
+    createdAt: string,
+    updatedAt: string,
+    id: number,
+    computerStatus: Status
+}
+
+
+export default function ComputerCard({
+    computerCode,
+    operatingSystem,
+    createdAt,
+    updatedAt,
+    id,
+    computerStatus
+}: CompCardType){
+
+    const statusData = statusConfig[computerStatus];
+    const StatusIcon = statusData.icon
+
 
     const navigate = useNavigate()
     return(
         <>
              <div className="bg-white flex flex-col gap-y-2.5 border primary-border-color
-             rounded-2xl p-3.5 w-full max-w-[420px] md:max-w-[370px]">
+        rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px] cursor-pointer">
                 <div className="flex justify-between">
-                    <h1 className="font-bold text-2xl">PC-2026-003</h1>                    
+                    <h1 className="font-bold text-2xl">{computerCode}</h1>
+                    <div
+                        className={`flex w-fit gap-x-2 items-center px-3 py-1.5 rounded-md ${statusData.className}`}
+                    >
+                        <StatusIcon size={14} />
+                        <span className="text-sm">{computerStatus}</span>
+                    </div>                    
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <h1 className="secondary-text-color text-sm">Windows 11 Pro</h1>
+                    <h1 className="secondary-text-color text-sm">{operatingSystem}</h1>
                 </div>
 
                 <div className="flex justify-between ">
-                    
-                    <div className="flex gap-1.5 items-center">
-                        <LaptopMinimal className="primary-text-color" size={22}/>
-                        <span className="font-light secondary-text-color text-sm">PC-28</span>
-                    </div>
 
                     <div className="flex gap-1.5 items-center">
-                        <Calendar className="secondary-text-color" size={22}/>
-                        <span className="font-light secondary-text-color text-sm">2 days ago</span>
+                        <History className="secondary-text-color" size={22}/>
+                        <span className="font-light secondary-text-color text-sm">{formatDateTime(updatedAt)}</span>
                     </div>
                 </div>
 
@@ -49,12 +73,6 @@ export default function ComputerCard(){
                         <SquarePen size={20} className="secondary-text-color"/>
                     </button>
 
-                    <button
-                        type="button"
-                        className="bg-white shrink-0 rounded-md border primary-border-color px-4 py-2 text-sm font-medium"
-                    >
-                        <Trash size={20} className="text-[#FF0000]"/>
-                    </button>
                 </div>
                 
 
