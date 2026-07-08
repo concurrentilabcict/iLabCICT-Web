@@ -22,6 +22,8 @@ import UnauthorizedPage from "./pages/UnauthorizedPage"
 import { useAuth } from "./auth/useAuth"
 import ManageUserPage from "./pages/Admin/ManageUserPage"
 import DashboardPage from "./pages/Admin/DashboardPage"
+import FacultyPage from "./pages/Faculty/FacultyPage"
+import FacultyQrScannerPage from "./pages/Faculty/QrScannerPage"
 
 function App() {
 
@@ -36,8 +38,8 @@ function App() {
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
 
         <Route path="/manage-ticket" element={
-          <ProtectedRoute allowedRoles={["technician", "admin"]}>
-            {role === "technician" ? <TechnicianManageTicket /> : <AdminManageTicket />}
+          <ProtectedRoute allowedRoles={["technician", "admin", "faculty"]}>
+            {role === "admin" ? <AdminManageTicket /> : role === "faculty" ? <FacultyPage title="Manage Tickets" /> : <TechnicianManageTicket />}
           </ProtectedRoute>
         } />
 
@@ -49,10 +51,10 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}>
           <DashboardPage /></ProtectedRoute>} />
 
-        <Route path="/profile" element={<ProtectedRoute allowedRoles={["technician", "admin"]}>
+        <Route path="/profile" element={<ProtectedRoute allowedRoles={["technician", "admin", "faculty"]}>
           <ProfilePage /></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute allowedRoles={["technician"]}>
-          <NotificationPage /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute allowedRoles={["technician", "faculty"]}>
+          {role === "faculty" ? <FacultyPage title="Notifications" /> : <NotificationPage />}</ProtectedRoute>} />
 
         <Route path="/repair-logs" element={<ProtectedRoute allowedRoles={["technician", "admin"]}>
           {role === "technician" ? <TechnicianRepairLog /> : <AdminRepairLog />}
@@ -61,17 +63,19 @@ function App() {
           {role === "technician" ? <TechnicianWeeklyReport /> : <AdminWeeklyReport />}
         </ProtectedRoute>} />
 
-        <Route path="/qr-scanner" element={<ProtectedRoute allowedRoles={["technician"]}>
-          <QrScannerPage /></ProtectedRoute>} />
+        <Route path="/qr-scanner" element={<ProtectedRoute allowedRoles={["technician", "faculty"]}>
+          {role === "faculty" ? <FacultyQrScannerPage /> : <QrScannerPage />}</ProtectedRoute>} />
         <Route path="/chatbot" element={<ProtectedRoute allowedRoles={["technician"]}>
           <ChatbotPage /></ProtectedRoute>} />
 
-        <Route path="/manage-laboratory" element={<ProtectedRoute allowedRoles={["technician"]}>
-          <LaboratoryPage /></ProtectedRoute>} />
+        <Route path="/manage-laboratory" element={<ProtectedRoute allowedRoles={["technician", "faculty"]}>
+          {role === "faculty" ? <FacultyPage title="Laboratory" /> : <LaboratoryPage />}</ProtectedRoute>} />
         <Route path="/manage-laboratory/:room" element={<ProtectedRoute allowedRoles={["technician"]}>
           <ComputerListPage /></ProtectedRoute>} />
         <Route path="/manage-laboratory/:room/:code" element={<ProtectedRoute allowedRoles={["technician"]}>
           <ComputerInformationPage /></ProtectedRoute>} />
+        <Route path="/faq" element={<ProtectedRoute allowedRoles={["faculty"]}>
+          <FacultyPage title="FAQ" /></ProtectedRoute>} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       </Routes>

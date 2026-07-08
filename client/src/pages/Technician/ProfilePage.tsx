@@ -1,4 +1,4 @@
-import Profile from "@/components/Technician/Profile/Profile";
+import Profile from "@/components/Profile/Profile";
 import Header from "@/components/Header/Header";
 import MobileHeader from "@/components/Header/MobileHeader";
 

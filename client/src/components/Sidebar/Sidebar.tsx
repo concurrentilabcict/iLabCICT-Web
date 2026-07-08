@@ -17,7 +17,7 @@ import { useEffect, useRef } from "react";
 
 import Logo from "@/assets/logo.png";
 import ProfileFooter from "./ProfileFooter";
-import { adminNavItems, technicianNavItems } from "@/components/Technician/navigation";
+import { adminNavItems, facultyNavItems, technicianNavItems } from "@/components/Technician/navigation";
 import { useAuth } from "@/auth/useAuth";
 
 export default function Sidebar() {
@@ -27,7 +27,12 @@ export default function Sidebar() {
 
     const { role } = useAuth();
 
-    const navItems = role === "technician" ? technicianNavItems : adminNavItems;
+    const navItems =
+        role === "admin"
+            ? adminNavItems
+            : role === "faculty"
+                ? facultyNavItems
+                : technicianNavItems;
     setOpenRef.current = setOpen;
 
     useEffect(() => {

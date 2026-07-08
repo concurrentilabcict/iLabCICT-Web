@@ -4,6 +4,7 @@ import {
     Bot,
     ClipboardList,
     FileChartColumn,
+    CircleHelp,
     LayoutDashboard,
     Monitor,
     ScanQrCode,
@@ -39,6 +40,34 @@ export const technicianNavItems: NavItem[] = [
         title: "Weekly Reports",
         url: "/weekly-reports",
         icon: BookOpen,
+    },
+];
+
+export const facultyNavItems: NavItem[] = [
+    {
+        title: "Manage Tickets",
+        url: "/manage-ticket",
+        icon: ScrollText,
+    },
+    {
+        title: "Laboratory",
+        url: "/manage-laboratory",
+        icon: Monitor,
+    },
+    {
+        title: "FAQ",
+        url: "/faq",
+        icon: CircleHelp,
+    },
+    {
+        title: "Notifications",
+        url: "/notifications",
+        icon: Bell,
+    },
+    {
+        title: "QR Code",
+        url: "/qr-scanner",
+        icon: ScanQrCode,
     },
 ];
 
@@ -98,11 +127,18 @@ const headerOnlyNavItems: NavItem[] = [
     },
 ];
 
-export function getTechnicianNavIcon(pathname: string) {
-    const navItems = [...technicianNavItems, ...headerOnlyNavItems];
+export function getAppNavIcon(pathname: string) {
+    const navItems = [
+        ...technicianNavItems,
+        ...facultyNavItems,
+        ...adminNavItems,
+        ...headerOnlyNavItems,
+    ];
     const activeItem = navItems.find((item) => {
         return pathname === item.url || pathname.startsWith(`${item.url}/`);
     });
 
     return activeItem?.icon ?? ScrollText;
 }
+
+export const getTechnicianNavIcon = getAppNavIcon;

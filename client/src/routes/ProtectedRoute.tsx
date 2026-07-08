@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 import { type ReactNode } from "react";
 import { useAuth } from "../auth/useAuth";
 
-export type AppRole = "admin" | "technician";
+export type AppRole = "admin" | "technician" | "faculty";
 
 type ProtectedRouteProps = {
     children: ReactNode;
@@ -32,6 +32,10 @@ export function PublicRoute({ children }: { children: ReactNode }) {
         }
 
         if(role === "admin") {
+            return <Navigate to="/manage-ticket" replace />;
+        }
+
+        if(role === "faculty") {
             return <Navigate to="/manage-ticket" replace />;
         }
     }
