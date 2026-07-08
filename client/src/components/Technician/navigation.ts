@@ -3,10 +3,14 @@ import {
     BookOpen,
     Bot,
     ClipboardList,
+    FileChartColumn,
+    CircleHelp,
+    LayoutDashboard,
     Monitor,
     ScanQrCode,
     ScrollText,
     User,
+    Wrench,
     type LucideIcon,
 } from "lucide-react";
 
@@ -39,11 +43,39 @@ export const technicianNavItems: NavItem[] = [
     },
 ];
 
+export const facultyNavItems: NavItem[] = [
+    {
+        title: "Manage Tickets",
+        url: "/manage-ticket",
+        icon: ScrollText,
+    },
+    {
+        title: "Laboratory",
+        url: "/manage-laboratory",
+        icon: Monitor,
+    },
+    {
+        title: "FAQ",
+        url: "/faq",
+        icon: CircleHelp,
+    },
+    {
+        title: "Notifications",
+        url: "/notifications",
+        icon: Bell,
+    },
+    {
+        title: "QR Code",
+        url: "/qr-scanner",
+        icon: ScanQrCode,
+    },
+];
+
 export const adminNavItems: NavItem[] = [
     {
         title: "Dashboard",
         url: "/dashboard",
-        icon: ScrollText,
+        icon: LayoutDashboard,
     },
     {
         title: "Ticket Management",
@@ -62,13 +94,13 @@ export const adminNavItems: NavItem[] = [
     },
     {
         title: "Technician Reports",
-        url: "/wala-pa-sorry",
-        icon: Monitor,
+        url: "/weekly-reports",
+        icon: FileChartColumn,
     },
     {
         title: "Repair Logs",
         url: "/repair-logs",
-        icon: ClipboardList,
+        icon: Wrench,
     },
 ]
 
@@ -95,11 +127,18 @@ const headerOnlyNavItems: NavItem[] = [
     },
 ];
 
-export function getTechnicianNavIcon(pathname: string) {
-    const navItems = [...technicianNavItems, ...headerOnlyNavItems];
+export function getAppNavIcon(pathname: string) {
+    const navItems = [
+        ...technicianNavItems,
+        ...facultyNavItems,
+        ...adminNavItems,
+        ...headerOnlyNavItems,
+    ];
     const activeItem = navItems.find((item) => {
         return pathname === item.url || pathname.startsWith(`${item.url}/`);
     });
 
     return activeItem?.icon ?? ScrollText;
 }
+
+export const getTechnicianNavIcon = getAppNavIcon;

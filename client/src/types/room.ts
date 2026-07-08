@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 export type Room = {
     id: number,
     computerCount: number,
@@ -13,4 +14,17 @@ export type Room = {
     status: string,
     createdAt: string,
     updatedAt: string
+=======
+
+
+export type Room = {
+    id: number;
+    computerCount: number;
+    buildingName: string;
+    roomName: string;
+    floorNumber: number;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+>>>>>>> e44832bcd46116c42fbb29d2a4d67f1223f707ea
 }

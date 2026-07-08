@@ -1,11 +1,11 @@
 import NavBar from "@/components/Technician/NavBar/NavBar";
 import ComputerList from "@/components/Technician/ComputerList/ComputerList";
 import SearchFilter from "@/components/Technician/ComputerList/SearchFilter";
-import Sidebar from "@/components/Technician/Sidebar/Sidebar";
+import Sidebar from "@/components/Sidebar/Sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import Header from "@/components/Technician/Header/Header";
-import MobileHeader from "@/components/Technician/Header/MobileHeader";
+import Header from "@/components/Header/Header";
+import MobileHeader from "@/components/Header/MobileHeader";
 
 import { useEffect, useState } from "react";
 import ButtonGroup from "@/components/Technician/ComputerList/ButtonGroup";

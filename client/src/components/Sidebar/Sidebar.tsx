@@ -13,22 +13,52 @@ import {
 } from "@/components/ui/sidebar";
 
 import { NavLink, useLocation } from "react-router-dom";
+import { useEffect, useRef } from "react";
 
 import Logo from "@/assets/logo.png";
 import ProfileFooter from "./ProfileFooter";
-import { adminNavItems, technicianNavItems } from "../navigation";
+import { adminNavItems, facultyNavItems, technicianNavItems } from "@/components/Technician/navigation";
 import { useAuth } from "@/auth/useAuth";
 
 export default function Sidebar() {
-    const { state } = useSidebar();
+    const { state, setOpen } = useSidebar();
+    const setOpenRef = useRef(setOpen);
     const location = useLocation();
 
     const { role } = useAuth();
 
-    const navItems = role === "technician" ? technicianNavItems : adminNavItems;
+    const navItems =
+        role === "admin"
+            ? adminNavItems
+            : role === "faculty"
+                ? facultyNavItems
+                : technicianNavItems;
+    setOpenRef.current = setOpen;
+
+    useEffect(() => {
+        if (role !== "admin") return;
+
+        const compactAdminSidebar = window.matchMedia(
+            "(min-width: 1024px) and (max-width: 1279px)"
+        );
+        const updateAdminSidebar = () => {
+            setOpenRef.current(!compactAdminSidebar.matches);
+        };
+
+        updateAdminSidebar();
+        compactAdminSidebar.addEventListener("change", updateAdminSidebar);
+
+        return () => {
+            compactAdminSidebar.removeEventListener("change", updateAdminSidebar);
+        };
+    }, [role]);
 
     return (
-        <ShadSidebar collapsible="icon" className="flex">
+        <ShadSidebar
+            collapsible="icon"
+            compactOverlay={role === "admin"}
+            className="flex"
+        >
             <SidebarHeader className="py-3 pl-3">
                 <div className="flex items-center justify-between w-full">
                     <div

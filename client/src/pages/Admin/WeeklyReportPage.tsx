@@ -1,14 +1,14 @@
-import RepairLog from "@/components/Admin/RepairLog/RepairLog";
+import Dashboard from "@/components/Admin/Dashboard/Dashboard";
 import Header from "@/components/Header/Header";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useEffect } from "react";
 
 
-export default function RepairLogPage() {
+export default function WeeklyReportPage() {
 
     useEffect(() => {
-        document.title = "Repair Logs | IlabCICT"
+        document.title = "Weekly Report | IlabCICT"
     }, []);
 
     return(
@@ -17,9 +17,9 @@ export default function RepairLogPage() {
                 <Sidebar />
                 <SidebarInset>
                     <div className="min-h-screen bg-[#fbfbfb]">
-                        <Header title="Repair Logs" />
-                        <div className="mx-auto max-w-[1040px] px-10">
-                            <RepairLog />
+                        <Header title="Weekly Report" />
+                        <div className="mx-auto w-auto max-w-[1400px] px-5">
+                            <Dashboard />
                         </div>
                     </div>
                 </SidebarInset>

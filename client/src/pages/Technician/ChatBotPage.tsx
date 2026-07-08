@@ -1,9 +1,9 @@
 import Chatbot from "@/components/Technician/Chatbot/Chatbot";
-import Header from "@/components/Technician/Header/Header";
-import MobileHeader from "@/components/Technician/Header/MobileHeader";
+import Header from "@/components/Header/Header";
+import MobileHeader from "@/components/Header/MobileHeader";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import Sidebar from "@/components/Technician/Sidebar/Sidebar";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 import { useEffect } from "react";
 

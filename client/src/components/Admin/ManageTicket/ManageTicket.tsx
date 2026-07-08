@@ -2,7 +2,9 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 
+import TicketDetails from "./TicketDetails";
 import TicketToolbar from "./TicketToolbar";
+import placeholderPicture from "@/assets/profile-placeholder.png";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   Pagination,
   PaginationContent,
@@ -38,11 +41,15 @@ type ApiTicket = {
     id: number;
     first_name: string;
     last_name: string;
+    profileImage?: string;
+    profile_image?: string;
   };
   assigned_to: {
     id: number;
     first_name: string;
     last_name: string;
+    profileImage?: string;
+    profile_image?: string;
   };
   room: {
     id: number;
@@ -79,6 +86,9 @@ const formatDate = (date: string) =>
     year: "numeric",
   }).format(new Date(date));
 
+const sortByNewest = (firstTicket: Ticket, secondTicket: Ticket) =>
+  Date.parse(secondTicket.createdAt) - Date.parse(firstTicket.createdAt);
+
 const mapTicket = (ticket: ApiTicket): Ticket => ({
   id: ticket.id,
   ticketCode: ticket.ticket_code,
@@ -86,11 +96,15 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
     id: ticket.reported_by.id,
     firstName: ticket.reported_by.first_name,
     lastName: ticket.reported_by.last_name,
+    profileImage:
+      ticket.reported_by.profileImage ?? ticket.reported_by.profile_image ?? "",
   },
   assignedTo: {
     id: ticket.assigned_to.id,
     firstName: ticket.assigned_to.first_name,
     lastName: ticket.assigned_to.last_name,
+    profileImage:
+      ticket.assigned_to.profileImage ?? ticket.assigned_to.profile_image ?? "",
   },
   room: {
     id: ticket.room.id,
@@ -123,6 +137,9 @@ const getStatusClasses = (status: string) => {
   }
 };
 
+const getProfilePicture = (profileImage?: string) =>
+  profileImage?.trim() ? profileImage : placeholderPicture;
+
 export default function ManageTicket() {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [page, setPage] = useState(1);
@@ -130,6 +147,8 @@ export default function ManageTicket() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [typeFilter, setTypeFilter] = useState<TicketTypeFilter>("All");
   const [dateFilter, setDateFilter] = useState<Date>();
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const {
     data: tickets = [],
@@ -184,7 +203,7 @@ export default function ManageTicket() {
         new Date(ticket.createdAt).toDateString() === dateFilter.toDateString();
 
       return matchesSearch && matchesStatus && matchesType && matchesDate;
-    });
+    }).sort(sortByNewest);
   }, [tickets, searchQuery, statusFilter, typeFilter, dateFilter]);
 
   const updateFilter = (update: () => void) => {
@@ -200,13 +219,27 @@ export default function ManageTicket() {
     setPage(Math.min(Math.max(nextPage, 1), maxPage));
   };
 
+  const handleTicketClick = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setSheetOpen(true);
+  };
+
+  const handleSheetOpenChange = (open: boolean) => {
+    setSheetOpen(open);
+
+    if (!open) {
+      setSelectedTicket(null);
+    }
+  };
+
   const paginatedTickets = filteredTickets.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
   return (
-    <div className="flex w-full flex-col gap-4 p-3 mt-5">
+    <>
+      <div className="mt-5 flex w-full flex-col gap-4 p-3">
       <TicketToolbar
         tickets={filteredTickets}
         isLoading={isLoading}
@@ -280,12 +313,42 @@ export default function ManageTicket() {
                 const status = formatLabel(ticket.status);
 
                 return (
-                  <TableRow key={ticket.id} className="hover:bg-muted/50">
+                  <TableRow
+                    key={ticket.id}
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => handleTicketClick(ticket)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleTicketClick(ticket);
+                      }
+                    }}
+                    className="cursor-pointer hover:bg-muted/50"
+                  >
                     <TableCell className="font-medium">
                       {ticket.ticketCode}
                     </TableCell>
-                    <TableCell>{faculty}</TableCell>
-                    <TableCell>{technician}</TableCell>
+                    <TableCell>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <img
+                          src={getProfilePicture(ticket.reportedBy.profileImage)}
+                          alt={faculty}
+                          className="h-8 w-8 shrink-0 rounded-full object-cover"
+                        />
+                        <span className="truncate">{faculty}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <img
+                          src={getProfilePicture(ticket.assignedTo.profileImage)}
+                          alt={technician}
+                          className="h-8 w-8 shrink-0 rounded-full object-cover"
+                        />
+                        <span className="truncate">{technician}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>{formatLabel(ticket.type)}</TableCell>
                     <TableCell>
                       <span
@@ -297,7 +360,10 @@ export default function ManageTicket() {
                       </span>
                     </TableCell>
                     <TableCell>{formatDate(ticket.createdAt)}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell
+                      className="text-center"
+                      onClick={(event) => event.stopPropagation()}
+                    >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -311,7 +377,11 @@ export default function ManageTicket() {
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Ticket</DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleTicketClick(ticket)}
+                          >
+                            View Ticket
+                          </DropdownMenuItem>
                           <DropdownMenuItem>
                             Assign Technician
                           </DropdownMenuItem>
@@ -359,6 +429,16 @@ export default function ManageTicket() {
           </PaginationContent>
         </Pagination>
       )}
-    </div>
+      </div>
+
+      <Sheet open={sheetOpen} onOpenChange={handleSheetOpenChange}>
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className={isMobile ? "h-[90vh]" : "w-[520px]!"}
+        >
+          {selectedTicket && <TicketDetails ticket={selectedTicket} />}
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

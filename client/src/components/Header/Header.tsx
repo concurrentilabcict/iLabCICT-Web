@@ -3,8 +3,8 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/auth/useAuth";
 import PlaceHolder from "@/assets/profile-placeholder.png"
 import { useLocation, useNavigate } from "react-router-dom";
-import DesktopNotification from "../Notification/DesktopNotification";
-import { getTechnicianNavIcon } from "../navigation";
+import DesktopNotification from "@/components/Technician/Notification/DesktopNotification";
+import { getAppNavIcon } from "@/components/Technician/navigation";
 
 type HeaderProps = {
     title: string;
@@ -16,10 +16,10 @@ export default function Header({ title }: HeaderProps) {
     const { profilePicture } = useAuth();
     const navigate = useNavigate();
     const { pathname } = useLocation();
-    const HeaderIcon = getTechnicianNavIcon(pathname);
+    const HeaderIcon = getAppNavIcon(pathname);
 
     return (
-        <div className="bg-white flex items-center justify-between p-5 border-b border-b-[#e5e5e5]">
+        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-white/50 bg-white/70 p-5 shadow-sm shadow-black/5 backdrop-blur-xl supports-backdrop-filter:bg-white/55">
             <div className="flex items-center gap-x-2">
                 <button onClick={toggleSidebar} className="cursor-pointer">
                     <Menu size={25} className="hidden md:block lg:hidden mr-2" />

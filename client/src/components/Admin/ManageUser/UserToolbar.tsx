@@ -1,4 +1,4 @@
-import { ChevronDown, Download, Search, X } from "lucide-react";
+import { ChevronDown, Download, Search, X, Plus } from "lucide-react";
 import { useRef, useState } from "react";
 import type { User } from "@/types/manageUser";
 import {
@@ -14,12 +14,23 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { DatePicker } from "../DatePicker/DatePicker";
 
 export type RoleFilter = "All Role" | "Technician" | "Faculty";
-export const roleOptions: RoleFilter[] = ["All Role", "Technician", "Faculty"];
+const roleOptions: RoleFilter[] = ["All Role", "Technician", "Faculty"];
 
 type UserToolbarProps = {
   users: User[];
@@ -30,6 +41,7 @@ type UserToolbarProps = {
   onRoleChange: (role: RoleFilter) => void;
   selectedDate?: Date;
   onDateChange: (date?: Date) => void;
+  onAddUser: () => void;
 };
 
 const formatLabel = (text: string) =>
@@ -58,6 +70,7 @@ export default function UserToolbar({
   onRoleChange,
   selectedDate,
   onDateChange,
+  onAddUser,
 }: UserToolbarProps) {
   const [openFilter, setOpenFilter] = useState<"role" | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -108,15 +121,36 @@ export default function UserToolbar({
   return (
     <div className="flex w-full flex-col gap-y-3">
       <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={exportUsers}
-          disabled={isLoading || users.length === 0}
-          className="flex cursor-pointer items-center gap-x-1.5 rounded-xl border bg-white px-3.5 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Download size={20} className="rotate-180" />
-          <span>Export</span>
-        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              type="button"
+              disabled={isLoading || users.length === 0}
+              className="flex cursor-pointer items-center gap-x-1.5 rounded-xl border bg-white px-3.5 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Download size={20} className="rotate-180" />
+              <span>Export</span>
+            </button>
+          </AlertDialogTrigger>
+
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Export Users?</AlertDialogTitle>
+
+              <AlertDialogDescription>
+                This will download the current users table as a CSV file.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+              <AlertDialogAction onClick={exportUsers}>
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <div className="relative w-[300px]">
           <Search
@@ -147,58 +181,68 @@ export default function UserToolbar({
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-x-3">
-          <Popover
-            open={openFilter === "role"}
-            onOpenChange={(isOpen) =>
-              setOpenFilter(isOpen ? "role" : null)
-            }
-          >
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className="primary-border-color flex min-w-48 cursor-pointer items-center justify-between gap-x-5 rounded-xl border bg-white px-3 py-2"
-              >
-                <span>{selectedRole}</span>
+          <div className="flex">
+            <Popover
+              open={openFilter === "role"}
+              onOpenChange={(isOpen) =>
+                setOpenFilter(isOpen ? "role" : null)
+              }
+            >
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="primary-border-color flex min-w-48 cursor-pointer items-center justify-between gap-x-5 rounded-xl border bg-white px-3 py-2"
+                >
+                  <span>{selectedRole}</span>
 
-                <ChevronDown
-                  size={14}
-                  className={`transition-transform ${
-                    openFilter === "role" ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-            </PopoverTrigger>
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform ${
+                      openFilter === "role" ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+              </PopoverTrigger>
 
-            <PopoverContent align="start" className="w-60 rounded-3xl p-1">
-              <Command>
-                <CommandInput placeholder="Role" />
+              <PopoverContent align="start" className="w-60 rounded-3xl p-1">
+                <Command>
+                  <CommandInput placeholder="Role" />
 
-                <CommandList>
-                  <CommandEmpty>No role found.</CommandEmpty>
+                  <CommandList>
+                    <CommandEmpty>No role found.</CommandEmpty>
 
-                  <CommandGroup className="p-2">
-                    {roleOptions.map((role) => (
-                      <CommandItem
-                        key={role}
-                        onSelect={() => onRoleChange(role)}
-                        className={`flex cursor-pointer items-center gap-3 rounded-2xl py-2 ${
-                          selectedRole === role
-                            ? "bg-muted data-selected:bg-muted"
-                            : ""
-                        }`}
-                      >
-                        <Checkbox checked={selectedRole === role} />
-                        <span>{role}</span>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+                    <CommandGroup className="p-2">
+                      {roleOptions.map((role) => (
+                        <CommandItem
+                          key={role}
+                          onSelect={() => onRoleChange(role)}
+                          className={`flex cursor-pointer items-center gap-3 rounded-2xl py-2 ${
+                            selectedRole === role
+                              ? "bg-muted data-selected:bg-muted"
+                              : ""
+                          }`}
+                        >
+                          <Checkbox checked={selectedRole === role} />
+                          <span>{role}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <DatePicker date={selectedDate} onDateChange={onDateChange} />
         </div>
 
-        <DatePicker date={selectedDate} onDateChange={onDateChange} />
+        <button
+          type="button"
+          onClick={onAddUser}
+          className="flex cursor-pointer items-center gap-x-2 rounded-xl primary-bg-color px-3 py-2 text-white"
+        >
+          <Plus size={20} />
+          <span>Add User</span>
+        </button>
       </div>
     </div>
   );

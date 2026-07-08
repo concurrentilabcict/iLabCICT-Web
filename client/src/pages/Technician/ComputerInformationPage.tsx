@@ -1,8 +1,8 @@
 import NavBar from "@/components/Technician/NavBar/NavBar";
 import ComputerInformation from "@/components/Technician/ComputerInformation/ComputerInformation";
-import Header from "@/components/Technician/Header/Header";
-import MobileHeader from "@/components/Technician/Header/MobileHeader";
-import Sidebar from "@/components/Technician/Sidebar/Sidebar";
+import Header from "@/components/Header/Header";
+import MobileHeader from "@/components/Header/MobileHeader";
+import Sidebar from "@/components/Sidebar/Sidebar";
 import ComputerTitle from "@/components/Technician/ComputerInformation/ComputerTitle";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";

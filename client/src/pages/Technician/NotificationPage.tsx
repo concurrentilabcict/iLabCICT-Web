@@ -1,4 +1,4 @@
-import MobileHeader from "@/components/Technician/Header/MobileHeader";
+import MobileHeader from "@/components/Header/MobileHeader";
 import NavBar from "@/components/Technician/NavBar/NavBar";
 import Notification from "@/components/Technician/Notification/Notification";
 
