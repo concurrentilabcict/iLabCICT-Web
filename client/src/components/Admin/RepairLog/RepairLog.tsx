@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 
+import RepairLogDetails from "./RepairLogDetails";
 import LogToolbar from "./LogToolbar";
 import type { TechnicianFilter } from "./LogToolbar";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   Pagination,
   PaginationContent,
@@ -71,6 +73,13 @@ const formatDate = (date: string) =>
     year: "numeric",
   }).format(new Date(date));
 
+const sortByNewest = (
+  firstRepairLog: RepairLogType,
+  secondRepairLog: RepairLogType
+) =>
+  Date.parse(secondRepairLog.createdAt) -
+  Date.parse(firstRepairLog.createdAt);
+
 const mapRepairLog = (repairLog: ApiRepairLog): RepairLogType => ({
   id: repairLog.id,
   ticket: {
@@ -101,6 +110,9 @@ export default function RepairLog() {
   const [technicianFilter, setTechnicianFilter] =
     useState<TechnicianFilter>("All Technician");
   const [dateFilter, setDateFilter] = useState<Date>();
+  const [selectedRepairLog, setSelectedRepairLog] =
+    useState<RepairLogType | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const {
     data: repairLogs = [],
@@ -156,7 +168,7 @@ export default function RepairLog() {
         new Date(repairLog.createdAt).toDateString() === dateFilter.toDateString();
 
       return matchesSearch && matchesType && matchesTechnician && matchesDate;
-    });
+    }).sort(sortByNewest);
   }, [repairLogs, searchQuery, typeFilter, technicianFilter, dateFilter]);
 
   const updateFilter = (update: () => void) => {
@@ -172,13 +184,27 @@ export default function RepairLog() {
     setPage(Math.min(Math.max(nextPage, 1), maxPage));
   };
 
+  const handleRepairLogClick = (repairLog: RepairLogType) => {
+    setSelectedRepairLog(repairLog);
+    setSheetOpen(true);
+  };
+
+  const handleSheetOpenChange = (open: boolean) => {
+    setSheetOpen(open);
+
+    if (!open) {
+      setSelectedRepairLog(null);
+    }
+  };
+
   const paginatedRepairLogs = filteredRepairLogs.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
   return (
-    <div className="mt-5 flex w-full flex-col gap-4 p-3">
+    <>
+      <div className="mt-5 flex w-full flex-col gap-4 p-3">
       <LogToolbar
         repairLogs={filteredRepairLogs}
         isLoading={isLoading}
@@ -249,14 +275,29 @@ export default function RepairLog() {
                 const technician = `${repairLog.ticket.assignedTo.firstName} ${repairLog.ticket.assignedTo.lastName}`;
 
                 return (
-                  <TableRow key={repairLog.id} className="hover:bg-muted/50">
+                  <TableRow
+                    key={repairLog.id}
+                    tabIndex={0}
+                    role="button"
+                    onClick={() => handleRepairLogClick(repairLog)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleRepairLogClick(repairLog);
+                      }
+                    }}
+                    className="cursor-pointer hover:bg-muted/50"
+                  >
                     <TableCell className="font-medium">
                       {repairLog.repairLogCode}
                     </TableCell>
                     <TableCell>{faculty}</TableCell>
                     <TableCell>{technician}</TableCell>
                     <TableCell>{formatDate(repairLog.createdAt)}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell
+                      className="text-center"
+                      onClick={(event) => event.stopPropagation()}
+                    >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -270,7 +311,11 @@ export default function RepairLog() {
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Repair Log</DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleRepairLogClick(repairLog)}
+                          >
+                            View Repair Log
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -311,6 +356,18 @@ export default function RepairLog() {
           </PaginationContent>
         </Pagination>
       )}
-    </div>
+      </div>
+
+      <Sheet open={sheetOpen} onOpenChange={handleSheetOpenChange}>
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className={isMobile ? "h-[90vh]" : "w-[420px]!"}
+        >
+          {selectedRepairLog && (
+            <RepairLogDetails repairLog={selectedRepairLog} />
+          )}
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

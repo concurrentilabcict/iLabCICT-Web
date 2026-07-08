@@ -15,6 +15,17 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { DatePicker } from "../DatePicker/DatePicker";
@@ -127,15 +138,36 @@ export default function LogToolbar({
   return (
     <div className="flex w-full flex-col gap-y-3">
       <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={exportRepairLogs}
-          disabled={isLoading || repairLogs.length === 0}
-          className="flex cursor-pointer items-center gap-x-1.5 rounded-xl border bg-white px-3.5 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Download size={20} className="rotate-180" />
-          <span>Export</span>
-        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              type="button"
+              disabled={isLoading || repairLogs.length === 0}
+              className="flex cursor-pointer items-center gap-x-1.5 rounded-xl border bg-white px-3.5 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Download size={20} className="rotate-180" />
+              <span>Export</span>
+            </button>
+          </AlertDialogTrigger>
+
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Export Repair Logs?</AlertDialogTitle>
+
+              <AlertDialogDescription>
+                This will download the current repair logs table as a CSV file.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+              <AlertDialogAction onClick={exportRepairLogs}>
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <div className="relative w-[300px]">
           <Search

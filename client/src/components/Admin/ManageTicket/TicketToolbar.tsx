@@ -17,6 +17,17 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -119,15 +130,36 @@ export default function TicketToolbar({
     return (
         <div className="flex w-full flex-col gap-y-3 ">
             <div className="flex items-center justify-between">
-                <button
-                    type="button"
-                    onClick={exportTickets}
-                    disabled={isLoading || tickets.length === 0}
-                    className="bg-white flex items-center gap-x-1.5 border rounded-xl py-2 px-3.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                    <Download size={20} className='rotate-180' />
-                    <span>Export</span>
-                </button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <button
+                            type="button"
+                            disabled={isLoading || tickets.length === 0}
+                            className="bg-white flex items-center gap-x-1.5 border rounded-xl py-2 px-3.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <Download size={20} className='rotate-180' />
+                            <span>Export</span>
+                        </button>
+                    </AlertDialogTrigger>
+
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Export Tickets?</AlertDialogTitle>
+
+                            <AlertDialogDescription>
+                                This will download the current tickets table as a CSV file.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                            <AlertDialogAction onClick={exportTickets}>
+                                Continue
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
 
                 <div className="relative w-[300px]">
                     <Search
