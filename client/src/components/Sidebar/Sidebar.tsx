@@ -17,7 +17,7 @@ import { useEffect, useRef } from "react";
 
 import Logo from "@/assets/logo.png";
 import ProfileFooter from "./ProfileFooter";
-import { adminNavItems, technicianNavItems } from "../navigation";
+import { adminNavItems, technicianNavItems } from "@/components/Technician/navigation";
 import { useAuth } from "@/auth/useAuth";
 
 export default function Sidebar() {

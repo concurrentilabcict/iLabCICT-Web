@@ -3,8 +3,8 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/auth/useAuth";
 import PlaceHolder from "@/assets/profile-placeholder.png"
 import { useLocation, useNavigate } from "react-router-dom";
-import DesktopNotification from "../Notification/DesktopNotification";
-import { getTechnicianNavIcon } from "../navigation";
+import DesktopNotification from "@/components/Technician/Notification/DesktopNotification";
+import { getTechnicianNavIcon } from "@/components/Technician/navigation";
 
 type HeaderProps = {
     title: string;

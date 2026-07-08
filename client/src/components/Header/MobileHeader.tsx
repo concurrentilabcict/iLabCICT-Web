@@ -1,7 +1,7 @@
 import { useAuth } from "@/auth/useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
 import PlaceHolder from "@/assets/profile-placeholder.png"
-import { getTechnicianNavIcon } from "../navigation";
+import { getTechnicianNavIcon } from "@/components/Technician/navigation";
 
 type MobileHeaderProps = {
     title: string;

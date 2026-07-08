@@ -1,6 +1,6 @@
 import RepairLog from "@/components/Admin/RepairLog/RepairLog";
-import Header from "@/components/Technician/Header/Header";
-import Sidebar from "@/components/Technician/Sidebar/Sidebar";
+import Header from "@/components/Header/Header";
+import Sidebar from "@/components/Sidebar/Sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useEffect } from "react";
 
