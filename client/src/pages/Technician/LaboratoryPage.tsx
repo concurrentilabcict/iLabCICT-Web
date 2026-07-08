@@ -3,7 +3,7 @@ import Filter from "@/components/Technician/Laboratory/Filter";
 import Header from "@/components/Technician/Laboratory/Header/Header";
 import MobileHeader from "@/components/Technician/Laboratory/Header/MobileHeader";
 import SearchFilter from "@/components/Technician/Laboratory/SearchFilter";
-import Sidebar from "@/components/Technician/Sidebar/Sidebar";
+import Sidebar from "@/components/Sidebar/Sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Laboratory from "@/components/Technician/Laboratory/Laboratory";

@@ -1,7 +1,7 @@
 import { useAuth } from "@/auth/useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
 import PlaceHolder from "@/assets/profile-placeholder.png"
-import { getTechnicianNavIcon } from "../navigation";
+import { getAppNavIcon } from "@/components/Technician/navigation";
 
 type MobileHeaderProps = {
     title: string;
@@ -12,7 +12,7 @@ export default function MobileHeader({ title }: MobileHeaderProps) {
     const { profilePicture } = useAuth();
     const navigate = useNavigate();
     const { pathname } = useLocation();
-    const HeaderIcon = getTechnicianNavIcon(pathname);
+    const HeaderIcon = getAppNavIcon(pathname);
 
     return (
         <div className="bg-white flex items-center justify-between p-5 border-b border-b-[#e5e5e5]">

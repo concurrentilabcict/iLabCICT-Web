@@ -2,7 +2,7 @@ import NavBar from "@/components/Technician/NavBar/NavBar";
 import ComputerList from "@/components/Technician/ComputerList/ComputerList";
 import Filter from "@/components/Technician/ComputerList/Filter";
 import SearchFilter from "@/components/Technician/ComputerList/SearchFilter";
-import Sidebar from "@/components/Technician/Sidebar/Sidebar";
+import Sidebar from "@/components/Sidebar/Sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Header from "@/components/Technician/ComputerList/Header/Header";

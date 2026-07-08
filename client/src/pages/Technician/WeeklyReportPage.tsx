@@ -1,10 +1,10 @@
-import MobileHeader from "@/components/Technician/Header/MobileHeader";
-import Header from "@/components/Technician/Header/Header";
+import MobileHeader from "@/components/Header/MobileHeader";
+import Header from "@/components/Header/Header";
 import NavBar from "@/components/Technician/NavBar/NavBar";
 
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import Sidebar from "@/components/Technician/Sidebar/Sidebar";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 import {
   SidebarProvider,
