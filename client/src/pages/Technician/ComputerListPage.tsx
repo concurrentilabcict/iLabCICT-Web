@@ -6,7 +6,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Header from "@/components/Technician/Header/Header";
 import MobileHeader from "@/components/Technician/Header/MobileHeader";
-import { useParams } from "react-router-dom";
+
 import { useEffect, useState } from "react";
 import ButtonGroup from "@/components/Technician/ComputerList/ButtonGroup";
 import type { StatusFilter } from "@/utils/computer";

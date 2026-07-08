@@ -50,7 +50,7 @@ export default function ButtonGroup({
             </div>
 
             <div className="flex gap-1">
-                <span className="text-sm secondary-text-color">Custodian: {custodianName}</span>
+                <span className="text-sm secondary-text-color">Custodian: {custodianName || "No assigned custodian"}</span>
             </div>
         </div>
             

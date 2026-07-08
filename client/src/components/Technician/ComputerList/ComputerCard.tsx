@@ -1,5 +1,5 @@
 import { LaptopMinimal, Calendar, SquarePen, Trash, HardDrive, History} from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { statusConfig, type Status } from "@/utils/computer";
 import { formatDateTime } from "@/utils/string";
 
@@ -7,9 +7,7 @@ import { formatDateTime } from "@/utils/string";
 type CompCardType = {
     computerCode: string,
     operatingSystem: string,
-    createdAt: string,
     updatedAt: string,
-    id: number,
     computerStatus: Status
 }
 
@@ -17,16 +15,14 @@ type CompCardType = {
 export default function ComputerCard({
     computerCode,
     operatingSystem,
-    createdAt,
     updatedAt,
-    id,
     computerStatus
 }: CompCardType){
 
     const statusData = statusConfig[computerStatus];
     const StatusIcon = statusData.icon
 
-
+    const {room} = useParams()
     const navigate = useNavigate()
     return(
         <>
@@ -59,7 +55,7 @@ export default function ComputerCard({
 
                 <div className="flex w-full gap-2">
                     <button
-                        onClick={()=>navigate("/manage-laboratory/sdl1/pc1")}
+                        onClick={()=>navigate(`/manage-laboratory/${room}/${computerCode}`)}
                         type="button"
                         className="flex flex-1 justify-center shrink-0 gap-2.5 bg-white primary-bg-color rounded-md px-4 py-2 text-sm font-medium text-white"
                         >
@@ -74,10 +70,6 @@ export default function ComputerCard({
                     </button>
 
                 </div>
-                
-
-
-
              </div>
         </>
     );

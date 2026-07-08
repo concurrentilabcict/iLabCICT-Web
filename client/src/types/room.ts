@@ -6,7 +6,7 @@ export type Room = {
         id: number,
         lastName: string,
         firstName: string
-    },
+    } | null,
     floorNumber:number
     buildingName: string,
     roomName: string,

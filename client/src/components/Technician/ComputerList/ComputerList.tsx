@@ -154,8 +154,7 @@ export default function ComputerList({
 
                         return(
                             <ComputerCard key={computer.id} computerCode={computer.computerCode} computerStatus={status}
-                                createdAt={computer.createdAt} updatedAt={computer.updatedAt} operatingSystem={computer.operatingSystem}
-                                id={computer.id}
+                                updatedAt={computer.updatedAt} operatingSystem={computer.operatingSystem}
                             />
                         );
 

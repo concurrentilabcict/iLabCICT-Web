@@ -4,6 +4,7 @@ export type Computer = {
         id: number,
         roomName: string,
         buildingName: string
+        floorNumber: number
     },
     computerCode: string,
     operatingSystem: string,

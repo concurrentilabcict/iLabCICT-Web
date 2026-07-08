@@ -21,8 +21,27 @@ export const statusConfig = {
     }
 }
 
+export const peripheralStatusConfig = {
+    Active: {
+        className: "bg-green-100 text-green-700",
+    },
+    Fixing: {
+        className: "bg-yellow-100 text-yellow-700",
+    },
+    Broken: {
+        className: "bg-red-100 text-red-700",
+    },
+    None: {
+        className: "bg-gray-100 text-gray-600",
+    }
+}
+
 
 export type Status = 
     keyof typeof statusConfig
 
-export type StatusFilter = "All" | Status  
+export type PeripheralStatus = 
+    keyof typeof peripheralStatusConfig
+
+export type StatusFilter = "All" | Status
+
