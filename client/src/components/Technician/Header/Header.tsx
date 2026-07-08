@@ -19,7 +19,7 @@ export default function Header({ title }: HeaderProps) {
     const HeaderIcon = getTechnicianNavIcon(pathname);
 
     return (
-        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-white/50 bg-white/70 p-5 shadow-sm shadow-black/5 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60">
+        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-white/50 bg-white/70 p-5 shadow-sm shadow-black/5 backdrop-blur-xl supports-backdrop-filter:bg-white/55">
             <div className="flex items-center gap-x-2">
                 <button onClick={toggleSidebar} className="cursor-pointer">
                     <Menu size={25} className="hidden md:block lg:hidden mr-2" />
