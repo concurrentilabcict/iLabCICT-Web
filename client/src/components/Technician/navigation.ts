@@ -93,7 +93,7 @@ export const adminNavItems: NavItem[] = [
         icon: ClipboardList,
     },
     {
-        title: "Technician Reports",
+        title: "Technician Report",
         url: "/weekly-reports",
         icon: FileChartColumn,
     },
