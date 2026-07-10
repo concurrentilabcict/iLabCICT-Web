@@ -24,6 +24,7 @@ import ManageUserPage from "./pages/Admin/ManageUserPage"
 import DashboardPage from "./pages/Admin/DashboardPage"
 import FacultyPage from "./pages/Faculty/FacultyPage"
 import FacultyQrScannerPage from "./pages/Faculty/QrScannerPage"
+import FacultyManageTicket from "./pages/Faculty/ManageTicketPage"
 
 const allRoles = ["technician", "admin", "faculty"] as const;
 const adminOnly = ["admin"] as const;
@@ -47,7 +48,7 @@ function App() {
         {/* Technician, Admin, Faculty */}
         <Route path="/manage-ticket" element={
           <ProtectedRoute allowedRoles={allRoles}>
-            {role === "admin" ? <AdminManageTicket /> : role === "faculty" ? <FacultyPage title="Manage Tickets" /> : <TechnicianManageTicket />}
+            {role === "admin" ? <AdminManageTicket /> : role === "faculty" ? <FacultyManageTicket /> : <TechnicianManageTicket />}
           </ProtectedRoute>
         } />
         <Route path="/profile" element={<ProtectedRoute allowedRoles={allRoles}>

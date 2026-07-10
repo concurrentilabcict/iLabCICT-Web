@@ -1,5 +1,7 @@
 import NavBar from "@/components/Technician/NavBar/NavBar";
 import Sidebar from "@/components/Sidebar/Sidebar";
+import Header from "@/components/Header/Header";
+import MobileHeader from "@/components/Header/MobileHeader";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useEffect } from "react";
@@ -19,8 +21,12 @@ export default function FacultyPage({ title }: FacultyPageProps) {
         <SidebarProvider>
             {isMobile ? <NavBar /> : <Sidebar />}
             <SidebarInset>
-                <main className="min-h-screen bg-[#f8fafc] p-5 pb-24 md:pb-5">
-                    <h1 className="text-2xl font-semibold">{title}</h1>
+                <main className="min-h-screen bg-[#f8fafc]">
+                    {isMobile ? (
+                        <MobileHeader title={title} />
+                    ) : (
+                        <Header title={title} />
+                    )}
                 </main>
             </SidebarInset>
         </SidebarProvider>
