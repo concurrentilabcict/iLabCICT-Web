@@ -3,11 +3,17 @@ import { Download, Upload, Plus } from "lucide-react"
 
 type ButtonGroupType = {
     custodianName: string,
+    setSheetOpen: (open: boolean) => void
 }
 
 export default function ButtonGroup({
-    custodianName
+    custodianName,
+    setSheetOpen
 }: ButtonGroupType){
+
+    const handleAddDeviceClick = () => {
+        setSheetOpen(true)
+    }
 
     const isMobile = useMediaQuery("(max-width: 767px)")
 
@@ -19,6 +25,7 @@ export default function ButtonGroup({
                 <div>
                     <button
                     type="button"
+                    onClick={handleAddDeviceClick}
                     className="flex gap-1.5 items-center bg-white primary-bg-color shrink-0 rounded-full px-4 py-2 text-sm font-medium text-white"
                     >
                         <Plus size={16}/> 

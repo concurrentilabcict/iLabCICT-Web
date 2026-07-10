@@ -5,7 +5,13 @@ import type { ComputerList, ComputerCardType } from "@/types/computer";
 import { useQuery } from "@tanstack/react-query";
 import { createApiError, privateFetch } from "@/lib/api";
 import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+
+import {
+    Sheet,
+    SheetContent,
+} from "@/components/ui/sheet";
+
 import {
     Pagination,
     PaginationContent,
@@ -14,12 +20,16 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
+import type { Computer } from "@/types/ticket";
+import AddComputerForm from "./AddComputerForm";
 
 type ComputerListProps = {
+    roomName: string,
     searchQuery: string,
     statusFilter: StatusFilter,
-    setRoomName: Function,
-    setCustodian: Function
+    setCustodian: Function,
+    sheetOpen: boolean,
+    setSheetOpen: (open: boolean) => void
 }
 
 const formatLabel = (text: string) => {
@@ -32,13 +42,18 @@ const formatLabel = (text: string) => {
 };
 
 export default function ComputerList({
+    roomName,
     searchQuery,
     statusFilter,
-    setRoomName,
-    setCustodian
+    setCustodian,
+    sheetOpen,
+    setSheetOpen
 }: ComputerListProps){
 
     const isMobile = useMediaQuery("(max-width: 767px)");
+    const [selectedPcId, setSelectedPcId] = useState<number | null>(null);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [roomId, setRoomId] = useState<number | null>(null);
 
     const ITEMS_PER_PAGE = 10;
     const filterKey  = JSON.stringify([statusFilter, searchQuery]);
@@ -46,6 +61,14 @@ export default function ComputerList({
         page: 1,
         filterKey
     });
+
+    const handleSheetOpenChange = (open: boolean) => {
+        setSheetOpen(open);
+
+        if (!open) {
+            setSearchParams({}, { replace: true });
+        }
+    }
 
     const mapComputerCard = (computerCard: any): ComputerCardType => ({
         id: computerCard.id,
@@ -57,18 +80,17 @@ export default function ComputerList({
     })
 
 
-    const {room} = useParams();
-
     const { data: computers = [], isLoading } = useQuery<ComputerCardType[]>({
-        queryKey: ["computers"],
+        queryKey: ["computers", roomName],
         queryFn: async ()=> {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/${room}/computers/`);
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/${roomName}/computers/`);
 
             const data = await res.json();
 
+            console.log(data)
             const custodian = data.assigned_custodian.first_name + " " + data.assigned_custodian.last_name
             setCustodian(custodian)
-            setRoomName(data.room_name)
+            setRoomId(data.id)
 
             if(!res.ok){
                 throw createApiError(res.status, data.message || 'Failed to fetch computers.');
@@ -193,6 +215,25 @@ export default function ComputerList({
                     </Pagination>
                 )}
             </div>
+
+            <Sheet
+            open={sheetOpen}
+            onOpenChange={handleSheetOpenChange}
+            >
+            <SheetContent
+                side={isMobile ? "bottom" : "right"}
+                className={
+                    isMobile
+                        ? "h-[90vh]"
+                        : "w-[1000px]!"
+                }
+            >
+                    <AddComputerForm
+                        room={roomId}
+                        closeSheet={() => setSheetOpen(false)}
+                    />
+            </SheetContent>
+        </Sheet>
         </>
         );
 }

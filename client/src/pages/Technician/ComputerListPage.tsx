@@ -10,6 +10,7 @@ import MobileHeader from "@/components/Header/MobileHeader";
 import { useEffect, useState } from "react";
 import ButtonGroup from "@/components/Technician/ComputerList/ButtonGroup";
 import type { StatusFilter } from "@/utils/computer";
+import { useParams } from "react-router-dom";
 
 
 export default function ComputerListPage(){
@@ -17,9 +18,12 @@ export default function ComputerListPage(){
     const isMobile = useMediaQuery("(max-width: 767px)");
 
     const [custodian, setCustodian] = useState("");
-    const [roomName, setRoomName] = useState("");    
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
+    const [sheetOpen, setSheetOpen] = useState(false);
+
+    const { room } = useParams();
+    const roomName = room ? decodeURIComponent(room) : "";
 
     useEffect(()=>{
         document.title = `${roomName + ` | `}ILabCICT`;
@@ -41,10 +45,13 @@ export default function ComputerListPage(){
                                     onStatusChange={setStatusFilter}
                                 />
                                 <ButtonGroup
+                                    setSheetOpen={setSheetOpen}
                                     custodianName={custodian}
                                 />
                                 <ComputerList
-                                    setRoomName={setRoomName}
+                                    setSheetOpen={setSheetOpen}
+                                    sheetOpen={sheetOpen}
+                                    roomName={roomName}
                                     statusFilter={statusFilter}
                                     searchQuery={searchQuery}
                                     setCustodian={setCustodian}

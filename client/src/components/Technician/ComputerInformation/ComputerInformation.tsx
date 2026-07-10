@@ -8,7 +8,7 @@ import { createApiError, privateFetch } from "@/lib/api";
 import type { PeripheralStatus, Status } from "@/utils/computer";
 
 type ComputerInformationType = {
-    roomId: string,
+    roomName: string,
     computerCode: string,
     setAddress: Function
 }
@@ -33,7 +33,7 @@ const floorConverter = (floor: number) => {
 }
 
 export default function ComputerInformation({
-    roomId,
+    roomName,
     computerCode,
     setAddress
 }: ComputerInformationType){
@@ -66,10 +66,10 @@ export default function ComputerInformation({
     });
 
     const { data: computer, isLoading } = useQuery<Computer>({
-        queryKey: ["computer", roomId, computerCode],
+        queryKey: ["computer", roomName, computerCode],
         queryFn: async () => {
             console.log("fetching...")
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/${roomId}/computers/${computerCode}`);
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/${roomName}/computers/${computerCode}`);
 
             const data = await res.json();
             if(!res.ok){
@@ -94,6 +94,12 @@ export default function ComputerInformation({
         
         <div className={`flex items-center w-full flex-col gap-3 px-3 py-3 ${isMobile ? 'mb-20' : ''}
         sm:grid sm:grid-cols-2 bg-red`}>
+
+            {isLoading && (
+                <p className="col-span-full py-8 text-center secondary-text-color">
+                        Loading computer info...
+                    </p>
+            )}
             
             {!isLoading && computer && (
                 <>

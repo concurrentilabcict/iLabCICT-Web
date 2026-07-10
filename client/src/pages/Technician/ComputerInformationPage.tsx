@@ -18,7 +18,7 @@ export default function ComputerInformationPage(){
     const { room } = useParams()
     
     const pcCode = code ? decodeURIComponent(code) : "";
-    const roomId = room ? decodeURIComponent(room) : "";
+    const roomName = room ? decodeURIComponent(room) : "";
     const [address, setAddress] = useState("No address information.");
     
 
@@ -35,14 +35,14 @@ export default function ComputerInformationPage(){
                             {isMobile ? <Header title={pcCode}/> : <MobileHeader title={pcCode}/>}
                             <div className="mx-auto max-w-[1000px]">
                                 <ComputerTitle
-                                    room={roomId}
+                                    room={roomName}
                                     computerCode={pcCode}
                                     address={address}
                                 />
                                 <ComputerInformation
                                     setAddress={setAddress}
                                     computerCode={pcCode}
-                                    roomId={roomId}
+                                    roomName={roomName}
                                 />
                             </div>
                          </div>
