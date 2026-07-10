@@ -25,6 +25,7 @@ import DashboardPage from "./pages/Admin/DashboardPage"
 import FacultyPage from "./pages/Faculty/FacultyPage"
 import FacultyQrScannerPage from "./pages/Faculty/QrScannerPage"
 import FacultyManageTicket from "./pages/Faculty/ManageTicketPage"
+import FacultyFaqPage from "./pages/Faculty/FaqPage"
 
 const allRoles = ["technician", "admin", "faculty"] as const;
 const adminOnly = ["admin"] as const;
@@ -88,7 +89,7 @@ function App() {
 
         {/* Faculty */}
         <Route path="/faq" element={<ProtectedRoute allowedRoles={facultyOnly}>
-          <FacultyPage title="FAQ" /></ProtectedRoute>} />
+          <FacultyFaqPage /></ProtectedRoute>} />
 
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
