@@ -15,9 +15,10 @@ import { useNavigate } from "react-router-dom";
 
 type MoreMenuProps = {
     isActive?: boolean;
+    showWeeklyReport?: boolean;
 };
 
-export default function MoreMenu({ isActive }: MoreMenuProps) {
+export default function MoreMenu({ isActive, showWeeklyReport = true }: MoreMenuProps) {
 
     const navigate = useNavigate();
 
@@ -40,10 +41,12 @@ export default function MoreMenu({ isActive }: MoreMenuProps) {
                 align="end"
                 sideOffset={20}
             >
-                <DropdownMenuItem onSelect={() => navigate("/weekly-reports")}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Weekly Report
-                </DropdownMenuItem>
+                {showWeeklyReport && (
+                    <DropdownMenuItem onSelect={() => navigate("/weekly-reports")}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Weekly Report
+                    </DropdownMenuItem>
+                )}
 
                 <DropdownMenuItem onSelect={() => navigate("/notifications")}>
                     <Bell className="mr-2 h-4 w-4" />

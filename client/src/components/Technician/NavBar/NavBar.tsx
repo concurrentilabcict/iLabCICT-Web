@@ -3,7 +3,6 @@ import {
     Monitor,
     ClipboardList,
     ScanQrCode,
-    Bell,
     CircleHelp,
 } from 'lucide-react';
 
@@ -70,18 +69,10 @@ export default function NavBar() {
                     <span className='text-sm'>FAQ</span>
                 </button>
 
-                <button
-                    onClick={() => navigate("/notifications")}
-                    type="button"
-                    className={`flex flex-col items-center gap-y-1 cursor-pointer
-                    ${pathname === "/notifications"
-                        ? "primary-text-color"
-                        : "secondary-text-color"
-                    }`}
-                >
-                    <Bell size={23} />
-                    <span className='text-sm'>Alerts</span>
-                </button>
+                <MoreMenu
+                    isActive={pathname === "/notifications"}
+                    showWeeklyReport={false}
+                />
             </div>
         );
     }

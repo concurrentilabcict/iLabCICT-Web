@@ -152,7 +152,7 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side={isMobile ? "bottom" : "right"} className={isMobile ? "h-[90vh]" : "w-[1000px]!"}>
-          {selectedTicket && <TicketDetails ticket={selectedTicket} closeSheet={() => setSheetOpen(false)} />}
+          {selectedTicket && <TicketDetails ticket={selectedTicket} />}
         </SheetContent>
       </Sheet>
     </>

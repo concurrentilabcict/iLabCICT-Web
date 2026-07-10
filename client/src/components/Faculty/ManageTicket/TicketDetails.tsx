@@ -1,13 +1,12 @@
-import { SheetClose, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+import { SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { Ticket } from "@/types/ticket";
 import { Building2, CalendarDays, ImageOff, Layers2, Monitor, User, Wrench } from "lucide-react";
 import { capitalize, formatDateTime } from "@/utils/string";
 import { statusConfig, type Status } from "@/utils/ticket";
 
-type TicketDetailsProps = { ticket: Ticket; closeSheet: () => void };
+type TicketDetailsProps = { ticket: Ticket };
 
-export default function TicketDetails({ ticket, closeSheet }: TicketDetailsProps) {
+export default function TicketDetails({ ticket }: TicketDetailsProps) {
   const status = capitalize(ticket.status) as Status;
   const statusData = statusConfig[status];
   const StatusIcon = statusData?.icon;
@@ -33,7 +32,6 @@ export default function TicketDetails({ ticket, closeSheet }: TicketDetailsProps
       <DetailRow icon={Building2} label="Room" value={`${capitalize(ticket.room.buildingName)}, ${ticket.room.roomName}`} />
       <DetailRow icon={CalendarDays} label="Date" value={formatDateTime(ticket.createdAt)} />
     </div>
-    <SheetFooter><SheetClose asChild><Button onClick={closeSheet} variant="outline">Close</Button></SheetClose></SheetFooter>
   </>;
 }
 
