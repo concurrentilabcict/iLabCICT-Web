@@ -26,7 +26,7 @@ type ManageTicketCardProps = {
   reportedBy: string;
   ticketCode: string;
   room: string;
-  computerCode: string;
+  computerCode: string | null;
   date: string;
   onClick?: () => void;
 };

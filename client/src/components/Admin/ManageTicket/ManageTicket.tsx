@@ -180,7 +180,7 @@ export default function ManageTicket() {
 
     return tickets.filter((ticket) => {
       const faculty = `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`;
-      const technician = `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`;
+      const technician = `${ticket.assignedTo?.firstName} ${ticket.assignedTo?.lastName}`;
       const type = formatLabel(ticket.type);
       const status = formatLabel(ticket.status);
       const created = formatDate(ticket.createdAt);
@@ -311,7 +311,7 @@ export default function ManageTicket() {
               !isError &&
               paginatedTickets.map((ticket) => {
                 const faculty = `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`;
-                const technician = `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`;
+                const technician = `${ticket.assignedTo?.firstName} ${ticket.assignedTo?.lastName}`;
                 const status = formatLabel(ticket.status);
 
                 return (
@@ -344,7 +344,7 @@ export default function ManageTicket() {
                     <TableCell>
                       <div className="flex min-w-0 items-center gap-3">
                         <img
-                          src={getProfilePicture(ticket.assignedTo.profileImage)}
+                          src={getProfilePicture(ticket.assignedTo?.profileImage)}
                           alt={technician}
                           className="h-8 w-8 shrink-0 rounded-full object-cover"
                         />

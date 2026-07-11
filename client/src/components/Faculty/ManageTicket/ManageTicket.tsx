@@ -90,8 +90,8 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
         const searchableText = [
           ticket.ticketCode, ticket.title, ticket.complaintDescription,
           ticket.reportedBy.firstName, ticket.reportedBy.lastName,
-          ticket.assignedTo.firstName, ticket.assignedTo.lastName,
-          ticket.room.buildingName, ticket.room.roomName, ticket.computer.computerCode,
+          ticket.assignedTo?.firstName, ticket.assignedTo?.lastName,
+          ticket.room.buildingName, ticket.room.roomName, ticket.computer?.computerCode,
           status, type,
         ].join(" ").toLowerCase();
 
@@ -146,9 +146,9 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
               complaintDescription={ticket.complaintDescription}
               ticketCode={ticket.ticketCode}
               reportedBy={`${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`}
-              assignedTo={`${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`.trim()}
+              assignedTo={`${ticket.assignedTo?.firstName} ${ticket.assignedTo?.lastName}`.trim()}
               room={`${formatLabel(ticket.room.buildingName)}, ${ticket.room.roomName}`}
-              computerCode={ticket.computer.computerCode}
+              computerCode={ticket.computer?.computerCode || "No Computer"}
               date={ticket.createdAt}
               onClick={() => openTicket(ticket)}
             />

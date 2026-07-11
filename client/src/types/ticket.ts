@@ -22,10 +22,10 @@ export type Ticket = {
     ticketCode: string;
 
     reportedBy: User;
-    assignedTo: User;
+    assignedTo: User | null;
 
     room: Room;
-    computer: Computer;
+    computer: Computer | null;
 
     type: string;
     title: string;

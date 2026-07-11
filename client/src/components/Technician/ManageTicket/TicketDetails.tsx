@@ -127,7 +127,7 @@ export default function TicketDetails({ ticket, closeSheet }: TicketDetailsProps
             <Monitor size={14} />
             <h3>Computer</h3>
           </div>
-          <p>{ticket.computer.computerCode}</p>
+          <p>{ticket.computer?.computerCode || "No Computer"}</p>
         </div>
 
         <div className="flex items-center justify-between">

@@ -27,8 +27,8 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
       <div><h3 className="font-medium secondary-text-color">Description</h3><p>{ticket.complaintDescription}</p></div>
       <DetailRow icon={Layers2} label="Type" value={capitalize(ticket.type)} />
       <DetailRow icon={User} label="Reported by" value={`${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`} />
-      <DetailRow icon={Wrench} label="Assigned to" value={`${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`.trim()} />
-      <DetailRow icon={Monitor} label="Computer" value={ticket.computer.computerCode} />
+      <DetailRow icon={Wrench} label="Assigned to" value={`${ticket.assignedTo?.firstName} ${ticket.assignedTo?.lastName}`.trim()} />
+      <DetailRow icon={Monitor} label="Computer" value={ticket.computer?.computerCode || "No computer"} />
       <DetailRow icon={Building2} label="Room" value={`${capitalize(ticket.room.buildingName)}, ${ticket.room.roomName}`} />
       <DetailRow icon={CalendarDays} label="Date" value={formatDateTime(ticket.createdAt)} />
     </div>

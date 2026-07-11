@@ -104,7 +104,7 @@ export default function TicketToolbar({
         const rows = tickets.map((ticket) => [
             ticket.ticketCode,
             `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`,
-            `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`,
+            `${ticket.assignedTo?.firstName} ${ticket.assignedTo?.lastName}`,
             formatLabel(ticket.type),
             formatLabel(ticket.status),
             formatDate(ticket.createdAt),

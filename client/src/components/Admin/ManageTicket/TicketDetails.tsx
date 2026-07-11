@@ -27,7 +27,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
   const statusData = statusConfig[status as Status];
   const StatusIcon = statusData?.icon;
   const reporter = `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`;
-  const technician = `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`;
+  const technician = `${ticket.assignedTo?.firstName} ${ticket.assignedTo?.lastName}`;
 
   return (
     <>
@@ -100,7 +100,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
             <Monitor size={14} />
             <h3>Computer</h3>
           </div>
-          <span>{ticket.computer.computerCode}</span>
+          <span>{ticket.computer?.computerCode || "No computer"}</span>
         </div>
 
         <div className="flex items-center justify-between gap-4">

@@ -77,8 +77,6 @@ export default function ManageTicket({
     };
 
     const mapTicket = (ticket: any): Ticket => ({
-
-
         id: ticket.id,
 
         ticketCode: ticket.ticket_code,
@@ -89,11 +87,11 @@ export default function ManageTicket({
             lastName: ticket.reported_by.last_name,
         },
 
-        assignedTo: {
+        assignedTo: ticket.assigned_to ? {
             id: ticket.assigned_to.id,
             firstName: ticket.assigned_to.first_name,
             lastName: ticket.assigned_to.last_name,
-        },
+        } : null,
 
         room: {
             id: ticket.room.id,
@@ -102,10 +100,10 @@ export default function ManageTicket({
             floorNumber: ticket.room.floor_number,
         },
 
-        computer: {
+        computer: ticket.computer ? {
             id: ticket.computer.id,
             computerCode: ticket.computer.computer_code,
-        },
+        } : null,
 
         type: ticket.type,
         title: ticket.title,
@@ -180,7 +178,7 @@ export default function ManageTicket({
                     ticket.reportedBy.lastName,
                     ticket.room.buildingName,
                     ticket.room.roomName,
-                    ticket.computer.computerCode,
+                    ticket.computer?.computerCode,
                     status,
                     type,
                 ]
@@ -255,7 +253,7 @@ export default function ManageTicket({
                         <div className="w-full" key={ticket.id}>
                             <ManageTicketCard status={status} type={type} title={ticket.title}
                                 complaintDescription={ticket.complaintDescription} reportedBy={reportedBy}
-                                ticketCode={ticket.ticketCode} room={room} computerCode={ticket.computer.computerCode}
+                                ticketCode={ticket.ticketCode} room={room} computerCode={ticket.computer?.computerCode || "No computer"}
                                 date={ticket.createdAt} onClick={() => handleTicketClick(ticket)} />
                         </div>
                     );
