@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import ButtonGroup from "@/components/Technician/ComputerList/ButtonGroup";
 import type { StatusFilter } from "@/utils/computer";
 import { useParams } from "react-router-dom";
+import type { ComputerCardType } from "@/types/computer";
 
 
 export default function ComputerListPage(){
@@ -21,6 +22,26 @@ export default function ComputerListPage(){
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
     const [sheetOpen, setSheetOpen] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [selectedComputer, setSelectedComputer] = useState<ComputerCardType>({
+        id: 0,
+        cpu: "",
+        gpu: "",
+        computerCode: "",
+        motherboard: "",
+        ramSizeInstalled: 0,
+        diskSizeInstalled: 0,
+        operatingSystem: "",
+        buildVersion: "",
+        computerStatus: "active",
+        monitorStatus: "active",
+        mouseStatus: "active" ,
+        keyboardStatus: "active",
+        upsStatus: "active" ,
+        room: 0,
+        updatedAt: "",
+        createdAt: ""    
+    })
 
     const { room } = useParams();
     const roomName = room ? decodeURIComponent(room) : "";
@@ -47,8 +68,14 @@ export default function ComputerListPage(){
                                 <ButtonGroup
                                     setSheetOpen={setSheetOpen}
                                     custodianName={custodian}
+                                    setIsEditing={setIsEditing}
+                                    setSelectedComputer={setSelectedComputer}
                                 />
                                 <ComputerList
+                                    isEditing={isEditing}
+                                    selectedComputer={selectedComputer}
+                                    setIsEditing={setIsEditing}
+                                    setSelectedComputer={setSelectedComputer}
                                     setSheetOpen={setSheetOpen}
                                     sheetOpen={sheetOpen}
                                     roomName={roomName}

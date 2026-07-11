@@ -40,9 +40,20 @@ export type ComputerList = {
 
 export type ComputerCardType = {
     id: number,
+    room: number
     computerCode: string,
     operatingSystem: string,
-    computerStatus: string
-    createdAt: string,
+    gpu: string,
+    cpu: string,
+    motherboard: string,
+    ramSizeInstalled: number,
+    diskSizeInstalled: number,
+    buildVersion: string,
+    computerStatus: string,
+    monitorStatus: string,
+    mouseStatus: string,
+    keyboardStatus: string,
+    upsStatus: string,
     updatedAt: string,
+    createdAt: string
 }

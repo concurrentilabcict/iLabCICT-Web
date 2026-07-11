@@ -19,7 +19,7 @@ import { useState } from "react";
 
 
 
-type AddComputerStatusProps = {
+type ComputerStatusProps = {
     selectedStatus: any,
     isSubmitting: boolean,
     form: any,
@@ -27,13 +27,13 @@ type AddComputerStatusProps = {
     statusOptions: any
 }
 
-export default function AddComputerStatus({
+export default function ComputerStatus({
     selectedStatus,
     isSubmitting,
     form,
     updateField,
     statusOptions
-}: AddComputerStatusProps){
+}: ComputerStatusProps){
 
     const [statusOpen, setStatusOpen] = useState(false);
 

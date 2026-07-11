@@ -20,16 +20,19 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import type { Computer } from "@/types/ticket";
 import AddComputerForm from "./AddComputerForm";
-
+import EditComputerForm from "./EditComputerForm";
 type ComputerListProps = {
     roomName: string,
     searchQuery: string,
     statusFilter: StatusFilter,
     setCustodian: Function,
     sheetOpen: boolean,
-    setSheetOpen: (open: boolean) => void
+    isEditing: boolean,
+    selectedComputer: ComputerCardType, 
+    setSheetOpen: (open: boolean) => void,
+    setIsEditing: (open: boolean) => void,
+    setSelectedComputer: Function
 }
 
 const formatLabel = (text: string) => {
@@ -47,11 +50,14 @@ export default function ComputerList({
     statusFilter,
     setCustodian,
     sheetOpen,
-    setSheetOpen
+    isEditing,
+    selectedComputer,
+    setSheetOpen,
+    setIsEditing,
+    setSelectedComputer,
 }: ComputerListProps){
 
     const isMobile = useMediaQuery("(max-width: 767px)");
-    const [selectedPcId, setSelectedPcId] = useState<number | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
     const [roomId, setRoomId] = useState<number | null>(null);
 
@@ -71,12 +77,23 @@ export default function ComputerList({
     }
 
     const mapComputerCard = (computerCard: any): ComputerCardType => ({
-        id: computerCard.id,
+        id:computerCard.id,
         computerCode: computerCard.computer_code,
+        room: computerCard.room,
         operatingSystem: computerCard.operating_system,
+        gpu: computerCard.gpu,
+        cpu: computerCard.cpu,
+        ramSizeInstalled: computerCard.ram_size_installed,
+        diskSizeInstalled: computerCard.disk_size_installed,
+        buildVersion: computerCard.build_version,
         computerStatus: computerCard.computer_status,
+        motherboard: computerCard.motherboard,
+        monitorStatus: computerCard.monitor_status,
+        mouseStatus: computerCard.mouse_status,
+        keyboardStatus: computerCard.keyboard_status,
+        upsStatus: computerCard.ups_status,
         createdAt: computerCard.created_at,
-        updatedAt: computerCard.updated_at,
+        updatedAt: computerCard.updated_at
     })
 
 
@@ -172,11 +189,13 @@ export default function ComputerList({
 
                 {!isLoading && paginatedComputers.map((computer)=> {
 
-                        const status = formatLabel(computer.computerStatus) as Status
-
                         return(
-                            <ComputerCard key={computer.id} computerCode={computer.computerCode} computerStatus={status}
-                                updatedAt={computer.updatedAt} operatingSystem={computer.operatingSystem}
+                            <ComputerCard 
+                                key={computer.id}
+                                computer={computer}
+                                setIsEditing={setIsEditing}
+                                setSheetOpen={setSheetOpen}
+                                setSelectedComputer={setSelectedComputer} 
                             />
                         );
 
@@ -228,10 +247,17 @@ export default function ComputerList({
                         : "w-[1000px]!"
                 }
             >
-                    <AddComputerForm
-                        room={roomId}
-                        closeSheet={() => setSheetOpen(false)}
-                    />
+                    {isEditing ? (
+                        <EditComputerForm
+                            computer={selectedComputer}
+                            closeSheet={() => setSheetOpen(false)}
+                        />
+                        ) : (
+                        <AddComputerForm
+                            room={roomId}
+                            closeSheet={() => setSheetOpen(false)}
+                        />
+                        )}
             </SheetContent>
         </Sheet>
         </>

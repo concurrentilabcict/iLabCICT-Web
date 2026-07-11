@@ -19,7 +19,7 @@ import { useState } from "react";
 
 
 
-type AddPheripheralStatusProps = {
+type PheripheralStatusProps = {
     field: "monitorStatus" | "keyboardStatus" | "mouseStatus" | "upsStatus",
     selectedStatus: any,
     isSubmitting: boolean,
@@ -28,14 +28,14 @@ type AddPheripheralStatusProps = {
     statusOptions: any
 }
 
-export default function AddPheripheralStatus({
+export default function PheripheralStatus({
     field,
     selectedStatus,
     isSubmitting,
     form,
     updateField,
     statusOptions
-}: AddPheripheralStatusProps){
+}: PheripheralStatusProps){
 
     const [statusOpen, setStatusOpen] = useState(false);
     

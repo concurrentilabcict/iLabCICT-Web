@@ -11,8 +11,8 @@ import { useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { createApiError, privateFetch, type ApiError } from "@/lib/api";
-import AddPheripheralStatus from "./AddPheripheralStatus";
-import AddComputerStatus from "./AddComputerStatus";
+import PheripheralStatus from "./PheripheralStatus";
+import ComputerStatus from "./ComputerStatus";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
@@ -23,7 +23,7 @@ type AddComputerProps = {
 
 type PeripheralStatus = "active" | "fixing" | "broken" | "none";
 
-type ComputerStatus = "active" | "fixing" | "broken";
+type ComputerStatusType = "active" | "fixing" | "broken";
 
 type AddComputerForm = {
     cpu: string,
@@ -33,7 +33,7 @@ type AddComputerForm = {
     diskSize: number,
     operatingSystem: string,
     buildVersion: string,
-    computerStatus: ComputerStatus,
+    computerStatus: ComputerStatusType,
     quantity: number,
     monitorStatus: PeripheralStatus,
     mouseStatus: PeripheralStatus,
@@ -67,7 +67,7 @@ const peripheralStatusOptions: Array<{
 
 const computerStatusOptions: Array<{
     label: string,
-    value: ComputerStatus
+    value: ComputerStatusType
 }> = [
   {
     label: "Active",
@@ -106,7 +106,6 @@ export default function AddComputerForm({
 
     const [form, setForm] = useState<AddComputerForm>(initialForm);
     const queryClient = useQueryClient();
-    console.log(room);
 
     const addComputerMutation = useMutation({
         mutationFn: async () => {
@@ -305,7 +304,7 @@ export default function AddComputerForm({
                         <div className="w-full flex items-center justify-between">
                         <h3 className="font-medium secondary-text-color">Computer Status</h3>
                         <div className="w-28">
-                        <AddComputerStatus
+                        <ComputerStatus
                             selectedStatus={selectedComputerStatus}
                             isSubmitting={isSubmitting}
                             form={form}
@@ -356,7 +355,7 @@ export default function AddComputerForm({
                     <div className="w-full flex items-center justify-between">
                         <h3 className="font-medium secondary-text-color">Monitor</h3>
                         <div className="w-28">
-                        <AddPheripheralStatus
+                        <PheripheralStatus
                             field={"monitorStatus"}
                             selectedStatus={selectedMonitorStatus}
                             isSubmitting={isSubmitting}
@@ -370,7 +369,7 @@ export default function AddComputerForm({
                     <div className="w-full flex items-center justify-between">
                         <h3 className="font-medium secondary-text-color">Keyboard</h3>
                         <div className="w-28">
-                            <AddPheripheralStatus
+                            <PheripheralStatus
                             field={"keyboardStatus"}
                             selectedStatus={selectedKeyboardStatus}
                             isSubmitting={isSubmitting}
@@ -385,7 +384,7 @@ export default function AddComputerForm({
                     <div className="w-full flex items-center justify-between">
                         <h3 className="font-medium secondary-text-color">Mouse</h3>
                         <div className="w-28">
-                            <AddPheripheralStatus
+                            <PheripheralStatus
                             field={"mouseStatus"}
                             selectedStatus={selectedMouseStatus}
                             isSubmitting={isSubmitting}
@@ -400,7 +399,7 @@ export default function AddComputerForm({
                     <div className="w-full flex items-center justify-between">
                         <h3 className="font-medium secondary-text-color">UPS</h3>
                         <div className="w-28">
-                        <AddPheripheralStatus
+                        <PheripheralStatus
                             field={"upsStatus"}
                             selectedStatus={selectedUPSStatus}
                             isSubmitting={isSubmitting}

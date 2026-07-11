@@ -1,19 +1,27 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery"
+import type { ComputerCardType } from "@/types/computer"
 import { Download, Upload, Plus } from "lucide-react"
 
 type ButtonGroupType = {
     custodianName: string,
-    setSheetOpen: (open: boolean) => void
+    setSheetOpen: (open: boolean) => void,
+    setIsEditing: (open: boolean) => void,
+    setSelectedComputer: Function
 }
 
 export default function ButtonGroup({
     custodianName,
-    setSheetOpen
+    setSheetOpen,
+    setIsEditing,
+    setSelectedComputer
 }: ButtonGroupType){
 
-    const handleAddDeviceClick = () => {
+    const handleAddComputerClick = () => {
+        setSelectedComputer(null);
+        setIsEditing(false)
         setSheetOpen(true)
     }
+
 
     const isMobile = useMediaQuery("(max-width: 767px)")
 
@@ -25,8 +33,8 @@ export default function ButtonGroup({
                 <div>
                     <button
                     type="button"
-                    onClick={handleAddDeviceClick}
-                    className="flex gap-1.5 items-center bg-white primary-bg-color shrink-0 rounded-full px-4 py-2 text-sm font-medium text-white"
+                    onClick={handleAddComputerClick}
+                    className="flex gap-1.5 items-center bg-white primary-bg-color shrink-0 rounded-full px-4 py-2 text-sm font-medium text-white hover:cursor-pointer"
                     >
                         <Plus size={16}/> 
                         
