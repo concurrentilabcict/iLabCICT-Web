@@ -50,7 +50,7 @@ export default function ManageTicketCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className={`rounded-full px-3 py-1 text-xs font-bold tracking-wide ${typeData.className}`}>
+          <span className={`flex h-8 w-25 items-center justify-center rounded-full px-3 text-sm font-bold tracking-wide ${typeData.className}`}>
             {type}
           </span>
           <span className="truncate text-sm font-semibold tracking-[0.08em] text-gray-400">
@@ -58,8 +58,8 @@ export default function ManageTicketCard({
           </span>
         </div>
 
-        <div className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ${statusData.className}`}>
-          <StatusIcon size={16} />
+        <div className={`flex h-8 w-25 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-bold tracking-wide ${statusData.className}`}>
+          <StatusIcon className="shrink-0" size={14} />
           <span>{status}</span>
         </div>
       </div>

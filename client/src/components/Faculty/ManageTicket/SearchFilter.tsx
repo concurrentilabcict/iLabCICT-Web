@@ -65,7 +65,7 @@ export default function SearchFilter({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" sideOffset={8}>
             {typeOptions.map((type) => (
-              <DropdownMenuItem key={type} className={selectedType === type ? "font-medium" : ""} onSelect={() => onTypeChange(type)}>
+              <DropdownMenuItem key={type} className={`cursor-pointer ${selectedType === type ? "font-medium" : ""}`} onSelect={() => onTypeChange(type)}>
                 {type}
               </DropdownMenuItem>
             ))}

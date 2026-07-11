@@ -160,8 +160,8 @@ export function FacultyQrScanner({ onScan }: QrScannerProps) {
                         Could not scan QR code?{" "}
                         <button
                             type="button"
-                            onClick={() => navigate("/manage-ticket")}
-                            className="font-semibold text-white underline underline-offset-4"
+                            onClick={() => navigate("/create-ticket")}
+                            className="cursor-pointer font-semibold text-white underline underline-offset-4"
                         >
                             Report Manually
                         </button>

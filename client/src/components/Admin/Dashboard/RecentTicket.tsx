@@ -60,6 +60,7 @@ type ApiTicket = {
     id: number;
     room_name: string;
     building_name: string;
+    floor_number: number;
   };
   computer: {
     id: number;
@@ -123,6 +124,7 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
     id: ticket.room.id,
     roomName: ticket.room.room_name,
     buildingName: ticket.room.building_name,
+    floorNumber: ticket.room.floor_number,
   },
   computer: {
     id: ticket.computer.id,

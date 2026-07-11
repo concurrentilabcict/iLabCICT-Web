@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createApiError, privateFetch } from "@/lib/api";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { Ticket } from "@/types/ticket";
+import type { ApiTicket, Ticket } from "@/types/ticket";
 import type { Status, StatusFilter, TicketType, TicketTypeFilter } from "@/utils/ticket";
 import ManageTicketCard from "./ManageTicketCard";
 import TicketDetails from "./TicketDetails";
@@ -24,7 +24,7 @@ const formatLabel = (text: string) => text
   .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
   .join(" ");
 
-const mapTicket = (ticket: any): Ticket => ({
+const mapTicket = (ticket: ApiTicket): Ticket => ({
   id: ticket.id,
   ticketCode: ticket.ticket_code,
   reportedBy: {
@@ -41,11 +41,12 @@ const mapTicket = (ticket: any): Ticket => ({
     id: ticket.room.id,
     roomName: ticket.room.room_name,
     buildingName: ticket.room.building_name,
+    floorNumber: ticket.room.floor_number,
   },
-  computer: {
+  computer: ticket.computer ? {
     id: ticket.computer.id,
     computerCode: ticket.computer.computer_code,
-  },
+  } : { id: 0, computerCode: "Not specified" },
   type: ticket.type,
   title: ticket.title,
   complaintDescription: ticket.complaint_description,
@@ -71,7 +72,7 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
         throw createApiError(res.status, data.message || "Failed to fetch tickets.");
       }
 
-      return data.map(mapTicket);
+      return (data as ApiTicket[]).map(mapTicket);
     },
   });
 
@@ -109,7 +110,7 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
 
   return (
     <>
-      <div className="flex w-full flex-col gap-3 px-3 py-3 sm:grid sm:grid-cols-2">
+      <div className="flex w-full flex-col gap-3 px-3 pt-3 pb-10 sm:grid sm:grid-cols-2">
         {isLoading && <p className="col-span-full py-8 text-center secondary-text-color">Loading tickets...</p>}
         {!isLoading && paginatedTickets.length === 0 && <p className="col-span-full py-8 text-center secondary-text-color">No tickets found.</p>}
         {!isLoading && paginatedTickets.map((ticket) => {

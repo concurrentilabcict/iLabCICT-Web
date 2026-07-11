@@ -99,6 +99,7 @@ export default function ManageTicket({
             id: ticket.room.id,
             roomName: ticket.room.room_name,
             buildingName: ticket.room.building_name,
+            floorNumber: ticket.room.floor_number,
         },
 
         computer: {

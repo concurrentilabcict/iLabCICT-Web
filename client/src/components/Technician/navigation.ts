@@ -59,16 +59,6 @@ export const facultyNavItems: NavItem[] = [
         url: "/faq",
         icon: CircleHelp,
     },
-    {
-        title: "Notifications",
-        url: "/notifications",
-        icon: Bell,
-    },
-    {
-        title: "QR Code",
-        url: "/qr-scanner",
-        icon: ScanQrCode,
-    },
 ];
 
 export const adminNavItems: NavItem[] = [
