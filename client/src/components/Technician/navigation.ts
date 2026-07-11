@@ -3,6 +3,7 @@ import {
     BookOpen,
     Bot,
     ClipboardList,
+    FilePenLine,
     FileChartColumn,
     CircleHelp,
     LayoutDashboard,
@@ -48,6 +49,11 @@ export const facultyNavItems: NavItem[] = [
         title: "Manage Tickets",
         url: "/manage-ticket",
         icon: ScrollText,
+    },
+    {
+        title: "Create Ticket",
+        url: "/create-ticket",
+        icon: FilePenLine,
     },
     {
         title: "Laboratory",

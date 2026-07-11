@@ -20,7 +20,7 @@ export default function CreateTicketPage() {
       {isMobile ? <NavBar /> : <Sidebar />}
       <SidebarInset>
         <main className="min-h-screen bg-[#f8fafc] pb-24 md:pb-8">
-          {isMobile ? <MobileHeader title="Report Lab Issue" /> : <Header title="Report Lab Issue" />}
+          {isMobile ? <MobileHeader title="Create Ticket" /> : <Header title="Create Ticket" />}
           <CreateTicketForm />
         </main>
       </SidebarInset>
