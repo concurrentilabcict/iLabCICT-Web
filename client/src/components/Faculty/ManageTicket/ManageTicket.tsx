@@ -8,6 +8,7 @@ import ManageTicketCard from "./ManageTicketCard";
 import TicketDetails from "./TicketDetails";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { useSearchParams } from "react-router-dom";
 
 type ManageTicketProps = {
   statusFilter: StatusFilter;
@@ -61,6 +62,8 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const notificationTicketId = searchParams.get("ticket");
 
   const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
     queryKey: ["tickets"],
@@ -101,11 +104,29 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
   const totalPages = Math.max(1, Math.ceil(filteredTickets.length / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const paginatedTickets = filteredTickets.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-  const selectedTicket = tickets.find((ticket) => ticket.id === selectedTicketId) ?? null;
+  const manuallySelectedTicket = tickets.find((ticket) => ticket.id === selectedTicketId) ?? null;
+  const notificationTicket = useMemo(() => {
+    const ticketId = Number(notificationTicketId);
+
+    if (!notificationTicketId || !Number.isInteger(ticketId)) {
+      return null;
+    }
+
+    return tickets.find((ticket) => ticket.id === ticketId) ?? null;
+  }, [notificationTicketId, tickets]);
+  const selectedTicket = notificationTicket ?? manuallySelectedTicket;
 
   const openTicket = (ticket: Ticket) => {
     setSelectedTicketId(ticket.id);
     setSheetOpen(true);
+  };
+
+  const handleSheetOpenChange = (open: boolean) => {
+    setSheetOpen(open);
+
+    if (!open && notificationTicketId) {
+      setSearchParams({}, { replace: true });
+    }
   };
 
   return (
@@ -151,7 +172,7 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
         </div>
       )}
 
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+      <Sheet open={sheetOpen || Boolean(notificationTicket)} onOpenChange={handleSheetOpenChange}>
         <SheetContent side={isMobile ? "bottom" : "right"} className={isMobile ? "h-[90vh]" : "w-[1000px]!"}>
           {selectedTicket && <TicketDetails ticket={selectedTicket} />}
         </SheetContent>
