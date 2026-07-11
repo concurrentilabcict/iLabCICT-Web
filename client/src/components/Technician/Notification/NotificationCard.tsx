@@ -2,6 +2,7 @@ import { ticketTypeConfig } from "@/utils/ticketType";
 import { User } from "lucide-react";
 import type { NotificationProps } from "@/types/notification";
 import { formatRelativeTime } from "@/utils/string";
+import { useAuth } from "@/auth/useAuth";
 
 type NotificationCardProps = NotificationProps & {
     onClick: () => void;
@@ -9,9 +10,13 @@ type NotificationCardProps = NotificationProps & {
 
 export default function NotificationCard({ notification, onClick }: NotificationCardProps) {
 
+    const { role } = useAuth();
     const config = ticketTypeConfig[notification.ticket.type];
     const Icon = config.icon;
-    const reportedBy = `${notification.ticket.reportedBy.firstName} ${notification.ticket.reportedBy.lastName}`;
+    const displayUser = role === "faculty" ? notification.ticket.assignedTo : notification.ticket.reportedBy;
+    const displayName = displayUser
+        ? `${displayUser.firstName} ${displayUser.lastName}`.trim()
+        : "Unassigned technician";
 
     return (
         <button
@@ -32,7 +37,7 @@ export default function NotificationCard({ notification, onClick }: Notification
                     <div className="flex items-center justify-between">
                         <div className="flex gap-x-1 items-center secondary-text-color">
                             <User size={12} />
-                            <span className='text-xs'>{reportedBy}</span>
+                            <span className='text-xs'>{displayName}</span>
                         </div>
 
                         <span className="text-xs secondary-text-color">{formatRelativeTime(notification.createdAt)}</span>

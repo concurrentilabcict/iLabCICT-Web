@@ -83,6 +83,15 @@ export function FacultyQrScanner({ onScan }: QrScannerProps) {
         }
     };
 
+    const handleClose = () => {
+        if (window.history.length > 1) {
+            navigate(-1);
+            return;
+        }
+
+        navigate("/manage-ticket");
+    };
+
     return (
         <section className="relative min-h-[100svh] overflow-hidden bg-black text-white">
             <video
@@ -97,7 +106,7 @@ export function FacultyQrScanner({ onScan }: QrScannerProps) {
                 <div className="mb-10 mt-5 flex w-full items-center justify-between px-3">
                     <button
                         type="button"
-                        onClick={() => navigate(-1)}
+                        onClick={handleClose}
                         className="cursor-pointer flex flex-col items-center text-sm font-medium text-white/80 transition hover:text-white"
                         aria-label="Close QR scanner"
                     >
@@ -146,6 +155,17 @@ export function FacultyQrScanner({ onScan }: QrScannerProps) {
                         <div className="absolute bottom-0 left-0 h-10 w-10 rounded-bl-[20px] border-b-4 border-l-4 border-white" />
                         <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-[20px] border-b-4 border-r-4 border-white" />
                     </div>
+
+                    <p className="relative z-20 mt-10 text-center text-sm text-white/70">
+                        Could not scan QR code?{" "}
+                        <button
+                            type="button"
+                            onClick={() => navigate("/create-ticket")}
+                            className="cursor-pointer font-semibold text-white underline underline-offset-4"
+                        >
+                            Report Manually
+                        </button>
+                    </p>
                 </div>
             </div>
         </section>

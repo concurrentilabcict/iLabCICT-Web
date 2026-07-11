@@ -39,7 +39,7 @@ export default function WeeklyReportDetails({
           onClick={() => onExport(report)}
           className="w-fit"
         >
-          <Download className="h-4 w-4" />
+          <Download className="h-4 w-4 rotate-180" />
           Export PDF
         </Button>
 

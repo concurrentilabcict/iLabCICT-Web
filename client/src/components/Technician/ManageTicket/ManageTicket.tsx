@@ -99,6 +99,7 @@ export default function ManageTicket({
             id: ticket.room.id,
             roomName: ticket.room.room_name,
             buildingName: ticket.room.building_name,
+            floorNumber: ticket.room.floor_number,
         },
 
         computer: {
@@ -119,12 +120,10 @@ export default function ManageTicket({
         updatedAt: ticket.updated_at,
     });
 
-    const technicianId = localStorage.getItem("id");
-
     const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
         queryKey: ["tickets"],
         queryFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/?technician-id=${technicianId}`);
+            const res = await privateFetch("https://ilabcict-backend.onrender.com/api/tickets/");
 
             const data = await res.json();
 

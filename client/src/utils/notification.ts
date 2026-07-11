@@ -1,4 +1,4 @@
-import type { Notification, ReportedBy } from "@/types/notification";
+import type { Notification, NotificationUser } from "@/types/notification";
 import type { TicketType } from "./ticketType";
 
 type ApiRecord = Record<string, unknown>;
@@ -29,13 +29,13 @@ const normalizeTicketType = (type?: string): TicketType => {
     return type?.toLowerCase() === "report" ? "report" : "request";
 };
 
-const mapReportedBy = (reportedBy: unknown): ReportedBy => {
-    const reporter = isRecord(reportedBy) ? reportedBy : {};
+const mapNotificationUser = (user: unknown, fallbackFirstName: string, fallbackLastName: string): NotificationUser => {
+    const source = isRecord(user) ? user : {};
 
     return {
-        id: getNumber(reporter, "id") ?? 0,
-        firstName: getString(reporter, "first_name") ?? getString(reporter, "firstName") ?? "Unknown",
-        lastName: getString(reporter, "last_name") ?? getString(reporter, "lastName") ?? "Reporter",
+        id: getNumber(source, "id") ?? 0,
+        firstName: getString(source, "first_name") ?? getString(source, "firstName") ?? fallbackFirstName,
+        lastName: getString(source, "last_name") ?? getString(source, "lastName") ?? fallbackLastName,
     };
 };
 
@@ -43,6 +43,7 @@ export const mapNotification = (notification: unknown): Notification => {
     const source = isRecord(notification) ? notification : {};
     const ticket = getRecord(source, "ticket") ?? {};
     const reportedBy = getRecord(ticket, "reported_by") ?? getRecord(ticket, "reportedBy");
+    const assignedTo = getRecord(ticket, "assigned_to") ?? getRecord(ticket, "assignedTo");
 
     return {
         id: getNumber(source, "id") ?? 0,
@@ -51,7 +52,8 @@ export const mapNotification = (notification: unknown): Notification => {
             id: getNumber(ticket, "id") ?? getNumber(source, "ticket_id") ?? 0,
             type: normalizeTicketType(getString(ticket, "type") ?? getString(source, "ticket_type")),
             title: getString(ticket, "title") ?? getString(source, "header") ?? "Ticket update",
-            reportedBy: mapReportedBy(reportedBy),
+            reportedBy: mapNotificationUser(reportedBy, "Unknown", "Reporter"),
+            assignedTo: assignedTo ? mapNotificationUser(assignedTo, "Unassigned", "Technician") : null,
         },
         status: getString(source, "status") ?? "read",
         createdAt: getString(source, "created_at") ?? getString(source, "createdAt") ?? new Date().toISOString(),

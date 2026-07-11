@@ -3,6 +3,7 @@ import {
     BookOpen,
     Bot,
     ClipboardList,
+    FilePenLine,
     FileChartColumn,
     CircleHelp,
     LayoutDashboard,
@@ -50,6 +51,11 @@ export const facultyNavItems: NavItem[] = [
         icon: ScrollText,
     },
     {
+        title: "Create Ticket",
+        url: "/create-ticket",
+        icon: FilePenLine,
+    },
+    {
         title: "Laboratory",
         url: "/manage-laboratory",
         icon: Monitor,
@@ -58,16 +64,6 @@ export const facultyNavItems: NavItem[] = [
         title: "FAQ",
         url: "/faq",
         icon: CircleHelp,
-    },
-    {
-        title: "Notifications",
-        url: "/notifications",
-        icon: Bell,
-    },
-    {
-        title: "QR Code",
-        url: "/qr-scanner",
-        icon: ScanQrCode,
     },
 ];
 
