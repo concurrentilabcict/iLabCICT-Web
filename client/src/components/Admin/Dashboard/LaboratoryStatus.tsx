@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { createApiError, privateFetch } from "@/lib/api";
-import type { Room } from "@/types/room";
+import type { RoomDashboard } from "@/types/room";
 
 type ApiRoom = {
     id: number;
@@ -25,7 +25,7 @@ type ApiTicket = {
     room: ApiTicketRoom;
 };
 
-type LaboratoryAvailability = Room & {
+type LaboratoryAvailability = RoomDashboard & {
     workingCount: number;
     unavailableCount: number;
     availability: number;
@@ -34,7 +34,7 @@ type LaboratoryAvailability = Room & {
 const ROOMS_URL = "https://ilabcict-backend.onrender.com/api/rooms/";
 const TICKETS_URL = "https://ilabcict-backend.onrender.com/api/tickets/";
 
-function mapRoom(room: ApiRoom): Room {
+function mapRoom(room: ApiRoom): RoomDashboard {
     return {
         id: room.id,
         computerCount: room.computer_count,
@@ -75,7 +75,7 @@ async function fetchTickets() {
     return data as ApiTicket[];
 }
 
-function getAvailability(rooms: Room[], tickets: ApiTicket[]) {
+function getAvailability(rooms: RoomDashboard[], tickets: ApiTicket[]) {
     const unresolvedTicketsByRoom = tickets.reduce<Record<number, number>>(
         (roomCounts, ticket) => {
             if (ticket.status.trim().toLowerCase() === "resolved") {

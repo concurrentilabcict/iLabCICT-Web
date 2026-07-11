@@ -14,3 +14,14 @@ export type Room = {
     createdAt: string,
     updatedAt: string
 }
+
+export type RoomDashboard = {
+    id: number,
+    computerCount: number,
+    floorNumber:number
+    buildingName: string,
+    roomName: string,
+    status: string,
+    createdAt: string,
+    updatedAt: string
+}
