@@ -6,6 +6,16 @@ import toast from "react-hot-toast";
 import { createApiError, privateFetch } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
 import type { ApiComputer, ApiRoom, ScannerState, TicketType } from "@/types/createTicket";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import {
   ComputerDropdown,
@@ -24,6 +34,17 @@ import {
 
 const API_URL = "https://ilabcict-backend.onrender.com/api";
 
+function normalizeApiList<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+  if (data && typeof data === "object") {
+    const record = data as Record<string, unknown>;
+    if (Array.isArray(record.results)) return record.results as T[];
+    if (Array.isArray(record.data)) return record.data as T[];
+    if (Array.isArray(record.computers)) return record.computers as T[];
+  }
+  return [];
+}
+
 export default function CreateTicketForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,6 +59,7 @@ export default function CreateTicketForm() {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery<ApiRoom[]>({
     queryKey: ["rooms", "ticket-form"],
@@ -45,7 +67,7 @@ export default function CreateTicketForm() {
       const response = await privateFetch(`${API_URL}/rooms/`);
       const data = await response.json();
       if (!response.ok) throw createApiError(response.status, data.message || "Failed to load laboratories.");
-      return data as ApiRoom[];
+      return normalizeApiList<ApiRoom>(data);
     },
   });
 
@@ -55,11 +77,11 @@ export default function CreateTicketForm() {
     queryKey: ["computers", "ticket-form", selectedRoom?.room_name],
     enabled: Boolean(selectedRoom) && type === "report" && !computerCode,
     queryFn: async () => {
-      const roomName = selectedRoom!.room_name.toLowerCase();
+      const roomName = selectedRoom!.room_name;
       const response = await privateFetch(`${API_URL}/rooms/${encodeURIComponent(roomName)}/computers/`);
       const data = await response.json();
       if (!response.ok) throw createApiError(response.status, data.message || "Failed to load computers.");
-      return data as ApiComputer[];
+      return normalizeApiList<ApiComputer>(data);
     },
   });
 
@@ -77,6 +99,8 @@ export default function CreateTicketForm() {
   });
 
   const selectedPeripheralStatus = selectedComputerDetails ? getPeripheralStatuses(selectedComputerDetails) : [];
+  const selectedComputerFromList = roomComputers.find((computer) => computer.computer_code === activeComputerCode);
+  const selectedComputerId = selectedComputerDetails?.id ?? selectedComputerFromList?.id ?? null;
 
   useEffect(() => {
     if (computerCode && selectedComputerDetails?.room?.id) {
@@ -90,27 +114,36 @@ export default function CreateTicketForm() {
     setComputerDropdownOpen(false);
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmitRequest = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!roomId || !title.trim() || !description.trim()) {
       toast.error("Please complete all required fields.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("type", type);
-    formData.append("room", roomId);
-    formData.append("title", title.trim());
-    formData.append("complaint_description", description.trim());
-    if (activeComputerCode && type === "report") formData.append("computer_code", activeComputerCode);
-    if (image) formData.append("issue_image", image);
+    setIsConfirmOpen(true);
+  };
 
+  const handleSubmitTicket = async () => {
     setIsSubmitting(true);
     try {
-      const response = await privateFetch(`${API_URL}/tickets/`, { method: "POST", body: formData });
+      const payload = {
+        type,
+        title: title.trim(),
+        complaint_description: description.trim(),
+        status: "open",
+        room: Number(roomId),
+        computer: type === "report" ? selectedComputerId : null,
+      };
+
+      const response = await privateFetch(`${API_URL}/tickets/`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
       const data = await response.json();
       if (!response.ok) throw createApiError(response.status, data.message || "Failed to submit ticket.");
       await queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      setIsConfirmOpen(false);
       toast.success("Ticket submitted successfully.");
       navigate("/manage-ticket", { replace: true });
     } catch (error) {
@@ -121,7 +154,7 @@ export default function CreateTicketForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[760px] space-y-4 px-3 py-5 md:px-5 md:py-6">
+    <form onSubmit={handleSubmitRequest} className="mx-auto w-full max-w-[760px] space-y-4 px-3 py-5 md:px-5 md:py-6">
       <section>
         <h1 className="text-2xl font-bold tracking-tight text-gray-950">Create a Ticket</h1>
         <p className="mt-1 text-sm text-gray-500">Add the issue details so a technician can resolve it quickly.</p>
@@ -190,6 +223,23 @@ export default function CreateTicketForm() {
       <button type="submit" disabled={isSubmitting} className="mt-5 primary-button w-full rounded-full!">
         {isSubmitting ? <><Spinner className="size-5" /> Submitting...</> : "Submit Ticket"}
       </button>
+
+      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Submit ticket?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will create a new {type} ticket for {selectedRoom ? `${selectedRoom.building_name} - ${selectedRoom.room_name}` : "the selected laboratory"}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSubmitTicket} disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   );
 }

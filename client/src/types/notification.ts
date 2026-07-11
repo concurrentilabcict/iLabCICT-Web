@@ -1,6 +1,6 @@
 import type { TicketType } from "@/utils/ticketType";
 
-export type ReportedBy = {
+export type NotificationUser = {
     id: number;
     firstName: string;
     lastName: string;
@@ -10,7 +10,8 @@ export type NotificationTicket = {
     id: number;
     type: TicketType;
     title: string;
-    reportedBy: ReportedBy;
+    reportedBy: NotificationUser;
+    assignedTo: NotificationUser | null;
 }
 
 export type Notification = {
