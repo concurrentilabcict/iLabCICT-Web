@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, ChevronDown, DoorOpen, ImagePlus, Monitor, ScanQrCode, X } from "lucide-react";
+import { Building2, ChevronDown, DoorOpen, ImagePlus, Keyboard, Monitor, Mouse, ScanQrCode, X, Zap } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -26,14 +26,51 @@ type ScannerState = { computerCode?: string } | null;
 
 const API_URL = "https://ilabcict-backend.onrender.com/api";
 
+const computerOptions = ["Computer 1", "Computer 2", "Computer 3", "Computer 4", "Computer 5"];
+
+const peripheralStatusByComputer: Record<string, PeripheralStatus[]> = {
+  "Computer 1": [
+    { label: "Mouse", status: "Broken", tone: "red", icon: Mouse },
+    { label: "Keyboard", status: "Active", tone: "green", icon: Keyboard },
+    { label: "Monitor", status: "Fixing", tone: "yellow", icon: Monitor },
+    { label: "UPS", status: "None", tone: "gray", icon: Zap },
+  ],
+  "Computer 2": [
+    { label: "Mouse", status: "Active", tone: "green", icon: Mouse },
+    { label: "Keyboard", status: "Active", tone: "green", icon: Keyboard },
+    { label: "Monitor", status: "Active", tone: "green", icon: Monitor },
+    { label: "UPS", status: "None", tone: "gray", icon: Zap },
+  ],
+  "Computer 3": [
+    { label: "Mouse", status: "Fixing", tone: "yellow", icon: Mouse },
+    { label: "Keyboard", status: "Broken", tone: "red", icon: Keyboard },
+    { label: "Monitor", status: "Active", tone: "green", icon: Monitor },
+    { label: "UPS", status: "Active", tone: "green", icon: Zap },
+  ],
+  "Computer 4": [
+    { label: "Mouse", status: "Active", tone: "green", icon: Mouse },
+    { label: "Keyboard", status: "Active", tone: "green", icon: Keyboard },
+    { label: "Monitor", status: "Broken", tone: "red", icon: Monitor },
+    { label: "UPS", status: "Fixing", tone: "yellow", icon: Zap },
+  ],
+  "Computer 5": [
+    { label: "Mouse", status: "None", tone: "gray", icon: Mouse },
+    { label: "Keyboard", status: "Active", tone: "green", icon: Keyboard },
+    { label: "Monitor", status: "Active", tone: "green", icon: Monitor },
+    { label: "UPS", status: "None", tone: "gray", icon: Zap },
+  ],
+};
+
 export default function CreateTicketForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
   const scannerState = location.state as ScannerState;
   const computerCode = scannerState?.computerCode?.trim() ?? "";
-  const [type, setType] = useState<TicketType>(computerCode ? "report" : "request");
+  const [type, setType] = useState<TicketType>("report");
   const [roomId, setRoomId] = useState("");
+  const [selectedComputer, setSelectedComputer] = useState("");
+  const [computerDropdownOpen, setComputerDropdownOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -50,6 +87,7 @@ export default function CreateTicketForm() {
   });
 
   const selectedRoom = rooms.find((room) => String(room.id) === roomId);
+  const selectedPeripheralStatus = selectedRoom && selectedComputer ? peripheralStatusByComputer[selectedComputer] : [];
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -131,7 +169,11 @@ export default function CreateTicketForm() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" sideOffset={8} className="w-[var(--radix-dropdown-menu-trigger-width)]">
             {rooms.map((room) => (
-              <DropdownMenuItem key={room.id} className={`cursor-pointer ${roomId === String(room.id) ? "font-medium" : ""}`} onSelect={() => setRoomId(String(room.id))}>
+              <DropdownMenuItem key={room.id} className={`cursor-pointer ${roomId === String(room.id) ? "font-medium" : ""}`} onSelect={() => {
+                setRoomId(String(room.id));
+                setSelectedComputer("");
+                setComputerDropdownOpen(false);
+              }}>
                 {room.building_name} — {room.room_name}
               </DropdownMenuItem>
             ))}
@@ -139,11 +181,35 @@ export default function CreateTicketForm() {
         </DropdownMenu>
       </Field>
 
+      {type === "report" && !computerCode && (
+        <Field label="Computer">
+          <DropdownMenu open={computerDropdownOpen} onOpenChange={(open) => setComputerDropdownOpen(Boolean(selectedRoom) && open)}>
+            <DropdownMenuTrigger asChild>
+              <button type="button" disabled={!selectedRoom} className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-sm text-gray-500 shadow-sm outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400">
+                <span className="truncate text-left">{selectedRoom ? selectedComputer || "Select Computer" : "Select laboratory first"}</span>
+                <ChevronDown size={14} className="shrink-0" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" sideOffset={8} className="w-[var(--radix-dropdown-menu-trigger-width)]">
+              {computerOptions.map((computer) => (
+                <DropdownMenuItem key={computer} className={`cursor-pointer ${selectedComputer === computer ? "font-medium" : ""}`} onSelect={() => setSelectedComputer(computer)}>
+                  {computer}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </Field>
+      )}
+
       {selectedRoom && (
         <InfoCard title="Laboratory Location">
           <InfoItem icon={Building2} primary={selectedRoom.building_name} secondary="Building" />
           <InfoItem icon={DoorOpen} primary={selectedRoom.room_name} secondary={`Floor ${selectedRoom.floor_number}`} />
         </InfoCard>
+      )}
+
+      {type === "report" && selectedPeripheralStatus.length > 0 && (
+        <PeripheralStatusCard items={selectedPeripheralStatus} />
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -198,4 +264,39 @@ function InfoCard({ title, children }: { title: string; children: ReactNode }) {
 
 function InfoItem({ icon: Icon, primary, secondary }: { icon: typeof Monitor; primary: string; secondary: string }) {
   return <div className="flex min-w-0 items-center gap-2.5"><Icon className="size-5 shrink-0 text-gray-700" /><div className="min-w-0"><p className="truncate text-sm font-semibold">{primary}</p><p className="truncate text-xs text-gray-500">{secondary}</p></div></div>;
+}
+
+type PeripheralTone = "green" | "red" | "yellow" | "gray";
+
+type PeripheralStatus = {
+  label: string;
+  status: string;
+  tone: PeripheralTone;
+  icon: typeof Monitor;
+};
+
+const statusToneClass: Record<PeripheralTone, string> = {
+  green: "bg-green-100 text-green-700",
+  red: "bg-red-100 text-red-700",
+  yellow: "bg-yellow-100 text-yellow-700",
+  gray: "bg-gray-100 text-gray-400",
+};
+
+function PeripheralStatusCard({ items }: { items: PeripheralStatus[] }) {
+  return (
+    <section>
+      <h2 className="mb-1.5 text-base font-semibold text-gray-950">Peripheral Status</h2>
+      <div className="grid grid-cols-2 gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        {items.map(({ label, status, tone, icon: Icon }) => (
+          <div key={label} className={`flex min-w-0 items-center gap-2.5 ${tone === "gray" ? "opacity-50" : ""}`}>
+            <Icon className="size-5 shrink-0 text-gray-800" />
+            <div className="min-w-0">
+              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${statusToneClass[tone]}`}>{status}</span>
+              <p className="mt-0.5 truncate text-xs font-medium text-gray-500">{label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }

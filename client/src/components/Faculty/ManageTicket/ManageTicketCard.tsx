@@ -73,22 +73,26 @@ export default function ManageTicketCard({
 
       <div className="my-5 h-px bg-gray-100" />
 
-      <div className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm font-medium text-gray-500 sm:grid-cols-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <User className="shrink-0 text-gray-400" size={19} />
-          <span className="truncate">{reportedBy}</span>
+      <div className="space-y-3 text-sm font-medium text-gray-500">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <User className="shrink-0 text-gray-400" size={19} />
+            <span className="truncate">{reportedBy}</span>
+          </div>
+          <div className="flex min-w-0 items-center justify-end gap-2">
+            <Wrench className="shrink-0 text-gray-400" size={19} />
+            <span className="truncate text-right">{assignedTo}</span>
+          </div>
         </div>
-        <div className="flex min-w-0 items-center gap-2">
-          <Wrench className="shrink-0 text-gray-400" size={19} />
-          <span className="truncate">{assignedTo}</span>
-        </div>
-        <div className="flex min-w-0 items-center gap-2">
-          <Building2 className="shrink-0 text-gray-400" size={19} />
-          <span className="truncate">{room}</span>
-        </div>
-        <div className="flex min-w-0 items-center gap-2">
-          <Monitor className="shrink-0 text-gray-400" size={19} />
-          <span className="truncate">{computerCode}</span>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <Building2 className="shrink-0 text-gray-400" size={19} />
+            <span className="truncate">{room}</span>
+          </div>
+          <div className="flex min-w-0 items-center justify-end gap-2">
+            <Monitor className="shrink-0 text-gray-400" size={19} />
+            <span className="truncate text-right">{computerCode}</span>
+          </div>
         </div>
       </div>
 

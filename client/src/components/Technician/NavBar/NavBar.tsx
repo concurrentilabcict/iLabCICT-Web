@@ -9,6 +9,7 @@ import {
 import MoreMenu from "./MoreMenu";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth/useAuth";
+import { useEffect, useState } from "react";
 
 export default function NavBar() {
 
@@ -17,6 +18,33 @@ export default function NavBar() {
     const navigate = useNavigate();
     const { role } = useAuth();
     const isFaculty = role === "faculty";
+    const [isTyping, setIsTyping] = useState(false);
+
+    useEffect(() => {
+        const isTypingTarget = (target: EventTarget | null) => {
+            if (!(target instanceof HTMLElement)) return false;
+            const tagName = target.tagName.toLowerCase();
+            return tagName === "input" || tagName === "textarea" || tagName === "select" || target.isContentEditable;
+        };
+
+        const handleFocusIn = (event: FocusEvent) => {
+            setIsTyping(isTypingTarget(event.target));
+        };
+
+        const handleFocusOut = () => {
+            setIsTyping(false);
+        };
+
+        document.addEventListener("focusin", handleFocusIn);
+        document.addEventListener("focusout", handleFocusOut);
+
+        return () => {
+            document.removeEventListener("focusin", handleFocusIn);
+            document.removeEventListener("focusout", handleFocusOut);
+        };
+    }, []);
+
+    if (isTyping) return null;
 
     if (isFaculty) {
         return (
