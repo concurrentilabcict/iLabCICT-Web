@@ -1,32 +1,38 @@
 
+import  { floorConfig, type FloorFilter, type Floor } from "@/utils/room";
 
-export default function Filter(){
-    return(
+type FilterProps = {
+    selectedFloor: FloorFilter;
+    onFloorChange: (floor: FloorFilter) => void;
+}
+const floorOptions: FloorFilter[] = ["All", 1, 2, 3]
+
+
+export default function Filter({
+    selectedFloor,
+    onFloorChange
+}: FilterProps){
+    return (
         <div className="flex flex-nowrap items-center gap-x-2 overflow-x-auto px-3 py-3">
-            <button
-                type="button"
-                className="bg-white primary-bg-color shrink-0 rounded-full px-4 py-2 text-sm font-medium text-white"
-            >
-                All
-            </button>
-            <button
-                type="button"
-                className="bg-white shrink-0 rounded-full border primary-border-color px-4 py-2 text-sm font-medium secondary-text-color"
-            >
-                1st Floor
-            </button>
-            <button
-                type="button"
-                className="bg-white shrink-0 rounded-full border primary-border-color px-4 py-2 text-sm font-medium secondary-text-color"
-            >
-                2nd Floor
-            </button>
-            <button
-                type="button"
-                className="bg-white shrink-0 rounded-full border primary-border-color px-4 py-2 text-sm font-medium secondary-text-color"
-            >
-                3rd Floor
-            </button>
+            {floorOptions.map((floor) => {
+                const isSelected = selectedFloor === floor;
+                const label = floor === "All" ? "All" : floorConfig[floor];
+
+                return (
+                    <button
+                        key={floor}
+                        type="button"
+                        onClick={() => onFloorChange(floor)}
+                        className={`shrink-0 cursor-pointer rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                            isSelected
+                                ? "primary-bg-color text-white"
+                                : "bg-white border primary-border-color secondary-text-color hover:bg-gray-50"
+                        }`}
+                    >
+                        {label}
+                    </button>
+                );
+            })}
         </div>
-        );
+    );
 }
