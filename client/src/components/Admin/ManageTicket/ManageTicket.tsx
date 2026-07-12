@@ -31,46 +31,11 @@ import {
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { createApiError, privateFetch } from "@/lib/api";
-import type { Ticket } from "@/types/ticket";
+import type { ApiTicket, Ticket } from "@/types/ticket";
 import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
 
-type ApiTicket = {
-  id: number;
-  ticket_code: string;
-  reported_by: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    profileImage?: string;
-    profile_image?: string;
-  };
-  assigned_to: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    profileImage?: string;
-    profile_image?: string;
-  };
-  room: {
-    id: number;
-    room_name: string;
-    building_name: string;
-    floor_number: number;
-  };
-  computer: {
-    id: number;
-    computer_code: string;
-  };
-  type: string;
-  title: string;
-  complaint_description: string;
-  issue_image: string | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-};
-
 const ITEMS_PER_PAGE = 10;
+const TICKETS_URL = "https://ilabcict-backend.onrender.com/api/tickets/";
 
 const formatLabel = (text: string) =>
   text
@@ -90,6 +55,9 @@ const formatDate = (date: string) =>
 const sortByNewest = (firstTicket: Ticket, secondTicket: Ticket) =>
   Date.parse(secondTicket.createdAt) - Date.parse(firstTicket.createdAt);
 
+const formatName = (firstName: string, lastName: string) =>
+  `${firstName} ${lastName}`.trim();
+
 const mapTicket = (ticket: ApiTicket): Ticket => ({
   id: ticket.id,
   ticketCode: ticket.ticket_code,
@@ -101,11 +69,11 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
       ticket.reported_by.profileImage ?? ticket.reported_by.profile_image ?? "",
   },
   assignedTo: {
-    id: ticket.assigned_to.id,
-    firstName: ticket.assigned_to.first_name,
-    lastName: ticket.assigned_to.last_name,
+    id: ticket.assigned_to?.id ?? 0,
+    firstName: ticket.assigned_to?.first_name ?? "Unassigned",
+    lastName: ticket.assigned_to?.last_name ?? "",
     profileImage:
-      ticket.assigned_to.profileImage ?? ticket.assigned_to.profile_image ?? "",
+      ticket.assigned_to?.profileImage ?? ticket.assigned_to?.profile_image ?? "",
   },
   room: {
     id: ticket.room.id,
@@ -114,8 +82,8 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
     floorNumber: ticket.room.floor_number,
   },
   computer: {
-    id: ticket.computer.id,
-    computerCode: ticket.computer.computer_code,
+    id: ticket.computer?.id ?? 0,
+    computerCode: ticket.computer?.computer_code ?? "N/A",
   },
   type: ticket.type,
   title: ticket.title,
@@ -159,9 +127,7 @@ export default function ManageTicket() {
   } = useQuery<Ticket[]>({
     queryKey: ["admin-tickets"],
     queryFn: async () => {
-      const response = await privateFetch(
-        "https://ilabcict-backend.onrender.com/api/tickets/"
-      );
+      const response = await privateFetch(TICKETS_URL);
       const data = await response.json();
 
       if (!response.ok) {
@@ -179,8 +145,14 @@ export default function ManageTicket() {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
     return tickets.filter((ticket) => {
-      const faculty = `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`;
-      const technician = `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`;
+      const faculty = formatName(
+        ticket.reportedBy.firstName,
+        ticket.reportedBy.lastName
+      );
+      const technician = formatName(
+        ticket.assignedTo.firstName,
+        ticket.assignedTo.lastName
+      );
       const type = formatLabel(ticket.type);
       const status = formatLabel(ticket.status);
       const created = formatDate(ticket.createdAt);
@@ -310,8 +282,14 @@ export default function ManageTicket() {
             {!isLoading &&
               !isError &&
               paginatedTickets.map((ticket) => {
-                const faculty = `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`;
-                const technician = `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`;
+                const faculty = formatName(
+                  ticket.reportedBy.firstName,
+                  ticket.reportedBy.lastName
+                );
+                const technician = formatName(
+                  ticket.assignedTo.firstName,
+                  ticket.assignedTo.lastName
+                );
                 const status = formatLabel(ticket.status);
 
                 return (

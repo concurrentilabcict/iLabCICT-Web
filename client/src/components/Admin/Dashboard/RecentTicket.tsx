@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, MoreHorizontal, Search, X } from "lucide-react";
 
 import TicketDetails from "./TicketDetails";
@@ -35,47 +34,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { createApiError, privateFetch } from "@/lib/api";
 import type { Ticket } from "@/types/ticket";
 import type { TicketTypeFilter } from "@/utils/ticket";
 
-type ApiTicket = {
-  id: number;
-  ticket_code: string;
-  reported_by: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    profileImage?: string;
-    profile_image?: string;
-  };
-  assigned_to: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    profileImage?: string;
-    profile_image?: string;
-  };
-  room: {
-    id: number;
-    room_name: string;
-    building_name: string;
-    floor_number: number;
-  };
-  computer: {
-    id: number;
-    computer_code: string;
-  };
-  type: string;
-  title: string;
-  complaint_description: string;
-  issue_image: string | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-};
-
-const TICKETS_URL = "https://ilabcict-backend.onrender.com/api/tickets/";
 const RECENT_LIMIT = 8;
 const typeOptions: TicketTypeFilter[] = ["All", "Request", "Report"];
 
@@ -103,60 +64,20 @@ const getStatusClasses = (status: string) => {
 const sortByLatestUpdate = (firstTicket: Ticket, secondTicket: Ticket) =>
   Date.parse(secondTicket.updatedAt) - Date.parse(firstTicket.updatedAt);
 
-const mapTicket = (ticket: ApiTicket): Ticket => ({
-  id: ticket.id,
-  ticketCode: ticket.ticket_code,
-  reportedBy: {
-    id: ticket.reported_by.id,
-    firstName: ticket.reported_by.first_name,
-    lastName: ticket.reported_by.last_name,
-    profileImage:
-      ticket.reported_by.profileImage ?? ticket.reported_by.profile_image ?? "",
-  },
-  assignedTo: {
-    id: ticket.assigned_to.id,
-    firstName: ticket.assigned_to.first_name,
-    lastName: ticket.assigned_to.last_name,
-    profileImage:
-      ticket.assigned_to.profileImage ?? ticket.assigned_to.profile_image ?? "",
-  },
-  room: {
-    id: ticket.room.id,
-    roomName: ticket.room.room_name,
-    buildingName: ticket.room.building_name,
-    floorNumber: ticket.room.floor_number,
-  },
-  computer: {
-    id: ticket.computer.id,
-    computerCode: ticket.computer.computer_code,
-  },
-  type: ticket.type,
-  title: ticket.title,
-  complaintDescription: ticket.complaint_description,
-  issueImage: ticket.issue_image,
-  status: ticket.status,
-  createdAt: ticket.created_at,
-  updatedAt: ticket.updated_at,
-});
-
-async function fetchTickets() {
-  const response = await privateFetch(TICKETS_URL);
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw createApiError(
-      response.status,
-      data.message || "Failed to fetch recent tickets."
-    );
-  }
-
-  return (data as ApiTicket[]).map(mapTicket);
-}
-
 const getProfilePicture = (profileImage?: string) =>
   profileImage?.trim() ? profileImage : placeholderPicture;
 
-export default function RecentTicket() {
+type RecentTicketProps = {
+  tickets: Ticket[];
+  isLoading: boolean;
+  isError: boolean;
+};
+
+export default function RecentTicket({
+  tickets,
+  isLoading,
+  isError,
+}: RecentTicketProps) {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TicketTypeFilter>("All");
@@ -164,16 +85,6 @@ export default function RecentTicket() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  const {
-    data: tickets = [],
-    isLoading,
-    isError,
-  } = useQuery<Ticket[]>({
-    queryKey: ["admin-dashboard-recent-tickets"],
-    queryFn: fetchTickets,
-    staleTime: 60_000,
-  });
 
   const recentTickets = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();

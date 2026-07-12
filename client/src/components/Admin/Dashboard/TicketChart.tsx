@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
     Area,
     AreaChart,
@@ -16,7 +15,6 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart";
 import type { ChartConfig } from "@/components/ui/chart";
-import { createApiError, privateFetch } from "@/lib/api";
 import type { Ticket } from "@/types/ticket";
 
 type Range = "90d" | "30d" | "7d";
@@ -25,14 +23,6 @@ type ChartTicket = Pick<
     Ticket,
     "id" | "type" | "status" | "createdAt" | "updatedAt"
 >;
-
-type ApiTicket = {
-    id: number;
-    type: string;
-    status: string;
-    created_at: string;
-    updated_at: string;
-};
 
 type TicketChartData = {
     date: string;
@@ -61,28 +51,6 @@ const chartConfig = {
         color: "#7f2413",
     },
 } satisfies ChartConfig;
-
-const TICKETS_URL = "https://ilabcict-backend.onrender.com/api/tickets/";
-
-async function fetchTickets(): Promise<ChartTicket[]> {
-    const response = await privateFetch(TICKETS_URL);
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw createApiError(
-            response.status,
-            data.message || "Failed to fetch ticket chart data."
-        );
-    }
-
-    return (data as ApiTicket[]).map((ticket) => ({
-        id: ticket.id,
-        type: ticket.type,
-        status: ticket.status,
-        createdAt: ticket.created_at,
-        updatedAt: ticket.updated_at,
-    }));
-}
 
 function getDateKey(date: Date) {
     const year = date.getFullYear();
@@ -147,17 +115,18 @@ function formatDate(value: string) {
     }).format(new Date(`${value}T00:00:00`));
 }
 
-export default function TicketChart() {
+type TicketChartProps = {
+    tickets: ChartTicket[];
+    isLoading: boolean;
+    isError: boolean;
+};
+
+export default function TicketChart({
+    tickets,
+    isLoading,
+    isError,
+}: TicketChartProps) {
     const [range, setRange] = useState<Range>("90d");
-    const {
-        data: tickets = [],
-        isLoading,
-        isError,
-    } = useQuery<ChartTicket[]>({
-        queryKey: ["admin-ticket-chart"],
-        queryFn: fetchTickets,
-        staleTime: 60_000,
-    });
 
     const selectedRange = rangeOptions.find((option) => option.value === range)
         ?? rangeOptions[0];

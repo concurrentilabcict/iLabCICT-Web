@@ -1,29 +1,7 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 
-import { createApiError, privateFetch } from "@/lib/api";
 import type { Room } from "@/types/room";
-
-type ApiRoom = {
-    id: number;
-    computer_count: number;
-    building_name: string;
-    room_name: string;
-    floor_number: number;
-    status: string;
-    created_at: string;
-    updated_at: string;
-};
-
-type ApiTicketRoom = {
-    id: number;
-};
-
-type ApiTicket = {
-    id: number;
-    status: string;
-    room: ApiTicketRoom;
-};
+import type { Ticket } from "@/types/ticket";
 
 type LaboratoryAvailability = Room & {
     workingCount: number;
@@ -31,51 +9,7 @@ type LaboratoryAvailability = Room & {
     availability: number;
 };
 
-const ROOMS_URL = "https://ilabcict-backend.onrender.com/api/rooms/";
-const TICKETS_URL = "https://ilabcict-backend.onrender.com/api/tickets/";
-
-function mapRoom(room: ApiRoom): Room {
-    return {
-        id: room.id,
-        computerCount: room.computer_count,
-        buildingName: room.building_name,
-        roomName: room.room_name,
-        floorNumber: room.floor_number,
-        status: room.status,
-        createdAt: room.created_at,
-        updatedAt: room.updated_at,
-    };
-}
-
-async function fetchRooms() {
-    const response = await privateFetch(ROOMS_URL);
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw createApiError(
-            response.status,
-            data.message || "Failed to fetch laboratories."
-        );
-    }
-
-    return (data as ApiRoom[]).map(mapRoom);
-}
-
-async function fetchTickets() {
-    const response = await privateFetch(TICKETS_URL);
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw createApiError(
-            response.status,
-            data.message || "Failed to fetch laboratory tickets."
-        );
-    }
-
-    return data as ApiTicket[];
-}
-
-function getAvailability(rooms: Room[], tickets: ApiTicket[]) {
+function getAvailability(rooms: Room[], tickets: Ticket[]) {
     const unresolvedTicketsByRoom = tickets.reduce<Record<number, number>>(
         (roomCounts, ticket) => {
             if (ticket.status.trim().toLowerCase() === "resolved") {
@@ -109,27 +43,22 @@ function getAvailability(rooms: Room[], tickets: ApiTicket[]) {
     });
 }
 
-export default function LaboratoryStatus() {
-    const {
-        data,
-        isLoading,
-        isError,
-    } = useQuery({
-        queryKey: ["admin-laboratory-status"],
-        queryFn: async () => {
-            const [rooms, tickets] = await Promise.all([
-                fetchRooms(),
-                fetchTickets(),
-            ]);
+type LaboratoryStatusProps = {
+    rooms: Room[];
+    tickets: Ticket[];
+    isLoading: boolean;
+    isError: boolean;
+};
 
-            return { rooms, tickets };
-        },
-        staleTime: 60_000,
-    });
-
+export default function LaboratoryStatus({
+    rooms,
+    tickets,
+    isLoading,
+    isError,
+}: LaboratoryStatusProps) {
     const laboratories = useMemo(
-        () => getAvailability(data?.rooms ?? [], data?.tickets ?? []),
-        [data]
+        () => getAvailability(rooms, tickets),
+        [rooms, tickets]
     );
 
     return (
