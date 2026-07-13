@@ -5,6 +5,7 @@ import {
   Building2,
   CalendarDays,
   ChevronRight,
+  UserCheck,
 } from "lucide-react";
 
 import {
@@ -17,6 +18,8 @@ import type {
   TicketType,
 } from "@/utils/ticket";
 import { formatDateTime } from "@/utils/string";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 type ManageTicketCardProps = {
   status: Status;
@@ -28,6 +31,9 @@ type ManageTicketCardProps = {
   room: string;
   computerCode: string;
   date: string;
+  canAssignToMe?: boolean;
+  isAssigning?: boolean;
+  onAssignToMe?: () => void;
   onClick?: () => void;
 };
 
@@ -41,6 +47,9 @@ export default function ManageTicketCard({
   room,
   computerCode,
   date,
+  canAssignToMe = false,
+  isAssigning = false,
+  onAssignToMe,
   onClick,
 }: ManageTicketCardProps) {
 
@@ -123,7 +132,31 @@ export default function ManageTicketCard({
           </span>
         </div>
 
-        <ChevronRight size={25} />
+        {canAssignToMe ? (
+          <Button
+            type="button"
+            size="sm"
+            onClick={(event) => {
+              event.stopPropagation();
+              onAssignToMe?.();
+            }}
+            disabled={isAssigning}
+          >
+            {isAssigning ? (
+              <>
+                <Spinner className="size-4" />
+                Assigning...
+              </>
+            ) : (
+              <>
+                <UserCheck size={14} />
+                Assign to me
+              </>
+            )}
+          </Button>
+        ) : (
+          <ChevronRight size={25} />
+        )}
 
       </div>
 
