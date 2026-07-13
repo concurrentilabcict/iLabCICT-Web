@@ -8,7 +8,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import type { Ticket } from "@/types/ticket";
-import { Building2, Monitor, Layers2, User, CalendarDays, ImageOff } from "lucide-react";
+import { Building2, Monitor, Layers2, User, CalendarDays, ImageOff, UserCheck } from "lucide-react";
 import { statusConfig, type Status } from "@/utils/ticket";
 import { capitalize, formatDateTime } from "@/utils/string";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,14 +17,22 @@ import toast from "react-hot-toast";
 import { Spinner } from "@/components/ui/spinner"
 
 type TicketDetailsProps = {
-ticket: Ticket;
-closeSheet: () => void;
+  ticket: Ticket;
+  closeSheet: () => void;
+  isAssigning?: boolean;
+  onAssignToMe?: () => void;
 };
 
-export default function TicketDetails({ ticket, closeSheet }: TicketDetailsProps) {
+export default function TicketDetails({
+  ticket,
+  closeSheet,
+  isAssigning = false,
+  onAssignToMe,
+}: TicketDetailsProps) {
   const status = capitalize(ticket.status);
   const statusData = statusConfig[status as Status];
   const StatusIcon = statusData?.icon;
+  const isUnassigned = ticket.assignedTo?.id === 0;
 
   const queryClient = useQueryClient();
 
@@ -153,13 +161,29 @@ export default function TicketDetails({ ticket, closeSheet }: TicketDetailsProps
       </div>
 
       <SheetFooter className={`${ticket.status === "resolved" ? "hidden" : ""}`}>
-        <Button onClick={() => ticketMutation.mutate()} disabled={ticketMutation.isPending}>
-          {ticketMutation.isPending ? <><Spinner className="size-5" />Starting Repair...</>
-           : <span>Start Repair</span>}
-        </Button>
+        {isUnassigned ? (
+          <Button onClick={onAssignToMe} disabled={isAssigning || !onAssignToMe}>
+            {isAssigning ? (
+              <>
+                <Spinner className="size-5" />
+                Assigning...
+              </>
+            ) : (
+              <>
+                <UserCheck size={16} />
+                Assign to me
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button onClick={() => ticketMutation.mutate()} disabled={ticketMutation.isPending}>
+            {ticketMutation.isPending ? <><Spinner className="size-5" />Starting Repair...</>
+            : <span>Start Repair</span>}
+          </Button>
+        )}
 
         <SheetClose asChild>
-          <Button disabled={ticketMutation.isPending} variant="outline">Close</Button>
+          <Button disabled={ticketMutation.isPending || isAssigning} variant="outline">Close</Button>
         </SheetClose>
       </SheetFooter>
     </>

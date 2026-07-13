@@ -1,8 +1,8 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ManageTicketCard from "./ManageTicketCard";
 import { useMemo, useState } from "react";
-import { createApiError, privateFetch } from "@/lib/api";
-import type { Ticket } from "@/types/ticket";
+import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import type { ApiTicket, Ticket } from "@/types/ticket";
 
 import {
     Sheet,
@@ -26,8 +26,9 @@ import type {
     TicketType,
     TicketTypeFilter,
 } from "@/utils/ticket";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import toast from "react-hot-toast";
 
 type ManageTicketProps = {
     statusFilter: StatusFilter;
@@ -65,10 +66,14 @@ export default function ManageTicket({
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const notificationTicketId = searchParams.get("ticket");
+    const queryClient = useQueryClient();
+    const technicianId = Number(localStorage.getItem("id"));
 
     const handleTicketClick = (ticket: Ticket) => {
         if (ticket.status === "ongoing") {
-            navigate(`/manage-ticket/${ticket.id}`);
+            if (ticket.type === "report") {
+                navigate(`/manage-ticket/${ticket.id}`);
+            }
             return;
         }
 
@@ -76,7 +81,9 @@ export default function ManageTicket({
         setSheetOpen(true);
     };
 
-    const mapTicket = (ticket: any): Ticket => ({
+    const mapTicket = (ticket: ApiTicket): Ticket => ({
+
+
         id: ticket.id,
 
         ticketCode: ticket.ticket_code,
@@ -91,7 +98,7 @@ export default function ManageTicket({
             id: ticket.assigned_to.id,
             firstName: ticket.assigned_to.first_name,
             lastName: ticket.assigned_to.last_name,
-        } : null,
+        } : { id: 0, firstName: "Unassigned", lastName: "" },
 
         room: {
             id: ticket.room.id,
@@ -103,7 +110,7 @@ export default function ManageTicket({
         computer: ticket.computer ? {
             id: ticket.computer.id,
             computerCode: ticket.computer.computer_code,
-        } : null,
+        } : { id: 0, computerCode: "Not specified" },
 
         type: ticket.type,
         title: ticket.title,
@@ -130,9 +137,63 @@ export default function ManageTicket({
                     data.message || "Failed to fetch tickets.");
             }
 
-            return data.map(mapTicket);
+            return (data as ApiTicket[]).map(mapTicket);
         },
         // refetchInterval: 10000,
+    });
+
+    const assignToMeMutation = useMutation({
+        mutationFn: async (ticketId: number) => {
+            if (!Number.isInteger(technicianId) || technicianId <= 0) {
+                throw createApiError(400, "Unable to identify the logged-in technician.");
+            }
+
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/${ticketId}/`, {
+                method: "PATCH",
+                body: JSON.stringify({ assigned_to: technicianId }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw createApiError(res.status, data.message || "Failed to assign ticket.");
+            }
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({
+                queryKey: ["tickets"],
+            });
+
+            toast.success("Ticket assigned to you.");
+        },
+        onError: (error: ApiError) => {
+            toast.error(error.message || "Failed to assign ticket.");
+        },
+    });
+
+    const resolveRequestMutation = useMutation({
+        mutationFn: async (ticketId: number) => {
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/${ticketId}/`, {
+                method: "PATCH",
+                body: JSON.stringify({ status: "resolved" }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw createApiError(res.status, data.message || "Failed to resolve ticket.");
+            }
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({
+                queryKey: ["tickets"],
+            });
+
+            toast.success("Ticket resolved successfully.");
+        },
+        onError: (error: ApiError) => {
+            toast.error(error.message || "Failed to resolve ticket.");
+        },
     });
 
     const manuallySelectedTicket = useMemo(
@@ -176,6 +237,8 @@ export default function ManageTicket({
                     ticket.complaintDescription,
                     ticket.reportedBy.firstName,
                     ticket.reportedBy.lastName,
+                    ticket.assignedTo?.firstName,
+                    ticket.assignedTo?.lastName,
                     ticket.room.buildingName,
                     ticket.room.roomName,
                     ticket.computer?.computerCode,
@@ -214,7 +277,10 @@ export default function ManageTicket({
         currentPage * ITEMS_PER_PAGE
     );
 
-    if (notificationTicket?.status.toLowerCase() === "ongoing") {
+    if (
+        notificationTicket?.status.toLowerCase() === "ongoing" &&
+        notificationTicket.type === "report"
+    ) {
         return <Navigate to={`/manage-ticket/${notificationTicket.id}`} replace />;
     }
 
@@ -248,13 +314,22 @@ export default function ManageTicket({
                     const type = formatLabel(ticket.type) as TicketType;
                     const room = formatLabel(ticket.room.buildingName) + ", " + ticket.room.roomName;
                     const reportedBy = ticket.reportedBy.firstName + " " + ticket.reportedBy.lastName;
+                    const canAssignToMe = ticket.assignedTo?.id === 0;
+                    const canResolveRequest = ticket.status === "ongoing" && ticket.type === "request";
 
                     return (
                         <div className="w-full" key={ticket.id}>
                             <ManageTicketCard status={status} type={type} title={ticket.title}
                                 complaintDescription={ticket.complaintDescription} reportedBy={reportedBy}
-                                ticketCode={ticket.ticketCode} room={room} computerCode={ticket.computer?.computerCode || "No computer"}
-                                date={ticket.createdAt} onClick={() => handleTicketClick(ticket)} />
+                                ticketCode={ticket.ticketCode} room={room} computerCode={ticket.computer?.computerCode || "Not Specified"}
+                                date={ticket.createdAt}
+                                canAssignToMe={canAssignToMe}
+                                isAssigning={assignToMeMutation.isPending && assignToMeMutation.variables === ticket.id}
+                                onAssignToMe={() => assignToMeMutation.mutate(ticket.id)}
+                                canResolveRequest={canResolveRequest}
+                                isResolvingRequest={resolveRequestMutation.isPending && resolveRequestMutation.variables === ticket.id}
+                                onResolveRequest={() => resolveRequestMutation.mutate(ticket.id)}
+                                onClick={() => handleTicketClick(ticket)} />
                         </div>
                     );
                 })}
@@ -307,6 +382,8 @@ export default function ManageTicket({
                     {selectedTicket && (
                         <TicketDetails
                             ticket={selectedTicket}
+                            isAssigning={assignToMeMutation.isPending && assignToMeMutation.variables === selectedTicket.id}
+                            onAssignToMe={() => assignToMeMutation.mutate(selectedTicket.id)}
                             closeSheet={() => setSheetOpen(false)}
                         />
                     )}

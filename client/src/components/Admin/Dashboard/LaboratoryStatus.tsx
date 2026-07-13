@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 
 import { createApiError, privateFetch } from "@/lib/api";
 import type { RoomDashboard } from "@/types/room";
@@ -24,6 +23,8 @@ type ApiTicket = {
     status: string;
     room: ApiTicketRoom;
 };
+import type { Room } from "@/types/room";
+import type { Ticket } from "@/types/ticket";
 
 type LaboratoryAvailability = RoomDashboard & {
     workingCount: number;
@@ -75,7 +76,7 @@ async function fetchTickets() {
     return data as ApiTicket[];
 }
 
-function getAvailability(rooms: RoomDashboard[], tickets: ApiTicket[]) {
+function getAvailability(rooms: Room[], tickets: Ticket[]) {
     const unresolvedTicketsByRoom = tickets.reduce<Record<number, number>>(
         (roomCounts, ticket) => {
             if (ticket.status.trim().toLowerCase() === "resolved") {
@@ -109,27 +110,22 @@ function getAvailability(rooms: RoomDashboard[], tickets: ApiTicket[]) {
     });
 }
 
-export default function LaboratoryStatus() {
-    const {
-        data,
-        isLoading,
-        isError,
-    } = useQuery({
-        queryKey: ["admin-laboratory-status"],
-        queryFn: async () => {
-            const [rooms, tickets] = await Promise.all([
-                fetchRooms(),
-                fetchTickets(),
-            ]);
+type LaboratoryStatusProps = {
+    rooms: Room[];
+    tickets: Ticket[];
+    isLoading: boolean;
+    isError: boolean;
+};
 
-            return { rooms, tickets };
-        },
-        staleTime: 60_000,
-    });
-
+export default function LaboratoryStatus({
+    rooms,
+    tickets,
+    isLoading,
+    isError,
+}: LaboratoryStatusProps) {
     const laboratories = useMemo(
-        () => getAvailability(data?.rooms ?? [], data?.tickets ?? []),
-        [data]
+        () => getAvailability(rooms, tickets),
+        [rooms, tickets]
     );
 
     return (

@@ -27,6 +27,9 @@ import FacultyQrScannerPage from "./pages/Faculty/QrScannerPage"
 import FacultyManageTicket from "./pages/Faculty/ManageTicketPage"
 import FacultyFaqPage from "./pages/Faculty/FaqPage"
 import CreateTicketPage from "./pages/Faculty/CreateTicketPage"
+import FacultyManageLaboratoryPage from "./pages/Faculty/ManageLaboratoryPage"
+import FacultyComputerListPage from "./pages/Faculty/ComputerListPage"
+import FacultyComputerInformationPage from "./pages/Faculty/ComputerInformationPage"
 
 const allRoles = ["technician", "admin", "faculty"] as const;
 const adminOnly = ["admin"] as const;
@@ -70,17 +73,18 @@ function App() {
         <Route path="/qr-scanner" element={<ProtectedRoute allowedRoles={technicianAndFaculty}>
           {role === "faculty" ? <FacultyQrScannerPage /> : <QrScannerPage />}</ProtectedRoute>} />
         <Route path="/manage-laboratory" element={<ProtectedRoute allowedRoles={technicianAndFaculty}>
-          {role === "faculty" ? <FacultyPage title="Laboratory" /> : <LaboratoryPage />}</ProtectedRoute>} />
+          {role === "faculty" ? <FacultyManageLaboratoryPage/> : <LaboratoryPage />}</ProtectedRoute>} />
+        <Route path="/manage-laboratory/:room" element={<ProtectedRoute allowedRoles={technicianAndFaculty}>
+          {role === "faculty" ? <FacultyComputerListPage/> : <ComputerListPage />}</ProtectedRoute>} />
+        <Route path="/manage-laboratory/:room/:code" element={<ProtectedRoute allowedRoles={technicianAndFaculty}>
+          {role === "faculty" ? <FacultyComputerInformationPage/> : <ComputerInformationPage /> }</ProtectedRoute>} />
 
         {/* Technician */}
         <Route path="/manage-ticket/:id" element={<ProtectedRoute allowedRoles={technicianOnly}>
           <ProcessTicket /></ProtectedRoute>} />
         <Route path="/chatbot" element={<ProtectedRoute allowedRoles={technicianOnly}>
           <ChatbotPage /></ProtectedRoute>} />
-        <Route path="/manage-laboratory/:room" element={<ProtectedRoute allowedRoles={technicianOnly}>
-          <ComputerListPage /></ProtectedRoute>} />
-        <Route path="/manage-laboratory/:room/:code" element={<ProtectedRoute allowedRoles={technicianOnly}>
-          <ComputerInformationPage /></ProtectedRoute>} />
+        
 
         {/* Admin */}
         <Route path="/manage-user" element={<ProtectedRoute allowedRoles={adminOnly}>

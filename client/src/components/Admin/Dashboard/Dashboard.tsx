@@ -6,42 +6,22 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
-import { createApiError, privateFetch } from "@/lib/api";
 import SummaryCard from "./SummaryCard";
 import TicketChart from "./TicketChart";
 import LaboratoryStatus from "./LaboratoryStatus";
 import RecentTicket from "./RecentTicket";
 import RecentUser from "./RecentUser";
+import {
+    fetchDashboardData,
+    type DashboardData,
+} from "./dashboardData";
+import type { Ticket } from "@/types/ticket";
 
 type TicketStatus = "open" | "ongoing" | "resolved";
 
-type ApiTicket = {
-    id: number;
-    created_at: string;
-    updated_at: string;
-};
-
-type DashboardTickets = Record<TicketStatus, ApiTicket[]>;
-
-const TICKETS_URL = "https://ilabcict-backend.onrender.com/api/tickets/";
-
-async function fetchTickets(status: TicketStatus) {
-    const response = await privateFetch(`${TICKETS_URL}?status=${status}`);
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw createApiError(
-            response.status,
-            data.message || `Failed to fetch ${status} tickets.`
-        );
-    }
-
-    return data as ApiTicket[];
-}
-
 function ticketsInMonth(
-    tickets: ApiTicket[],
-    field: "created_at" | "updated_at",
+    tickets: Ticket[],
+    field: "createdAt" | "updatedAt",
     monthOffset: number
 ) {
     const today = new Date();
@@ -62,10 +42,10 @@ function ticketsInMonth(
     });
 }
 
-function averageResolutionMs(tickets: ApiTicket[]) {
+function averageResolutionMs(tickets: Ticket[]) {
     const durations = tickets
         .map((ticket) => (
-            Date.parse(ticket.updated_at) - Date.parse(ticket.created_at)
+            Date.parse(ticket.updatedAt) - Date.parse(ticket.createdAt)
         ))
         .filter((duration) => Number.isFinite(duration) && duration >= 0);
 
@@ -89,26 +69,33 @@ function formatDuration(duration: number | null) {
 }
 
 export default function Dashboard() {
-    const { data, isLoading, isError } = useQuery<DashboardTickets>({
-        queryKey: ["admin-dashboard-tickets"],
-        queryFn: async () => {
-            const [open, ongoing, resolved] = await Promise.all([
-                fetchTickets("open"),
-                fetchTickets("ongoing"),
-                fetchTickets("resolved"),
-            ]);
-
-            return { open, ongoing, resolved };
-        },
+    const { data, isLoading, isError } = useQuery<DashboardData>({
+        queryKey: ["admin-dashboard"],
+        queryFn: fetchDashboardData,
         staleTime: 60_000,
     });
 
-    const openTickets = data?.open ?? [];
-    const ongoingTickets = data?.ongoing ?? [];
-    const resolvedTickets = data?.resolved ?? [];
+    const tickets = data?.tickets ?? [];
+    const rooms = data?.rooms ?? [];
+    const users = data?.users ?? [];
+    const ticketsByStatus = tickets.reduce<Record<TicketStatus, Ticket[]>>(
+        (groupedTickets, ticket) => {
+            const status = ticket.status.trim().toLowerCase() as TicketStatus;
 
-    const resolvedThisMonth = ticketsInMonth(resolvedTickets, "updated_at", 0);
-    const resolvedLastMonth = ticketsInMonth(resolvedTickets, "updated_at", -1);
+            if (status in groupedTickets) {
+                groupedTickets[status].push(ticket);
+            }
+
+            return groupedTickets;
+        },
+        { open: [], ongoing: [], resolved: [] }
+    );
+    const openTickets = ticketsByStatus.open;
+    const ongoingTickets = ticketsByStatus.ongoing;
+    const resolvedTickets = ticketsByStatus.resolved;
+
+    const resolvedThisMonth = ticketsInMonth(resolvedTickets, "updatedAt", 0);
+    const resolvedLastMonth = ticketsInMonth(resolvedTickets, "updatedAt", -1);
 
     const currentAverage = averageResolutionMs(resolvedThisMonth);
 
@@ -179,14 +166,31 @@ export default function Dashboard() {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,70fr)_minmax(280px,30fr)]">
-                <TicketChart />
-                <LaboratoryStatus />
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,70fr)_minmax(280px,30fr)]">
+                <TicketChart
+                    tickets={tickets}
+                    isLoading={isLoading}
+                    isError={isError}
+                />
+                <LaboratoryStatus
+                    rooms={rooms}
+                    tickets={tickets}
+                    isLoading={isLoading}
+                    isError={isError}
+                />
             </div>
 
             <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,55fr)_minmax(360px,45fr)]">
-                <RecentTicket />
-                <RecentUser />
+                <RecentTicket
+                    tickets={tickets}
+                    isLoading={isLoading}
+                    isError={isError}
+                />
+                <RecentUser
+                    users={users}
+                    isLoading={isLoading}
+                    isError={isError}
+                />
             </div>
         </div>
     );

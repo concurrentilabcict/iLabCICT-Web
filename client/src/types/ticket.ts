@@ -43,6 +43,8 @@ export type ApiTicketUser = {
     id: number;
     first_name: string;
     last_name: string;
+    profileImage?: string;
+    profile_image?: string;
 }
 
 export type ApiTicketRoom = {

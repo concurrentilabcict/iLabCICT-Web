@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, MoreHorizontal, Search, X } from "lucide-react";
 
 import UserDetails from "../ManageUser/UserDetails";
@@ -35,31 +34,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { createApiError, privateFetch } from "@/lib/api";
 import type { User } from "@/types/manageUser";
-
-type ApiUser = {
-  id: number;
-  userCode?: string;
-  user_code?: string;
-  username: string;
-  email: string;
-  firstName?: string;
-  first_name?: string;
-  lastName?: string;
-  last_name?: string;
-  role: string;
-  profileImage?: string;
-  profile_image?: string;
-  isActive?: boolean;
-  is_active?: boolean;
-  createdAt?: string;
-  created_at: string;
-};
 
 type RoleFilter = "All Role" | "Technician" | "Faculty";
 
-const USERS_URL = "https://ilabcict-backend.onrender.com/api/users/";
 const RECENT_LIMIT = 8;
 const roleOptions: RoleFilter[] = ["All Role", "Technician", "Faculty"];
 
@@ -71,42 +49,20 @@ const formatLabel = (text: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 
-const getUsersFromResponse = (data: ApiUser[] | { results?: ApiUser[] }) =>
-  Array.isArray(data) ? data : data.results ?? [];
-
 const sortByNewest = (firstUser: User, secondUser: User) =>
   Date.parse(secondUser.createdAt) - Date.parse(firstUser.createdAt);
 
-const mapUser = (user: ApiUser): User => ({
-  id: user.id,
-  userCode: user.userCode ?? user.user_code ?? String(user.id),
-  username: user.username,
-  email: user.email,
-  firstName: user.firstName ?? user.first_name ?? "",
-  lastName: user.lastName ?? user.last_name ?? "",
-  role: user.role,
-  profileImage: user.profileImage ?? user.profile_image ?? "",
-  isActive: user.isActive ?? user.is_active ?? false,
-  createdAt: user.createdAt ?? user.created_at,
-});
+type RecentUserProps = {
+  users: User[];
+  isLoading: boolean;
+  isError: boolean;
+};
 
-async function fetchUsers() {
-  const response = await privateFetch(USERS_URL);
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw createApiError(
-      response.status,
-      data.message || "Failed to fetch recent users."
-    );
-  }
-
-  return getUsersFromResponse(data as ApiUser[] | { results?: ApiUser[] }).map(
-    mapUser
-  );
-}
-
-export default function RecentUser() {
+export default function RecentUser({
+  users,
+  isLoading,
+  isError,
+}: RecentUserProps) {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("All Role");
@@ -114,16 +70,6 @@ export default function RecentUser() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  const {
-    data: users = [],
-    isLoading,
-    isError,
-  } = useQuery<User[]>({
-    queryKey: ["admin-dashboard-recent-users"],
-    queryFn: fetchUsers,
-    staleTime: 60_000,
-  });
 
   const recentUsers = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
