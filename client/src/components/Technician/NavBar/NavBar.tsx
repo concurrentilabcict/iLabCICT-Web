@@ -113,7 +113,7 @@ export default function NavBar() {
                 onClick={() => navigate("/manage-ticket")}
                 type="button"
                 className={`flex flex-col items-center gap-y-1 cursor-pointer
-                ${pathname === "/manage-ticket"
+                ${pathname === "/manage-ticket" || pathname.startsWith("/manage-ticket/")
                     ? "primary-text-color"
                     : "secondary-text-color"
                 }`}

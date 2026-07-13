@@ -20,6 +20,7 @@ import type {
 import { formatDateTime } from "@/utils/string";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import ResolveRequestDialog from "./ResolveRequestDialog";
 
 type ManageTicketCardProps = {
   status: Status;
@@ -34,6 +35,9 @@ type ManageTicketCardProps = {
   canAssignToMe?: boolean;
   isAssigning?: boolean;
   onAssignToMe?: () => void;
+  canResolveRequest?: boolean;
+  isResolvingRequest?: boolean;
+  onResolveRequest?: () => void;
   onClick?: () => void;
 };
 
@@ -50,6 +54,9 @@ export default function ManageTicketCard({
   canAssignToMe = false,
   isAssigning = false,
   onAssignToMe,
+  canResolveRequest = false,
+  isResolvingRequest = false,
+  onResolveRequest,
   onClick,
 }: ManageTicketCardProps) {
 
@@ -154,6 +161,12 @@ export default function ManageTicketCard({
               </>
             )}
           </Button>
+        ) : canResolveRequest ? (
+          <ResolveRequestDialog
+            ticketCode={ticketCode}
+            isSubmitting={isResolvingRequest}
+            onResolve={() => onResolveRequest?.()}
+          />
         ) : (
           <ChevronRight size={25} />
         )}

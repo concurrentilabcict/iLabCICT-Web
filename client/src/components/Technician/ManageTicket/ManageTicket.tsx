@@ -71,7 +71,9 @@ export default function ManageTicket({
 
     const handleTicketClick = (ticket: Ticket) => {
         if (ticket.status === "ongoing") {
-            navigate(`/manage-ticket/${ticket.id}`);
+            if (ticket.type === "report") {
+                navigate(`/manage-ticket/${ticket.id}`);
+            }
             return;
         }
 
@@ -169,6 +171,31 @@ export default function ManageTicket({
         },
     });
 
+    const resolveRequestMutation = useMutation({
+        mutationFn: async (ticketId: number) => {
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/${ticketId}/`, {
+                method: "PATCH",
+                body: JSON.stringify({ status: "resolved" }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw createApiError(res.status, data.message || "Failed to resolve ticket.");
+            }
+        },
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({
+                queryKey: ["tickets"],
+            });
+
+            toast.success("Ticket resolved successfully.");
+        },
+        onError: (error: ApiError) => {
+            toast.error(error.message || "Failed to resolve ticket.");
+        },
+    });
+
     const manuallySelectedTicket = useMemo(
         () => tickets.find((t) => t.id === selectedTicketId) ?? null,
         [tickets, selectedTicketId]
@@ -250,7 +277,10 @@ export default function ManageTicket({
         currentPage * ITEMS_PER_PAGE
     );
 
-    if (notificationTicket?.status.toLowerCase() === "ongoing") {
+    if (
+        notificationTicket?.status.toLowerCase() === "ongoing" &&
+        notificationTicket.type === "report"
+    ) {
         return <Navigate to={`/manage-ticket/${notificationTicket.id}`} replace />;
     }
 
@@ -285,6 +315,7 @@ export default function ManageTicket({
                     const room = formatLabel(ticket.room.buildingName) + ", " + ticket.room.roomName;
                     const reportedBy = ticket.reportedBy.firstName + " " + ticket.reportedBy.lastName;
                     const canAssignToMe = ticket.assignedTo.id === 0;
+                    const canResolveRequest = ticket.status === "ongoing" && ticket.type === "request";
 
                     return (
                         <div className="w-full" key={ticket.id}>
@@ -295,6 +326,9 @@ export default function ManageTicket({
                                 canAssignToMe={canAssignToMe}
                                 isAssigning={assignToMeMutation.isPending && assignToMeMutation.variables === ticket.id}
                                 onAssignToMe={() => assignToMeMutation.mutate(ticket.id)}
+                                canResolveRequest={canResolveRequest}
+                                isResolvingRequest={resolveRequestMutation.isPending && resolveRequestMutation.variables === ticket.id}
+                                onResolveRequest={() => resolveRequestMutation.mutate(ticket.id)}
                                 onClick={() => handleTicketClick(ticket)} />
                         </div>
                     );
