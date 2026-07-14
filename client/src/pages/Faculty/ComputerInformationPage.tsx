@@ -20,6 +20,8 @@ export default function FacultyComputerInformationPage(){
     const pcCode = code ? decodeURIComponent(code) : "";
     const roomName = room ? decodeURIComponent(room) : "";
     const [address, setAddress] = useState("No address information.");
+    const [sheetOpen,setSheetOpen] = useState(false);
+
     
 
     useEffect(()=>{
@@ -40,6 +42,8 @@ export default function FacultyComputerInformationPage(){
                                     address={address}
                                 />
                                 <ComputerInformation
+                                    sheetOpen={sheetOpen}
+                                    setSheetOpen={setSheetOpen}
                                     setAddress={setAddress}
                                     computerCode={pcCode}
                                     roomName={roomName}

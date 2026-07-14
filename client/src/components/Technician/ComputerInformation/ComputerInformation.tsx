@@ -6,11 +6,22 @@ import type { Computer } from "@/types/computer";
 import { useQuery } from "@tanstack/react-query";
 import { createApiError, privateFetch } from "@/lib/api";
 import type { PeripheralStatus, Status } from "@/utils/computer";
+import {
+    Sheet,
+    SheetContent,
+} from "@/components/ui/sheet";
+import MaintenanceHistoryDetails from "./MaintenanceHistoryDetails";
+import { useState } from "react";
+import type { MaintenanceHistory } from "@/types/maintenanceHistory";
+
+
 
 type ComputerInformationType = {
     roomName: string,
     computerCode: string,
-    setAddress: Function
+    setAddress: Function,
+    setSheetOpen: (open: boolean) => void,
+    sheetOpen: boolean
 }
 
 const formatLabel = (text: string) => {
@@ -35,10 +46,13 @@ const floorConverter = (floor: number) => {
 export default function ComputerInformation({
     roomName,
     computerCode,
-    setAddress
+    setAddress,
+    setSheetOpen,
+    sheetOpen
 }: ComputerInformationType){
 
     const isMobile = useMediaQuery("(max-width: 767px)");
+    const [maintenanceHistory, setMaintenanceHistory] = useState<MaintenanceHistory>()
 
     const mapComputer = (computer: any): Computer => ({
         id:computer.id,
@@ -64,6 +78,10 @@ export default function ComputerInformation({
         createdAt: computer.created_at,
         updatedAt: computer.updated_at
     });
+
+    const handleSheetOpenChange = (open: boolean) => {
+        setSheetOpen(open);
+    }
 
     const { data: computer, isLoading } = useQuery<Computer>({
         queryKey: ["computer", roomName, computerCode],
@@ -116,7 +134,11 @@ export default function ComputerInformation({
                         status={formatLabel(computer.computerStatus) as Status}
                     />
 
-                    <MaintenanceHistoryCard/>
+                    <MaintenanceHistoryCard
+                        setMaintenanceHistory={setMaintenanceHistory}
+                        openSheet={handleSheetOpenChange}
+                        computerId={computer.id}
+                    />
                     <PeripheralDetailCard
                         monitorStatus={formatLabel(computer.monitorStatus) as PeripheralStatus}
                         upsStatus={formatLabel(computer.upsStatus) as PeripheralStatus}
@@ -129,6 +151,24 @@ export default function ComputerInformation({
 
             
         </div>
+
+                <Sheet
+                    open={sheetOpen}
+                    onOpenChange={handleSheetOpenChange}
+                    >
+                    <SheetContent
+                        side={isMobile ? "bottom" : "right"}
+                        className={
+                            isMobile
+                                ? "h-[90vh]"
+                                : "w-[1000px]!"
+                        }
+                    >
+                        <MaintenanceHistoryDetails
+                            maintenanceHistory={maintenanceHistory}
+                        />
+                    </SheetContent>
+                </Sheet>
 
         </>
     );
