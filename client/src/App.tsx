@@ -30,6 +30,9 @@ import CreateTicketPage from "./pages/Faculty/CreateTicketPage"
 import FacultyManageLaboratoryPage from "./pages/Faculty/ManageLaboratoryPage"
 import FacultyComputerListPage from "./pages/Faculty/ComputerListPage"
 import FacultyComputerInformationPage from "./pages/Faculty/ComputerInformationPage"
+import AdminManageLaboratoryPage from "./pages/Admin/ManageLaboratoryPage"
+import AdminComputerInformationPage from "./pages/Admin/ComputerInformationPage"
+import AdminComputerListPage from "./pages/Admin/ComputerListPage"
 
 const allRoles = ["technician", "admin", "faculty"] as const;
 const adminOnly = ["admin"] as const;
@@ -56,6 +59,22 @@ function App() {
             {role === "admin" ? <AdminManageTicket /> : role === "faculty" ? <FacultyManageTicket /> : <TechnicianManageTicket />}
           </ProtectedRoute>
         } />
+        
+        <Route path="/manage-laboratory" element={
+          <ProtectedRoute allowedRoles={allRoles}>
+            {role === "admin" ?  <AdminManageLaboratoryPage/> : role === "faculty" ? <FacultyManageLaboratoryPage/> : <LaboratoryPage />}
+          </ProtectedRoute>
+        } />
+        <Route path="/manage-laboratory/:room" element={
+          <ProtectedRoute allowedRoles={allRoles}>
+            {role === "admin" ? <AdminComputerListPage/> : role === "faculty" ? <FacultyComputerListPage/> : <ComputerListPage />}
+          </ProtectedRoute>
+        } />
+        <Route path="/manage-laboratory/:room/:code" element={
+          <ProtectedRoute allowedRoles={allRoles}>
+            {role === "admin" ? <AdminComputerInformationPage/> : role === "faculty" ? <FacultyComputerInformationPage/> : <ComputerInformationPage /> }
+          </ProtectedRoute>
+        } />
         <Route path="/profile" element={<ProtectedRoute allowedRoles={allRoles}>
           <ProfilePage /></ProtectedRoute>} />
 
@@ -72,12 +91,7 @@ function App() {
           {role === "faculty" ? <FacultyPage title="Notifications" /> : <NotificationPage />}</ProtectedRoute>} />
         <Route path="/qr-scanner" element={<ProtectedRoute allowedRoles={technicianAndFaculty}>
           {role === "faculty" ? <FacultyQrScannerPage /> : <QrScannerPage />}</ProtectedRoute>} />
-        <Route path="/manage-laboratory" element={<ProtectedRoute allowedRoles={technicianAndFaculty}>
-          {role === "faculty" ? <FacultyManageLaboratoryPage/> : <LaboratoryPage />}</ProtectedRoute>} />
-        <Route path="/manage-laboratory/:room" element={<ProtectedRoute allowedRoles={technicianAndFaculty}>
-          {role === "faculty" ? <FacultyComputerListPage/> : <ComputerListPage />}</ProtectedRoute>} />
-        <Route path="/manage-laboratory/:room/:code" element={<ProtectedRoute allowedRoles={technicianAndFaculty}>
-          {role === "faculty" ? <FacultyComputerInformationPage/> : <ComputerInformationPage /> }</ProtectedRoute>} />
+       
 
         {/* Technician */}
         <Route path="/manage-ticket/:id" element={<ProtectedRoute allowedRoles={technicianOnly}>
