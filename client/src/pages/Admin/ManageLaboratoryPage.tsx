@@ -10,7 +10,7 @@ import Laboratory from "@/components/Admin/ManageLaboratory/Laboratory";
 import type{ StatusFilter, FloorFilter } from "@/utils/room";
 import { useEffect, useState } from "react";
 import ButtonGroup from "@/components/Admin/ManageLaboratory/ButtonGroup";
-import type { EditRoomFormType, RoomForm } from "@/types/room";
+import type { Room, EditRoomFormType, RoomForm } from "@/types/room";
 
 export default function AdminManageLaboratoryPage(){
 
@@ -27,6 +27,7 @@ export default function AdminManageLaboratoryPage(){
         roomStatus: "operational",
         assignedCustodianId: null
     });
+    const [rooms, setRooms] = useState<Room[]>([]);
 
     const isMobile = useMediaQuery("(max-width: 767px)");
 
@@ -54,11 +55,13 @@ export default function AdminManageLaboratoryPage(){
                                 />
 
                                 <ButtonGroup
+                                    rooms={rooms}
                                     setSheetOpen={setSheetOpen}
                                     setIsEditing={setIsEditing}
                                     setSelectedRoom={setSelectedRoom}
                                 />
                                 <Laboratory
+                                    setRooms={setRooms}
                                     sheetOpen={sheetOpen}
                                     setSheetOpen={setSheetOpen}
                                     isEditing={isEditing}

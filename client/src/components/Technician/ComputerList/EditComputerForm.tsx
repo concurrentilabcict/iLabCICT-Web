@@ -117,7 +117,7 @@ computer
                 {
                     method: "PATCH",
                     body:JSON.stringify({
-                        cpu: form.cpu.trim(),
+                        cpu: form.cpu.trim(), 
                         gpu: form.gpu.trim(),
                         motherboard: form.motherboard.trim(),
                         ram_size_installed: form.ramSize,

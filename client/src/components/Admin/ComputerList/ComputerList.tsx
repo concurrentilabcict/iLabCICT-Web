@@ -23,6 +23,7 @@ import {
 import AddComputerForm from "./AddComputerForm";
 import EditComputerForm from "./EditComputerForm";
 type ComputerListProps = {
+    setComputers: Function,
     roomName: string,
     searchQuery: string,
     statusFilter: StatusFilter,
@@ -45,6 +46,7 @@ const formatLabel = (text: string) => {
 };
 
 export default function ComputerList({
+    setComputers,
     roomName,
     searchQuery,
     statusFilter,
@@ -112,7 +114,7 @@ export default function ComputerList({
             if(!res.ok){
                 throw createApiError(res.status, data.message || 'Failed to fetch computers.');
             }
-
+            setComputers(data.computers.map(mapComputerCard))
             return data.computers.map(mapComputerCard)
          }
     });

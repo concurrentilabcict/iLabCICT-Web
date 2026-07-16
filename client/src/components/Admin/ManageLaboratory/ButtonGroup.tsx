@@ -1,14 +1,32 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import type { ComputerCardType } from "@/types/computer"
+import type { Room } from "@/types/room"
 import { Download, Upload, Plus } from "lucide-react"
 
 type ButtonGroupType = {
+    rooms: Room[]
     setSheetOpen: (open: boolean) => void,
     setIsEditing: (open: boolean) => void,
     setSelectedRoom: Function
 }
 
+const formatDate = (date: string) =>
+  new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(date));
+
+const escapeCsvCell = (value: unknown) => {
+    const text = value == null ? "" : String(value);
+    return `"${text.replace(/"/g, '""')}"`;
+};
+
+const getCustodian = (lastName: string | undefined, firstName: string | undefined) => {
+    return lastName && firstName ? `${firstName} ${lastName}` : 'No Custodian';
+}
 export default function ButtonGroup({
+    rooms,
     setSheetOpen,
     setIsEditing,
     setSelectedRoom
@@ -18,6 +36,59 @@ export default function ButtonGroup({
         setSelectedRoom(null);
         setIsEditing(false)
         setSheetOpen(true)
+    }
+
+    const exportRooms = () =>{
+        console.log()
+
+        if(rooms.length === 0){
+            return;
+        }
+
+        const headers = [
+            "Room ID",
+            "Room Name",
+            "Floor Number",
+            "Building Name",
+            "Assigned Custodian",
+            "Computer Count",
+            "Active Issues",
+            "Status",
+            "Created At",
+            "Updated At"
+        ];
+
+        const rows = rooms.map((room)=>[
+            room.id,
+            room.roomName,
+            room.floorNumber,
+            room.buildingName,
+            getCustodian(
+                room.assignedCustodian?.lastName,
+                room.assignedCustodian?.firstName
+            ),
+            room.computerCount,
+            room.activeIssuesCount,
+            room.status,
+            formatDate(room.createdAt),
+            formatDate(room.updatedAt)
+        ]);
+
+        const csv = [headers, ...rows]
+            .map((row) => row.map(escapeCsvCell).join(","))
+            .join("\r\n");
+        const blob = new Blob([`\uFEFF${csv}`], {
+        type: "text/csv;charset=utf-8",
+        });
+        const url = URL.createObjectURL(blob);
+        const downloadLink = document.createElement("a");
+        downloadLink.href = url;
+        downloadLink.download = `rooms-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        downloadLink.remove();
+        URL.revokeObjectURL(url);
+
     }
 
 
@@ -42,8 +113,9 @@ export default function ButtonGroup({
 
                 <div className="flex gap-2.5">
                     <button
+                        onClick={exportRooms}
                         type="button"
-                        className="flex gap-1.5 items-center bg-white shrink-0 rounded-full border primary-border-color px-4 py-2 text-sm font-medium secondary-text-color"
+                        className="flex gap-1.5 items-center bg-white shrink-0 rounded-full border primary-border-color px-4 py-2 text-sm font-medium secondary-text-color hover:cursor-pointer"
                     >
                         <Download size={16}/>
                         <span className={isMobile ? 'hidden' : ''} >Export</span>

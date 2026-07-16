@@ -42,6 +42,7 @@ export default function AdminComputerListPage(){
         updatedAt: "",
         createdAt: ""    
     })
+    const [computers, setComputers] = useState<ComputerCardType[]>([])
 
     const { room } = useParams();
     const roomName = room ? decodeURIComponent(room) : "";
@@ -66,12 +67,15 @@ export default function AdminComputerListPage(){
                                     onStatusChange={setStatusFilter}
                                 />
                                 <ButtonGroup
+                                    computers={computers}
+                                    roomName={room || ""}
                                     setSheetOpen={setSheetOpen}
                                     custodianName={custodian}
                                     setIsEditing={setIsEditing}
                                     setSelectedComputer={setSelectedComputer}
                                 />
                                 <ComputerList
+                                    setComputers={setComputers}
                                     isEditing={isEditing}
                                     selectedComputer={selectedComputer}
                                     setIsEditing={setIsEditing}

@@ -23,6 +23,7 @@ import EditRoomForm from "./EditRoomForm";
 import { useSearchParams } from "react-router-dom";
 
 type LaboratoryProps = {
+    setRooms: Function 
     statusFilter: StatusFilter,
     floorFilter: FloorFilter,
     searchQuery: string
@@ -53,6 +54,7 @@ const floorConverter = (floor: number) => {
 }
 
 export default function Laboratory({
+    setRooms,
     statusFilter,
     floorFilter,
     searchQuery,
@@ -112,7 +114,8 @@ export default function Laboratory({
             if(!res.ok){
                 throw createApiError(res.status, data.message || 'Failed to fetch rooms.')
             }
-
+            
+            setRooms(data.map(mapRoom));
             return data.map(mapRoom)
         },
     });
