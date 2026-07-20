@@ -33,6 +33,8 @@ import FacultyComputerInformationPage from "./pages/Faculty/ComputerInformationP
 import AdminManageLaboratoryPage from "./pages/Admin/ManageLaboratoryPage"
 import AdminComputerInformationPage from "./pages/Admin/ComputerInformationPage"
 import AdminComputerListPage from "./pages/Admin/ComputerListPage"
+import ForgotPasswordPage from "./pages/ForgotPasswordPage"
+import ResetPasswordPage from "./pages/ResetPasswordPage"
 
 const allRoles = ["technician", "admin", "faculty"] as const;
 const adminOnly = ["admin"] as const;
@@ -52,6 +54,8 @@ function App() {
         <Route path="/" element={<PublicRoute><SmoothScrolling>
           <LandingPage /></SmoothScrolling></PublicRoute>} />
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+        <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
 
         {/* Technician, Admin, Faculty */}
         <Route path="/manage-ticket" element={
