@@ -135,7 +135,10 @@ export default function LoginForm() {
                         </button>
                     </div>
 
-                    <button type="button" className='w-full text-end primary-text-color font-semibold mb-5 cursor-pointer max-w-sm'>Forgot Password?</button>
+                    <button 
+                        onClick={()=>navigate("/forgot-password")}
+                        type="button" 
+                        className='w-full text-end primary-text-color font-semibold mb-5 cursor-pointer max-w-sm'>Forgot Password?</button>
 
                     <button className=' primary-button rounded-full! w-full max-w-sm'
                         type="submit"
