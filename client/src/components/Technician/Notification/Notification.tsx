@@ -12,7 +12,7 @@ export default function Notification() {
     const { data: notifications = [], isLoading, isError } = useQuery<Notification[]>({
         queryKey: ["notifications"],
         queryFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/notifications/user?user-id=${userId}`);
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/notifications/user/`);
 
             const data = await res.json();
 
@@ -22,7 +22,8 @@ export default function Notification() {
             }
 
             const notificationList = Array.isArray(data) ? data : data.notifications;
-
+            console.log("hello")
+            console.log(notificationList)
             return sortNotificationsByNewest(notificationList.map(mapNotification));
         },
         // refetchInterval: 10000,

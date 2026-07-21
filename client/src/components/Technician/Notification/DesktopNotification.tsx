@@ -20,7 +20,7 @@ export default function DesktopNotification() {
     const { data: notifications = [], isLoading, isError } = useQuery<Notification[]>({
         queryKey: ["notifications"],
         queryFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/notifications/user?user-id=${userId}`);
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/notifications/user`);
             const data = await res.json();
 
             if (!res.ok) {
@@ -31,7 +31,6 @@ export default function DesktopNotification() {
             }
 
             const notificationList = Array.isArray(data) ? data : data.notifications;
-
             return sortNotificationsByNewest(notificationList.map(mapNotification));
         },
         enabled: Boolean(userId),
