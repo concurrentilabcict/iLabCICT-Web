@@ -1,80 +1,13 @@
 import { useMemo } from "react";
 
-import { createApiError, privateFetch } from "@/lib/api";
-import type { RoomDashboard } from "@/types/room";
-
-type ApiRoom = {
-    id: number;
-    computer_count: number;
-    building_name: string;
-    room_name: string;
-    floor_number: number;
-    status: string;
-    created_at: string;
-    updated_at: string;
-};
-
-type ApiTicketRoom = {
-    id: number;
-};
-
-type ApiTicket = {
-    id: number;
-    status: string;
-    room: ApiTicketRoom;
-};
 import type { Room } from "@/types/room";
 import type { Ticket } from "@/types/ticket";
 
-type LaboratoryAvailability = RoomDashboard & {
+type LaboratoryAvailability = Room & {
     workingCount: number;
     unavailableCount: number;
     availability: number;
 };
-
-const ROOMS_URL = "https://ilabcict-backend.onrender.com/api/rooms/";
-const TICKETS_URL = "https://ilabcict-backend.onrender.com/api/tickets/";
-
-function mapRoom(room: ApiRoom): RoomDashboard {
-    return {
-        id: room.id,
-        computerCount: room.computer_count,
-        buildingName: room.building_name,
-        roomName: room.room_name,
-        floorNumber: room.floor_number,
-        status: room.status,
-        createdAt: room.created_at,
-        updatedAt: room.updated_at,
-    };
-}
-
-async function fetchRooms() {
-    const response = await privateFetch(ROOMS_URL);
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw createApiError(
-            response.status,
-            data.message || "Failed to fetch laboratories."
-        );
-    }
-
-    return (data as ApiRoom[]).map(mapRoom);
-}
-
-async function fetchTickets() {
-    const response = await privateFetch(TICKETS_URL);
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw createApiError(
-            response.status,
-            data.message || "Failed to fetch laboratory tickets."
-        );
-    }
-
-    return data as ApiTicket[];
-}
 
 function getAvailability(rooms: Room[], tickets: Ticket[]) {
     const unresolvedTicketsByRoom = tickets.reduce<Record<number, number>>(

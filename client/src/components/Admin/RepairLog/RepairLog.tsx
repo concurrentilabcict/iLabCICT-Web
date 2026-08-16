@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 
 import RepairLogDetails from "./RepairLogDetails";
@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildWebSocketUrl } from "@/lib/api";
 import type { RepairLog as RepairLogType } from "@/types/repairLog";
 import type { TicketTypeFilter } from "@/utils/ticket";
 
@@ -57,6 +57,22 @@ type ApiRepairLog = {
 };
 
 const ITEMS_PER_PAGE = 10;
+const REPAIR_LOGS_WS_ENDPOINT = "/ws/repair-logs/";
+
+type InitialRepairLogsMessage = {
+  event: "initial_repair_logs";
+  repair_log: ApiRepairLog[];
+  next?: string | null;
+};
+
+type RepairLogCreatedMessage = {
+  event: "repair_log_created";
+  repair_log: ApiRepairLog;
+};
+
+type RepairLogWebSocketMessage =
+  | InitialRepairLogsMessage
+  | RepairLogCreatedMessage;
 
 const formatLabel = (text: string) =>
   text
@@ -102,7 +118,44 @@ const mapRepairLog = (repairLog: ApiRepairLog): RepairLogType => ({
   createdAt: repairLog.created_at,
 });
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isRepairLogWebSocketMessage = (
+  value: unknown
+): value is RepairLogWebSocketMessage => {
+  if (!isRecord(value) || typeof value.event !== "string") {
+    return false;
+  }
+
+  if (value.event === "initial_repair_logs") {
+    return Array.isArray(value.repair_log);
+  }
+
+  return value.event === "repair_log_created" && isRecord(value.repair_log);
+};
+
+const upsertRepairLog = (
+  repairLogs: RepairLogType[],
+  apiRepairLog: ApiRepairLog
+) => {
+  const repairLog = mapRepairLog(apiRepairLog);
+  const existingRepairLog = repairLogs.some((currentRepairLog) =>
+    currentRepairLog.id === repairLog.id
+  );
+
+  if (!existingRepairLog) {
+    return [repairLog, ...repairLogs];
+  }
+
+  return repairLogs.map((currentRepairLog) =>
+    currentRepairLog.id === repairLog.id ? repairLog : currentRepairLog
+  );
+};
+
 export default function RepairLog() {
+  const queryClient = useQueryClient();
+  const repairLogSocketRef = useRef<WebSocket | null>(null);
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -116,26 +169,76 @@ export default function RepairLog() {
 
   const {
     data: repairLogs = [],
-    isLoading,
+    isPending,
     isError,
   } = useQuery<RepairLogType[]>({
     queryKey: ["admin-repair-logs"],
-    queryFn: async () => {
-      const response = await privateFetch(
-        "https://ilabcict-backend.onrender.com/api/repair-logs/"
-      );
-      const data = await response.json();
+    queryFn: () => new Promise<RepairLogType[]>((resolve, reject) => {
+      const accessToken = localStorage.getItem("accessToken");
 
-      if (!response.ok) {
-        throw createApiError(
-          response.status,
-          data.message || "Failed to fetch repair logs."
-        );
+      if (!accessToken) {
+        reject(new Error("Missing access token."));
+        return;
       }
 
-      return (data as ApiRepairLog[]).map(mapRepairLog);
-    },
+      repairLogSocketRef.current?.close();
+
+      let hasInitialRepairLogs = false;
+      const socket = new WebSocket(
+        buildWebSocketUrl(REPAIR_LOGS_WS_ENDPOINT, { token: accessToken })
+      );
+
+      repairLogSocketRef.current = socket;
+
+      socket.addEventListener("message", (event: MessageEvent<string>) => {
+        let parsedMessage: unknown;
+
+        try {
+          parsedMessage = JSON.parse(event.data);
+        } catch {
+          return;
+        }
+
+        if (!isRepairLogWebSocketMessage(parsedMessage)) {
+          return;
+        }
+
+        if (parsedMessage.event === "initial_repair_logs") {
+          const initialRepairLogs = parsedMessage.repair_log.map(mapRepairLog);
+          hasInitialRepairLogs = true;
+          resolve(initialRepairLogs);
+          return;
+        }
+
+        queryClient.setQueryData<RepairLogType[]>(
+          ["admin-repair-logs"],
+          (currentRepairLogs = []) =>
+            upsertRepairLog(currentRepairLogs, parsedMessage.repair_log)
+        );
+      });
+
+      socket.addEventListener("error", () => {
+        if (!hasInitialRepairLogs) {
+          return;
+        }
+      });
+
+      socket.addEventListener("close", () => {
+        if (!hasInitialRepairLogs) {
+          return;
+        }
+      });
+    }),
+    retry: false,
+    staleTime: Infinity,
   });
+  const isLoading = isPending;
+
+  useEffect(() => {
+    return () => {
+      repairLogSocketRef.current?.close();
+    };
+  }, []);
 
   const filteredRepairLogs = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -246,7 +349,7 @@ export default function RepairLog() {
               </TableRow>
             )}
 
-            {isError && (
+            {!isLoading && isError && (
               <TableRow>
                 <TableCell
                   colSpan={6}

@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 
 import TicketDetails from "./TicketDetails";
@@ -30,12 +30,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildWebSocketUrl } from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
 
 const ITEMS_PER_PAGE = 10;
-const TICKETS_URL = "https://ilabcict-backend.onrender.com/api/tickets/";
+const TICKETS_WS_ENDPOINT = "/ws/tickets/";
+
+type InitialTicketsMessage = {
+  event: "initial_tickets";
+  ticket: ApiTicket[];
+  next?: string | null;
+};
+
+type TicketChangeMessage = {
+  event: "ticket_created" | "ticket_updated" | "ticket_reassigned";
+  ticket: ApiTicket;
+};
+
+type TicketWebSocketMessage = InitialTicketsMessage | TicketChangeMessage;
 
 const formatLabel = (text: string) =>
   text
@@ -102,6 +115,42 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
   updatedAt: ticket.updated_at,
 });
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isTicketWebSocketMessage = (
+  value: unknown
+): value is TicketWebSocketMessage => {
+  if (!isRecord(value) || typeof value.event !== "string") {
+    return false;
+  }
+
+  if (value.event === "initial_tickets") {
+    return Array.isArray(value.ticket);
+  }
+
+  return (
+    ["ticket_created", "ticket_updated", "ticket_reassigned"].includes(
+      value.event
+    ) && isRecord(value.ticket)
+  );
+};
+
+const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
+  const ticket = mapTicket(apiTicket);
+  const existingTicket = tickets.some((currentTicket) =>
+    currentTicket.id === ticket.id
+  );
+
+  if (!existingTicket) {
+    return [ticket, ...tickets];
+  }
+
+  return tickets.map((currentTicket) =>
+    currentTicket.id === ticket.id ? ticket : currentTicket
+  );
+};
+
 const getStatusClasses = (status: string) => {
   switch (status.toLowerCase()) {
     case "open":
@@ -119,6 +168,8 @@ const getProfilePicture = (profileImage?: string) =>
   profileImage?.trim() ? profileImage : placeholderPicture;
 
 export default function ManageTicket() {
+  const queryClient = useQueryClient();
+  const ticketSocketRef = useRef<WebSocket | null>(null);
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,24 +181,83 @@ export default function ManageTicket() {
 
   const {
     data: tickets = [],
-    isLoading,
+    isPending,
     isError,
   } = useQuery<Ticket[]>({
     queryKey: ["admin-tickets"],
-    queryFn: async () => {
-      const response = await privateFetch(TICKETS_URL);
-      const data = await response.json();
+    queryFn: () => new Promise<Ticket[]>((resolve, reject) => {
+      const accessToken = localStorage.getItem("accessToken");
 
-      if (!response.ok) {
-        throw createApiError(
-          response.status,
-          data.message || "Failed to fetch tickets."
-        );
+      if (!accessToken) {
+        reject(new Error("Missing access token."));
+        return;
       }
 
-      return (data as ApiTicket[]).map(mapTicket);
-    },
+      ticketSocketRef.current?.close();
+
+      let hasInitialTickets = false;
+      const socket = new WebSocket(
+        buildWebSocketUrl(TICKETS_WS_ENDPOINT, { token: accessToken })
+      );
+
+      ticketSocketRef.current = socket;
+
+      socket.addEventListener("message", (event: MessageEvent<string>) => {
+        let parsedMessage: unknown;
+
+        try {
+          parsedMessage = JSON.parse(event.data);
+        } catch {
+          return;
+        }
+
+        if (!isTicketWebSocketMessage(parsedMessage)) {
+          return;
+        }
+
+        if (parsedMessage.event === "initial_tickets") {
+          const initialTickets = parsedMessage.ticket.map(mapTicket);
+          hasInitialTickets = true;
+          resolve(initialTickets);
+          return;
+        }
+
+        queryClient.setQueryData<Ticket[]>(
+          ["admin-tickets"],
+          (currentTickets = []) =>
+            upsertTicket(currentTickets, parsedMessage.ticket)
+        );
+        setSelectedTicket((currentTicket) => {
+          if (currentTicket?.id !== parsedMessage.ticket.id) {
+            return currentTicket;
+          }
+
+          return mapTicket(parsedMessage.ticket);
+        });
+      });
+
+      socket.addEventListener("error", () => {
+        if (!hasInitialTickets) {
+          return;
+        }
+      });
+
+      socket.addEventListener("close", () => {
+        if (!hasInitialTickets) {
+          return;
+        }
+      });
+    }),
+    retry: false,
+    staleTime: Infinity,
   });
+  const isLoading = isPending;
+
+  useEffect(() => {
+    return () => {
+      ticketSocketRef.current?.close();
+    };
+  }, []);
 
   const filteredTickets = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -265,7 +375,7 @@ export default function ManageTicket() {
               </TableRow>
             )}
 
-            {isError && (
+            {!isLoading && isError && (
               <TableRow>
                 <TableCell
                   colSpan={7}

@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText, Search, X } from "lucide-react";
 
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/pagination";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildWebSocketUrl } from "@/lib/api";
 import type {
     ApiWeeklyReport,
     WeeklyReport as WeeklyReportType,
@@ -27,8 +27,59 @@ import WeeklyReportCard from "./WeeklyReportCard";
 import WeeklyReportDetails from "./WeeklyReportDetails";
 
 const ITEMS_PER_PAGE = 8;
+const REPORTS_WS_ENDPOINT = "/ws/reports/";
+
+type InitialReportsMessage = {
+    event: "initial_reports";
+    report: ApiWeeklyReport[];
+    next?: string | null;
+};
+
+type ReportCreatedMessage = {
+    event: "report_created";
+    report: ApiWeeklyReport;
+};
+
+type ReportWebSocketMessage = InitialReportsMessage | ReportCreatedMessage;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null;
+
+const isReportWebSocketMessage = (
+    value: unknown
+): value is ReportWebSocketMessage => {
+    if (!isRecord(value) || typeof value.event !== "string") {
+        return false;
+    }
+
+    if (value.event === "initial_reports") {
+        return Array.isArray(value.report);
+    }
+
+    return value.event === "report_created" && isRecord(value.report);
+};
+
+const upsertReport = (
+    reports: WeeklyReportType[],
+    apiReport: ApiWeeklyReport
+) => {
+    const report = mapWeeklyReport(apiReport);
+    const existingReport = reports.some((currentReport) =>
+        currentReport.id === report.id
+    );
+
+    if (!existingReport) {
+        return [report, ...reports];
+    }
+
+    return reports.map((currentReport) =>
+        currentReport.id === report.id ? report : currentReport
+    );
+};
 
 export default function WeeklyReport() {
+    const queryClient = useQueryClient();
+    const reportSocketRef = useRef<WebSocket | null>(null);
     const isMobile = useMediaQuery("(max-width: 767px)");
     const technicianId = Number(localStorage.getItem("id"));
     const [page, setPage] = useState(1);
@@ -39,27 +90,86 @@ export default function WeeklyReport() {
 
     const {
         data: reports = [],
-        isLoading,
+        isPending,
         isError,
     } = useQuery<WeeklyReportType[]>({
         queryKey: ["technician-weekly-reports", technicianId],
-        queryFn: async () => {
-            const response = await privateFetch("https://ilabcict-backend.onrender.com/api/reports/");
-            const data = await response.json();
+        queryFn: () => new Promise<WeeklyReportType[]>((resolve, reject) => {
+            const accessToken = localStorage.getItem("accessToken");
 
-            if (!response.ok) {
-                throw createApiError(
-                    response.status,
-                    data.message || "Failed to fetch weekly reports."
-                );
+            if (!accessToken) {
+                reject(new Error("Missing access token."));
+                return;
             }
 
-            return (data as ApiWeeklyReport[])
-                .map(mapWeeklyReport)
-                .filter((report) => report.technicianId === technicianId);
-        },
+            reportSocketRef.current?.close();
+
+            let hasInitialReports = false;
+            const socket = new WebSocket(
+                buildWebSocketUrl(REPORTS_WS_ENDPOINT, { token: accessToken })
+            );
+
+            reportSocketRef.current = socket;
+
+            socket.addEventListener("message", (event: MessageEvent<string>) => {
+                let parsedMessage: unknown;
+
+                try {
+                    parsedMessage = JSON.parse(event.data);
+                } catch {
+                    return;
+                }
+
+                if (!isReportWebSocketMessage(parsedMessage)) {
+                    return;
+                }
+
+                if (parsedMessage.event === "initial_reports") {
+                    const initialReports = parsedMessage.report
+                        .map(mapWeeklyReport)
+                        .filter((report) => report.technicianId === technicianId);
+
+                    hasInitialReports = true;
+                    resolve(initialReports);
+                    return;
+                }
+
+                const report = mapWeeklyReport(parsedMessage.report);
+
+                if (report.technicianId !== technicianId) {
+                    return;
+                }
+
+                queryClient.setQueryData<WeeklyReportType[]>(
+                    ["technician-weekly-reports", technicianId],
+                    (currentReports = []) =>
+                        upsertReport(currentReports, parsedMessage.report)
+                );
+            });
+
+            socket.addEventListener("error", () => {
+                if (!hasInitialReports) {
+                    return;
+                }
+            });
+
+            socket.addEventListener("close", () => {
+                if (!hasInitialReports) {
+                    return;
+                }
+            });
+        }),
         enabled: Number.isInteger(technicianId) && technicianId > 0,
+        retry: false,
+        staleTime: Infinity,
     });
+    const isLoading = isPending;
+
+    useEffect(() => {
+        return () => {
+            reportSocketRef.current?.close();
+        };
+    }, []);
 
     const filteredReports = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -196,7 +306,7 @@ export default function WeeklyReport() {
                         </p>
                     )}
 
-                    {isError && (
+                    {!isLoading && isError && (
                         <p className="col-span-full py-8 text-center text-red-500">
                             Failed to load weekly reports.
                         </p>

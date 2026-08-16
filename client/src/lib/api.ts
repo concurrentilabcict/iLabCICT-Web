@@ -1,3 +1,43 @@
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+export const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL ?? API_BASE_URL;
+
+export const buildApiUrl = (endpoint: string) => {
+    if (!API_BASE_URL) {
+        throw new Error("VITE_API_BASE_URL is not configured.");
+    }
+
+    const baseUrl = API_BASE_URL.replace(/\/$/, "");
+    const normalizedEndpoint = endpoint.startsWith("/")
+        ? endpoint
+        : `/${endpoint}`;
+
+    return `${baseUrl}${normalizedEndpoint}`;
+};
+
+export const buildWebSocketUrl = (
+    endpoint: string,
+    queryParams: Record<string, string> = {}
+) => {
+    if (!WS_BASE_URL) {
+        throw new Error("VITE_WS_BASE_URL is not configured.");
+    }
+
+    const baseUrl = WS_BASE_URL
+        .replace(/^http:/, "ws:")
+        .replace(/^https:/, "wss:")
+        .replace(/\/$/, "");
+    const normalizedEndpoint = endpoint.startsWith("/")
+        ? endpoint
+        : `/${endpoint}`;
+    const url = new URL(`${baseUrl}${normalizedEndpoint}`);
+
+    Object.entries(queryParams).forEach(([key, value]) => {
+        url.searchParams.set(key, value);
+    });
+
+    return url.toString();
+};
+
 export const privateFetch = async (
     url: string,
     options: RequestInit = {}

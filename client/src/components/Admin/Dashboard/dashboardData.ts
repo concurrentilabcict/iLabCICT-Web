@@ -1,4 +1,4 @@
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import type { User } from "@/types/manageUser";
 import type { Room } from "@/types/room";
 import type { ApiTicket, Ticket } from "@/types/ticket";
@@ -45,8 +45,8 @@ export type DashboardData = {
   users: User[];
 };
 
-const TICKETS_URL = "https://ilabcict-backend.onrender.com/api/tickets/";
-const ROOMS_URL = "https://ilabcict-backend.onrender.com/api/rooms/";
+const TICKETS_URL = buildApiUrl("/api/tickets/");
+const ROOMS_URL = buildApiUrl("/api/rooms/");
 const USERS_URL = "https://ilabcict-backend.onrender.com/api/users/";
 
 const getArrayResponse = <T>(data: T[] | { results?: T[] }) =>
