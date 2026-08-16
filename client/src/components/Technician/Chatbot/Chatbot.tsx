@@ -1,5 +1,6 @@
 import { useAuth } from "@/auth/useAuth";
 import { createApiError, privateFetch } from "@/lib/api";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import ChatbotActive from "./ChatbotActive";
 import ChatbotEmpty from "./ChatbotEmpty";
@@ -14,7 +15,26 @@ export default function Chatbot() {
     const { name } = useAuth();
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [isSending, setIsSending] = useState(false);
+
+    const chatMutation = useMutation({
+        mutationFn: async (message: string) => {
+            const res = await privateFetch("https://ilabcict-backend.onrender.com/api/chat/", {
+                method: "POST",
+                credentials: "include",
+                body: JSON.stringify({
+                    message,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                throw createApiError(res.status, data.reply || data.message || "Failed to get chatbot response.");
+            }
+
+            return data.reply as string;
+        },
+    });
 
     const splitFullName = (fullName: string) => {
         const parts = fullName.trim().split(" ").filter(Boolean);
@@ -27,8 +47,9 @@ export default function Chatbot() {
 
     const currentName = splitFullName(name);
     const hasActiveChat = messages.length > 0;
+    const isSending = chatMutation.isPending;
 
-    const handleSendMessage = async () => {
+    const handleSendMessage = () => {
         const trimmedMessage = message.trim();
 
         if (!trimmedMessage || isSending) return;
@@ -42,45 +63,31 @@ export default function Chatbot() {
 
         setMessages((currentMessages) => [...currentMessages, userMessage]);
         setMessage("");
-        setIsSending(true);
 
-        try {
-            const res = await privateFetch("https://ilabcict-backend.onrender.com/api/chat/", {
-                method: "POST",
-                credentials: "include",
-                body: JSON.stringify({
-                    message: trimmedMessage,
-                }),
-            });
+        chatMutation.mutate(trimmedMessage, {
+            onSuccess: (reply) => {
+                setMessages((currentMessages) => [
+                    ...currentMessages,
+                    {
+                        id: messageId + 1,
+                        role: "assistant",
+                        content: reply,
+                    },
+                ]);
+            },
+            onError: (error) => {
+                console.error(error);
 
-            const data = await res.json();
-
-            if (!res.ok || data.error) {
-                throw createApiError(res.status, data.reply || data.message || "Failed to get chatbot response.");
-            }
-
-            setMessages((currentMessages) => [
-                ...currentMessages,
-                {
-                    id: messageId + 1,
-                    role: "assistant",
-                    content: data.reply,
-                },
-            ]);
-        } catch (error) {
-            console.error(error);
-
-            setMessages((currentMessages) => [
-                ...currentMessages,
-                {
-                    id: messageId + 1,
-                    role: "assistant",
-                    content: "Sorry, I couldn't get a response right now. Please try again.",
-                },
-            ]);
-        } finally {
-            setIsSending(false);
-        }
+                setMessages((currentMessages) => [
+                    ...currentMessages,
+                    {
+                        id: messageId + 1,
+                        role: "assistant",
+                        content: "Sorry, I couldn't get a response right now. Please try again.",
+                    },
+                ]);
+            },
+        });
     };
 
     if (hasActiveChat) {
