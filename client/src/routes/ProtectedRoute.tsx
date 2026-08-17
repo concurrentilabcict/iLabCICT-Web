@@ -32,7 +32,7 @@ export function PublicRoute({ children }: { children: ReactNode }) {
         }
 
         if(role === "admin") {
-            return <Navigate to="/manage-ticket" replace />;
+            return <Navigate to="/dashboard" replace />;
         }
 
         if(role === "faculty") {

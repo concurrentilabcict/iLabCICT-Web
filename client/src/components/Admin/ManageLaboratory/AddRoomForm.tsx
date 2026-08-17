@@ -7,10 +7,10 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus} from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import DropDownOptions from "./DropDownOptions";
@@ -30,9 +30,11 @@ type Custodian = {
     lastName:string
 }
 
-
-
-
+type ApiAvailableUser = {
+    id: number,
+    first_name: string,
+    last_name: string
+}
 const floorNumberOptions: Array<{
     label: string,
     value: FloorNumber
@@ -92,36 +94,56 @@ const roomStatusOptions: Array<{
     },
 ];
 
-
-
 export default function AddRoomForm({
     closeSheet,
 }: AddRoomProps){
     
     
 
-    const mapCustodian = (custodian: any): Custodian => ({
-        id: custodian.id,
-        firstName: custodian.first_name,
-        lastName: custodian.last_name
+    const mapAvailableUser = (user: ApiAvailableUser): Custodian => ({
+        id: user.id,
+        firstName: user.first_name,
+        lastName: user.last_name
     })
 
 
     const {data: custodians = [], isLoading } = useQuery<Custodian[]>({
         queryKey: ["custodian"],
         queryFn: async ()=>{
-             const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/available-custodian/`);
+             const res = await privateFetch(buildApiUrl("/api/users/available-custodian/"));
 
              const data = await res.json();
 
              if(!res.ok){
                 throw createApiError(res.status, data.message || 'Failed to fetch users.');
             }
-            return data.map(mapCustodian);
+            return (data as ApiAvailableUser[]).map(mapAvailableUser);
+        }
+    })
+
+    const {
+        data: technicians = [],
+        isLoading: techniciansAreLoading
+    } = useQuery<Custodian[]>({
+        queryKey: ["available-technician"],
+        queryFn: async () => {
+            const res = await privateFetch(buildApiUrl("/api/users/available-technician/"));
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw createApiError(res.status, data.message || "Failed to fetch technicians.");
+            }
+
+            return (data as ApiAvailableUser[]).map(mapAvailableUser);
         }
     })
 
     const custodianOptions = custodians.map((user) => ({
+        label: `${user.firstName} ${user.lastName}`,
+        value: user.id,
+    }));
+
+    const roomTechnicianOptions = technicians.map((user) => ({
         label: `${user.firstName} ${user.lastName}`,
         value: user.id,
     }));
@@ -131,16 +153,28 @@ export default function AddRoomForm({
         floorNumber: 1,
         buildingName: "pimentel",
         roomStatus: "operational",
-        assignedCustodianId:  null
+        assignedCustodianId:  null,
+        assignedTechnicianId: null
     }
 
     const [form, setForm] = useState<RoomForm>(initialForm);
     const queryClient = useQueryClient();
 
+    useEffect(() => {
+        if (form.assignedTechnicianId !== null || roomTechnicianOptions.length === 0) {
+            return;
+        }
+
+        setForm((currentForm) => ({
+            ...currentForm,
+            assignedTechnicianId: roomTechnicianOptions[0].value
+        }));
+    }, [form.assignedTechnicianId, roomTechnicianOptions]);
+
     const addComputerMutation = useMutation({
         mutationFn: async () => {
             const response = await privateFetch(
-                "https://ilabcict-backend.onrender.com/api/rooms/",
+                buildApiUrl("/api/rooms/"),
                 {
                     method: "POST",
                     body: JSON.stringify({
@@ -148,7 +182,8 @@ export default function AddRoomForm({
                         floor_number: form.floorNumber,
                         building_name: form.buildingName,
                         room_status: form.roomStatus,
-                        assigned_custodian: form.assignedCustodianId
+                        assigned_custodian: form.assignedCustodianId,
+                        assigned_technician: form.assignedTechnicianId
                     }),
                 }
             );
@@ -209,6 +244,9 @@ export default function AddRoomForm({
    
     const selectedCustodian = 
         custodianOptions.find((custodian) => custodian.value === form.assignedCustodianId) ?? null;
+
+    const selectedRoomTechnician =
+        roomTechnicianOptions.find((technician) => technician.value === form.assignedTechnicianId) ?? null;
 
     return(
         <form onSubmit={handleSubmit} className="flex flex-col h-full">   
@@ -298,6 +336,28 @@ export default function AddRoomForm({
 
                         {isLoading && (<div className="w-full flex items-center justify-between">
                             <h3 className="font-medium secondary-text-color">Room Custodian</h3>
+                            <div className="">
+                                Loading...
+                            </div>
+                        </div>)}
+
+                        {!techniciansAreLoading && (<div className="w-full flex items-center justify-between">
+                            <h3 className="font-medium secondary-text-color">Room Technician</h3>
+                            <div className="w-38">
+                                <DropDownOptions
+                                    fieldLabel="technician"
+                                    fieldType="assignedTechnicianId"
+                                    selectedItem={selectedRoomTechnician}
+                                    isSubmitting={isSubmitting}
+                                    form={form}
+                                    updateField={updateField}
+                                    itemOptions={roomTechnicianOptions}
+                                />
+                            </div>
+                        </div>)}
+
+                        {techniciansAreLoading && (<div className="w-full flex items-center justify-between">
+                            <h3 className="font-medium secondary-text-color">Room Technician</h3>
                             <div className="">
                                 Loading...
                             </div>

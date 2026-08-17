@@ -45,6 +45,10 @@ export function DatePicker({ date, onDateChange }: DatePickerProps) {
             selected={date}
             onSelect={onDateChange}
             defaultMonth={date}
+            classNames={{
+              day_button:
+                "data-[selected-single=true]:!bg-[#bf3419] data-[selected-single=true]:!text-white",
+            }}
           />
         </PopoverContent>
       </Popover>

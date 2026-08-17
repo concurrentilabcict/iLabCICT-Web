@@ -8,6 +8,7 @@ import ProfilePage from "./pages/Technician/ProfilePage"
 import NotificationPage from "./pages/Technician/NotificationPage"
 import TechnicianWeeklyReport from "./pages/Technician/WeeklyReportPage"
 import AdminWeeklyReport from "./pages/Admin/WeeklyReportPage"
+import AdminAuditLogs from "./pages/Admin/AuditLogsPage"
 import { Toaster } from "react-hot-toast";
 import QrScannerPage from "./pages/Technician/QrScannerPage"
 import ProcessTicket from "./components/Technician/ManageTicket/ProcessTicket"
@@ -109,6 +110,8 @@ function App() {
           <ManageUserPage /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute allowedRoles={adminOnly}>
           <DashboardPage /></ProtectedRoute>} />
+        <Route path="/audit-logs" element={<ProtectedRoute allowedRoles={adminOnly}>
+          <AdminAuditLogs /></ProtectedRoute>} />
 
         {/* Faculty */}
         <Route path="/create-ticket" element={<ProtectedRoute allowedRoles={facultyOnly}>

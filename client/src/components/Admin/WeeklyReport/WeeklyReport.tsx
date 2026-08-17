@@ -12,12 +12,13 @@ import {
 } from "@/components/ui/pagination";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import type {
   ApiWeeklyReport,
   WeeklyReport as WeeklyReportType,
 } from "@/types/weeklyReport";
 import WeeklyReportDetails from "./WeeklyReportDetails";
+import WeeklyReportSchedule from "./WeeklyReportSchedule";
 import WeeklyReportTable from "./WeeklyReportTable";
 import {
   exportReportToPdf,
@@ -47,9 +48,7 @@ export default function WeeklyReport() {
   } = useQuery<WeeklyReportType[]>({
     queryKey: ["admin-weekly-reports"],
     queryFn: async () => {
-      const response = await privateFetch(
-        "https://ilabcict-backend.onrender.com/api/reports/"
-      );
+      const response = await privateFetch(buildApiUrl("/api/reports/"));
       const data = await response.json();
 
       if (!response.ok) {
@@ -122,10 +121,13 @@ export default function WeeklyReport() {
     <>
       <div className="mt-5 flex w-full flex-col gap-4 p-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <p className="text-sm secondary-text-color">
-            {filteredReports.length} report
-            {filteredReports.length === 1 ? "" : "s"} found
-          </p>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <p className="text-sm secondary-text-color">
+              {filteredReports.length} report
+              {filteredReports.length === 1 ? "" : "s"} found
+            </p>
+            <WeeklyReportSchedule />
+          </div>
 
           <div className="relative w-full md:w-[320px]">
             <Search

@@ -1,0 +1,88 @@
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { formatDateTime } from "./auditLogUtils";
+import type { AuditLog } from "@/types/auditLog";
+
+type AuditLogsTableProps = {
+  auditLogs: AuditLog[];
+  isLoading: boolean;
+  isError: boolean;
+};
+
+export default function AuditLogsTable({
+  auditLogs,
+  isLoading,
+  isError,
+}: AuditLogsTableProps) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-primary-color bg-white">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="bg-muted">Log ID</TableHead>
+            <TableHead className="bg-muted">Performed By</TableHead>
+            <TableHead className="bg-muted">Action</TableHead>
+            <TableHead className="bg-muted">Summary</TableHead>
+            <TableHead className="bg-muted">IP Address</TableHead>
+            <TableHead className="bg-muted">Created</TableHead>
+          </TableRow>
+        </TableHeader>
+
+        <TableBody>
+          {isLoading && (
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className="h-24 text-center secondary-text-color"
+              >
+                Loading audit logs...
+              </TableCell>
+            </TableRow>
+          )}
+
+          {!isLoading && isError && (
+            <TableRow>
+              <TableCell colSpan={6} className="h-24 text-center text-red-500">
+                Failed to load audit logs.
+              </TableCell>
+            </TableRow>
+          )}
+
+          {!isLoading && !isError && auditLogs.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className="h-24 text-center secondary-text-color"
+              >
+                No audit logs found.
+              </TableCell>
+            </TableRow>
+          )}
+
+          {!isLoading &&
+            !isError &&
+            auditLogs.map((auditLog) => (
+              <TableRow key={auditLog.id}>
+                <TableCell className="font-medium">#{auditLog.id}</TableCell>
+                <TableCell>{auditLog.performedBy}</TableCell>
+                <TableCell>{auditLog.actionTitle}</TableCell>
+                <TableCell>
+                  <p className="max-w-[360px] truncate">
+                    {auditLog.actionSummary}
+                  </p>
+                </TableCell>
+                <TableCell>{auditLog.ipAddress}</TableCell>
+                <TableCell>{formatDateTime(auditLog.createdAt)}</TableCell>
+              </TableRow>
+            ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}

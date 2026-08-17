@@ -5,6 +5,7 @@ import {
     ClipboardList,
     FilePenLine,
     FileChartColumn,
+    History,
     CircleHelp,
     LayoutDashboard,
     Monitor,
@@ -97,6 +98,11 @@ export const adminNavItems: NavItem[] = [
         title: "Repair Logs",
         url: "/repair-logs",
         icon: Wrench,
+    },
+    {
+        title: "Audit Logs",
+        url: "/audit-logs",
+        icon: History,
     },
 ]
 

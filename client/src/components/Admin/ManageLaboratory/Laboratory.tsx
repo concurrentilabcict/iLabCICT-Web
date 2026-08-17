@@ -1,9 +1,9 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { privateFetch, createApiError } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
-import type { EditRoomFormType, Room, RoomForm } from "@/types/room";
+import { buildWebSocketUrl } from "@/lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ApiRoom, EditRoomFormType, Room } from "@/types/room";
 import RoomCard from "./RoomCard";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Status, StatusFilter, Floor, FloorFilter } from "@/utils/room";
 import {
     Pagination,
@@ -23,7 +23,7 @@ import EditRoomForm from "./EditRoomForm";
 import { useSearchParams } from "react-router-dom";
 
 type LaboratoryProps = {
-    setRooms: Function 
+    setRooms: (rooms: Room[]) => void
     statusFilter: StatusFilter,
     floorFilter: FloorFilter,
     searchQuery: string
@@ -34,12 +34,47 @@ type LaboratoryProps = {
     setSelectedRoom: Function,
     selectedRoom: EditRoomFormType
 }
+
+type RoomsWebSocketEvent =
+    | {
+        event: "initial_rooms";
+        room?: ApiRoom[];
+        rooms?: ApiRoom[];
+        next?: string | null;
+    }
+    | {
+        event: "room_created" | "room_updated" | "room_deleted";
+        room: ApiRoom;
+    };
+
+const ROOMS_QUERY_KEY = ["rooms"] as const;
+const ROOMS_READY_QUERY_KEY = ["rooms-ready"] as const;
+const ROOMS_WS_ENDPOINT = "/ws/rooms/";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null;
+
+const isRoomsWebSocketEvent = (value: unknown): value is RoomsWebSocketEvent => {
+    if (!isRecord(value) || typeof value.event !== "string") {
+        return false;
+    }
+
+    if (value.event === "initial_rooms") {
+        return Array.isArray(value.room) || Array.isArray(value.rooms);
+    }
+
+    return (
+        ["room_created", "room_updated", "room_deleted"].includes(value.event) &&
+        isRecord(value.room)
+    );
+};
+
 const formatLabel = (text: string) => {
     return text
         .replace(/_/g, " ")
         .trim()
         .split(/\s+/)
-        .map((word: any) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(" ")
 };
 
@@ -52,6 +87,50 @@ const floorConverter = (floor: number) => {
         return "3rd Floor";
     }
 }
+
+const mapRoom = (room: ApiRoom): Room => ({
+    id: room.id,
+    computerCount: room.computer_count ?? 0,
+    activeIssuesCount:
+        room.active_issues_count ?? room.computer_count_with_active_issues ?? 0,
+
+    assignedCustodian: room.assigned_custodian
+        ? {
+            id: room.assigned_custodian.id,
+            lastName: room.assigned_custodian.last_name,
+            firstName: room.assigned_custodian.first_name
+        }
+        : null,
+
+    assignedTechnician: room.assigned_technician
+        ? {
+            id: room.assigned_technician.id,
+            lastName: room.assigned_technician.last_name,
+            firstName: room.assigned_technician.first_name
+        }
+        : null,
+
+    floorNumber: room.floor_number,
+    roomName: room.room_name,
+    buildingName: room.building_name,
+
+    status: room.status,
+    createdAt: room.created_at,
+    updatedAt: room.updated_at
+});
+
+const upsertRoom = (rooms: Room[], apiRoom: ApiRoom) => {
+    const room = mapRoom(apiRoom);
+    const roomExists = rooms.some((currentRoom) => currentRoom.id === room.id);
+
+    if (!roomExists) {
+        return [room, ...rooms];
+    }
+
+    return rooms.map((currentRoom) =>
+        currentRoom.id === room.id ? room : currentRoom
+    );
+};
 
 export default function Laboratory({
     setRooms,
@@ -66,8 +145,13 @@ export default function Laboratory({
     selectedRoom
 }: LaboratoryProps){
     
+    const queryClient = useQueryClient();
+    const roomSocketRef = useRef<WebSocket | null>(null);
     const ITEMS_PER_PAGE = 10;
     const isMobile = useMediaQuery("(max-width: 767px)");
+    const cachedRoomsAreReady =
+        queryClient.getQueryData<boolean>(ROOMS_READY_QUERY_KEY) === true;
+    const [hasInitialRooms, setHasInitialRooms] = useState(cachedRoomsAreReady);
     const filterKey = JSON.stringify([statusFilter, floorFilter, searchQuery]);
     const [searchParams, setSearchParams] = useSearchParams();
     const [pagination, setPagination] = useState({
@@ -83,42 +167,88 @@ export default function Laboratory({
         }
     }
 
-    const mapRoom = (room: any): Room => ({
-        id: room.id,
-        computerCount: room.computer_count,
-        activeIssuesCount: room.computer_count_with_active_issues,
-
-        assignedCustodian: room.assigned_custodian ?
-        {
-            id: room.assigned_custodian.id,
-            lastName: room.assigned_custodian.last_name,
-            firstName: room.assigned_custodian.first_name
-        } :
-        null,
-        
-        floorNumber: room.floor_number,
-        roomName: room.room_name,
-        buildingName: room.building_name,
-        
-        status: room.status,
-        createdAt: room.created_at,
-        updatedAt: room.updated_at
+    const { data: rooms = [], isPending } = useQuery<Room[]>({
+        queryKey: ROOMS_QUERY_KEY,
+        queryFn: () =>
+            Promise.resolve(
+                queryClient.getQueryData<Room[]>(ROOMS_QUERY_KEY) ?? []
+            ),
+        initialData: () =>
+            queryClient.getQueryData<Room[]>(ROOMS_QUERY_KEY) ?? [],
+        retry: false,
+        staleTime: Infinity,
+        gcTime: Infinity,
     });
+    const isLoading = isPending || !hasInitialRooms;
 
-    const { data: rooms = [], isLoading } = useQuery<Room[]>({
-        queryKey: ["rooms"],
-        queryFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/`)
+    useEffect(() => {
+        setRooms(rooms);
+    }, [rooms, setRooms]);
 
-            const data = await res.json();
-            if(!res.ok){
-                throw createApiError(res.status, data.message || 'Failed to fetch rooms.')
+    useEffect(() => {
+        let socket: WebSocket | null = null;
+        const connectSocket = window.setTimeout(() => {
+            const accessToken = localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return;
             }
-            
-            setRooms(data.map(mapRoom));
-            return data.map(mapRoom)
-        },
-    });
+
+            socket = new WebSocket(
+                buildWebSocketUrl(ROOMS_WS_ENDPOINT, { token: accessToken })
+            );
+
+            roomSocketRef.current = socket;
+
+            socket.addEventListener("message", (event: MessageEvent<string>) => {
+                let parsedMessage: unknown;
+
+                try {
+                    parsedMessage = JSON.parse(event.data);
+                } catch {
+                    return;
+                }
+
+                if (!isRoomsWebSocketEvent(parsedMessage)) {
+                    return;
+                }
+
+                if (parsedMessage.event === "initial_rooms") {
+                    const initialRooms = parsedMessage.room ?? parsedMessage.rooms ?? [];
+                    setHasInitialRooms(true);
+                    queryClient.setQueryData(ROOMS_READY_QUERY_KEY, true);
+                    queryClient.setQueryData<Room[]>(
+                        ROOMS_QUERY_KEY,
+                        initialRooms.map(mapRoom)
+                    );
+                    return;
+                }
+
+                if (parsedMessage.event === "room_deleted") {
+                    queryClient.setQueryData<Room[]>(
+                        ROOMS_QUERY_KEY,
+                        (currentRooms = []) =>
+                            currentRooms.filter((room) => room.id !== parsedMessage.room.id)
+                    );
+                    return;
+                }
+
+                queryClient.setQueryData<Room[]>(
+                    ROOMS_QUERY_KEY,
+                    (currentRooms = []) => upsertRoom(currentRooms, parsedMessage.room)
+                );
+            });
+        }, 0);
+
+        return () => {
+            window.clearTimeout(connectSocket);
+            socket?.close();
+
+            if (roomSocketRef.current === socket) {
+                roomSocketRef.current = null;
+            }
+        };
+    }, [queryClient]);
 
 
     const filteredRooms = useMemo(() => {
