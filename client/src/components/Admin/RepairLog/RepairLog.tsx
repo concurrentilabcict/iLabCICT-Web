@@ -32,6 +32,7 @@ import {
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { buildWebSocketUrl } from "@/lib/api";
 import type { RepairLog as RepairLogType } from "@/types/repairLog";
+import { getPaginationWindow } from "@/utils/pagination";
 import type { TicketTypeFilter } from "@/utils/ticket";
 
 type ApiRepairLog = {
@@ -295,6 +296,7 @@ export default function RepairLog() {
   const totalPages = Math.ceil(filteredRepairLogs.length / ITEMS_PER_PAGE);
   const maxPage = Math.max(totalPages, 1);
   const currentPage = Math.min(page, maxPage);
+  const visiblePages = getPaginationWindow(currentPage, totalPages);
 
   const goToPage = (nextPage: number) => {
     setPage(Math.min(Math.max(nextPage, 1), maxPage));
@@ -453,13 +455,13 @@ export default function RepairLog() {
               />
             </PaginationItem>
 
-            {Array.from({ length: totalPages }, (_, index) => (
-              <PaginationItem key={index + 1}>
+            {visiblePages.map((pageNumber) => (
+              <PaginationItem key={pageNumber}>
                 <PaginationLink
-                  isActive={currentPage === index + 1}
-                  onClick={() => goToPage(index + 1)}
+                  isActive={currentPage === pageNumber}
+                  onClick={() => goToPage(pageNumber)}
                 >
-                  {index + 1}
+                  {pageNumber}
                 </PaginationLink>
               </PaginationItem>
             ))}

@@ -10,6 +10,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { buildWebSocketUrl } from "@/lib/api";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { getPaginationWindow } from "@/utils/pagination";
 
 import {
     Sheet,
@@ -310,6 +311,7 @@ export default function ComputerList({
     const currentPage = pagination.filterKey === filterKey
         ?Math.min(pagination.page, maxPage)
         : 1;
+    const visiblePages = getPaginationWindow(currentPage, totalPages);
 
     const goToPage = (page: number) => {
         setPagination({
@@ -368,13 +370,13 @@ export default function ComputerList({
                                 />
                             </PaginationItem>
 
-                            {Array.from({ length: totalPages }, (_, i) => (
-                                <PaginationItem key={i + 1}>
+                            {visiblePages.map((pageNumber) => (
+                                <PaginationItem key={pageNumber}>
                                     <PaginationLink
-                                        isActive={currentPage === i + 1}
-                                        onClick={() => goToPage(i + 1)}
+                                        isActive={currentPage === pageNumber}
+                                        onClick={() => goToPage(pageNumber)}
                                     >
-                                        {i + 1}
+                                        {pageNumber}
                                     </PaginationLink>
                                 </PaginationItem>
                             ))}

@@ -38,3 +38,9 @@ export type AuditLogChangeMessage = {
 export type AuditLogWebSocketMessage =
   | InitialAuditLogsMessage
   | AuditLogChangeMessage;
+
+export type AuditLogsPageResponse = {
+  audit_log?: ApiAuditLog[];
+  results?: ApiAuditLog[];
+  next?: string | null;
+};

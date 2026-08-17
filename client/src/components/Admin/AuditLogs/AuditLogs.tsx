@@ -9,7 +9,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { buildWebSocketUrl } from "@/lib/api";
+import {
+  buildApiUrl,
+  buildWebSocketUrl,
+  createApiError,
+  privateFetch,
+} from "@/lib/api";
 import AuditLogsTable from "./AuditLogsTable";
 import AuditLogsToolbar from "./AuditLogsToolbar";
 import {
@@ -19,12 +24,38 @@ import {
   sortByNewest,
   upsertAuditLog,
 } from "./auditLogUtils";
-import type { AuditLog } from "@/types/auditLog";
+import type {
+  ApiAuditLog,
+  AuditLog,
+  AuditLogsPageResponse,
+} from "@/types/auditLog";
+import { getPaginationWindow } from "@/utils/pagination";
 
 const ITEMS_PER_PAGE = 10;
 const ADMIN_AUDIT_LOGS_QUERY_KEY = ["admin-audit-logs"] as const;
 const ADMIN_AUDIT_LOGS_READY_QUERY_KEY = ["admin-audit-logs-ready"] as const;
 const AUDIT_LOGS_WS_ENDPOINT = "/ws/audit-logs/";
+
+const getAuditLogsFromPage = (data: AuditLogsPageResponse) =>
+  data.audit_log ?? data.results ?? [];
+
+const normalizeNextUrl = (nextUrl: string) => {
+  if (nextUrl.startsWith("http://") || nextUrl.startsWith("https://")) {
+    const parsedUrl = new URL(nextUrl);
+    return buildApiUrl(`${parsedUrl.pathname}${parsedUrl.search}`);
+  }
+
+  return buildApiUrl(nextUrl);
+};
+
+const mergeAuditLogs = (
+  currentAuditLogs: AuditLog[],
+  nextAuditLogs: ApiAuditLog[]
+) =>
+  nextAuditLogs.reduce(
+    (mergedAuditLogs, auditLog) => upsertAuditLog(mergedAuditLogs, auditLog),
+    currentAuditLogs
+  );
 
 export default function AuditLogs() {
   const queryClient = useQueryClient();
@@ -35,6 +66,9 @@ export default function AuditLogs() {
     useState(cachedAuditLogsAreReady);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [nextUrl, setNextUrl] = useState<string | null>(null);
+  const [isLoadingNext, setIsLoadingNext] = useState(false);
+  const [nextPageError, setNextPageError] = useState(false);
 
   const {
     data: auditLogs = [],
@@ -87,6 +121,8 @@ export default function AuditLogs() {
           Array.isArray(parsedMessage.audit_log)
         ) {
           setHasInitialAuditLogs(true);
+          setNextUrl("next" in parsedMessage ? parsedMessage.next ?? null : null);
+          setNextPageError(false);
           queryClient.setQueryData(ADMIN_AUDIT_LOGS_READY_QUERY_KEY, true);
           queryClient.setQueryData<AuditLog[]>(
             ADMIN_AUDIT_LOGS_QUERY_KEY,
@@ -118,6 +154,40 @@ export default function AuditLogs() {
     };
   }, [queryClient]);
 
+  const loadNextAuditLogsPage = async () => {
+    if (!nextUrl || isLoadingNext) {
+      return false;
+    }
+
+    setIsLoadingNext(true);
+    setNextPageError(false);
+
+    try {
+      const response = await privateFetch(normalizeNextUrl(nextUrl));
+      const data = await response.json() as AuditLogsPageResponse;
+
+      if (!response.ok) {
+        throw createApiError(
+          response.status,
+          "Failed to fetch more audit logs."
+        );
+      }
+
+      queryClient.setQueryData<AuditLog[]>(
+        ADMIN_AUDIT_LOGS_QUERY_KEY,
+        (currentAuditLogs = []) =>
+          mergeAuditLogs(currentAuditLogs, getAuditLogsFromPage(data))
+      );
+      setNextUrl(data.next ?? null);
+      return true;
+    } catch {
+      setNextPageError(true);
+      return false;
+    } finally {
+      setIsLoadingNext(false);
+    }
+  };
+
   const filteredAuditLogs = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
@@ -145,14 +215,26 @@ export default function AuditLogs() {
   const totalPages = Math.ceil(filteredAuditLogs.length / ITEMS_PER_PAGE);
   const maxPage = Math.max(totalPages, 1);
   const currentPage = Math.min(page, maxPage);
+  const visiblePages = getPaginationWindow(currentPage, totalPages);
   const paginatedAuditLogs = filteredAuditLogs.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
-  const goToPage = (nextPage: number) => {
+  const goToPage = async (nextPage: number) => {
+    if (nextPage > maxPage && nextUrl) {
+      const nextPageLoaded = await loadNextAuditLogsPage();
+
+      if (nextPageLoaded) {
+        setPage(maxPage + 1);
+      }
+
+      return;
+    }
+
     setPage(Math.min(Math.max(nextPage, 1), maxPage));
   };
+  const shouldShowPagination = totalPages > 1 || nextUrl !== null;
 
   return (
     <div className="mt-5 flex w-full flex-col gap-4 p-3">
@@ -168,30 +250,30 @@ export default function AuditLogs() {
 
       <AuditLogsTable
         auditLogs={paginatedAuditLogs}
-        isLoading={isLoading}
-        isError={isError}
+        isLoading={isLoading || isLoadingNext}
+        isError={isError || nextPageError}
       />
 
-      {totalPages > 1 && (
+      {shouldShowPagination && (
         <Pagination className="flex justify-end">
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious onClick={() => goToPage(currentPage - 1)} />
+              <PaginationPrevious onClick={() => void goToPage(currentPage - 1)} />
             </PaginationItem>
 
-            {Array.from({ length: totalPages }, (_, index) => (
-              <PaginationItem key={index + 1}>
+            {visiblePages.map((pageNumber) => (
+              <PaginationItem key={pageNumber}>
                 <PaginationLink
-                  isActive={currentPage === index + 1}
-                  onClick={() => goToPage(index + 1)}
+                  isActive={currentPage === pageNumber}
+                  onClick={() => void goToPage(pageNumber)}
                 >
-                  {index + 1}
+                  {pageNumber}
                 </PaginationLink>
               </PaginationItem>
             ))}
 
             <PaginationItem>
-              <PaginationNext onClick={() => goToPage(currentPage + 1)} />
+              <PaginationNext onClick={() => void goToPage(currentPage + 1)} />
             </PaginationItem>
           </PaginationContent>
         </Pagination>

@@ -32,6 +32,7 @@ import {
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { buildWebSocketUrl } from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
+import { getPaginationWindow } from "@/utils/pagination";
 import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
 
 const ITEMS_PER_PAGE = 10;
@@ -314,6 +315,7 @@ export default function ManageTicket() {
   const totalPages = Math.ceil(filteredTickets.length / ITEMS_PER_PAGE);
   const maxPage = Math.max(totalPages, 1);
   const currentPage = Math.min(page, maxPage);
+  const visiblePages = getPaginationWindow(currentPage, totalPages);
 
   const goToPage = (nextPage: number) => {
     setPage(Math.min(Math.max(nextPage, 1), maxPage));
@@ -516,13 +518,13 @@ export default function ManageTicket() {
               />
             </PaginationItem>
 
-            {Array.from({ length: totalPages }, (_, index) => (
-              <PaginationItem key={index + 1}>
+            {visiblePages.map((pageNumber) => (
+              <PaginationItem key={pageNumber}>
                 <PaginationLink
-                  isActive={currentPage === index + 1}
-                  onClick={() => goToPage(index + 1)}
+                  isActive={currentPage === pageNumber}
+                  onClick={() => goToPage(pageNumber)}
                 >
-                  {index + 1}
+                  {pageNumber}
                 </PaginationLink>
               </PaginationItem>
             ))}

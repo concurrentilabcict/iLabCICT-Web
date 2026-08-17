@@ -33,6 +33,7 @@ import {
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { createApiError, privateFetch } from "@/lib/api";
 import type { User } from "@/types/manageUser";
+import { getPaginationWindow } from "@/utils/pagination";
 
 type ApiUser = {
   id: number;
@@ -160,6 +161,7 @@ export default function ManageUser() {
   const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
   const maxPage = Math.max(totalPages, 1);
   const currentPage = Math.min(page, maxPage);
+  const visiblePages = getPaginationWindow(currentPage, totalPages);
 
   const goToPage = (nextPage: number) => {
     setPage(Math.min(Math.max(nextPage, 1), maxPage));
@@ -336,13 +338,13 @@ export default function ManageUser() {
               />
             </PaginationItem>
 
-            {Array.from({ length: totalPages }, (_, index) => (
-              <PaginationItem key={index + 1}>
+            {visiblePages.map((pageNumber) => (
+              <PaginationItem key={pageNumber}>
                 <PaginationLink
-                  isActive={currentPage === index + 1}
-                  onClick={() => goToPage(index + 1)}
+                  isActive={currentPage === pageNumber}
+                  onClick={() => goToPage(pageNumber)}
                 >
-                  {index + 1}
+                  {pageNumber}
                 </PaginationLink>
               </PaginationItem>
             ))}

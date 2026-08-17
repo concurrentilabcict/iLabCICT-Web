@@ -5,6 +5,7 @@ import type { ApiRoom, EditRoomFormType, Room } from "@/types/room";
 import RoomCard from "./RoomCard";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Status, StatusFilter, Floor, FloorFilter } from "@/utils/room";
+import { getPaginationWindow } from "@/utils/pagination";
 import {
     Pagination,
     PaginationContent,
@@ -298,6 +299,7 @@ export default function Laboratory({
     const currentPage = pagination.filterKey === filterKey
         ? Math.min(pagination.page, maxPage)
         : 1;
+    const visiblePages = getPaginationWindow(currentPage, totalPages);
 
     const goToPage = (page: number) => {
         setPagination({
@@ -367,13 +369,13 @@ export default function Laboratory({
                                 />
                             </PaginationItem>
 
-                            {Array.from({ length: totalPages }, (_, i) => (
-                                <PaginationItem key={i + 1}>
+                            {visiblePages.map((pageNumber) => (
+                                <PaginationItem key={pageNumber}>
                                     <PaginationLink
-                                        isActive={currentPage === i + 1}
-                                        onClick={() => goToPage(i + 1)}
+                                        isActive={currentPage === pageNumber}
+                                        onClick={() => goToPage(pageNumber)}
                                     >
-                                        {i + 1}
+                                        {pageNumber}
                                     </PaginationLink>
                                 </PaginationItem>
                             ))}
