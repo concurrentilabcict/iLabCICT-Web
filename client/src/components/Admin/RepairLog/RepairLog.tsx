@@ -57,6 +57,10 @@ type ApiRepairLog = {
 };
 
 const ITEMS_PER_PAGE = 10;
+const ADMIN_REPAIR_LOGS_QUERY_KEY = ["admin-repair-logs"] as const;
+const ADMIN_REPAIR_LOGS_READY_QUERY_KEY = [
+  "admin-repair-logs-ready",
+] as const;
 const REPAIR_LOGS_WS_ENDPOINT = "/ws/repair-logs/";
 
 type InitialRepairLogsMessage = {
@@ -156,6 +160,8 @@ const upsertRepairLog = (
 export default function RepairLog() {
   const queryClient = useQueryClient();
   const repairLogSocketRef = useRef<WebSocket | null>(null);
+  const cachedRepairLogsAreReady =
+    queryClient.getQueryData<boolean>(ADMIN_REPAIR_LOGS_READY_QUERY_KEY) === true;
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -166,17 +172,28 @@ export default function RepairLog() {
   const [selectedRepairLog, setSelectedRepairLog] =
     useState<RepairLogType | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [hasInitialRepairLogs, setHasInitialRepairLogs] = useState(false);
+  const [hasInitialRepairLogs, setHasInitialRepairLogs] =
+    useState(cachedRepairLogsAreReady);
 
   const {
     data: repairLogs = [],
     isPending,
     isError,
   } = useQuery<RepairLogType[]>({
-    queryKey: ["admin-repair-logs"],
-    queryFn: () => Promise.resolve([]),
+    queryKey: ADMIN_REPAIR_LOGS_QUERY_KEY,
+    queryFn: () =>
+      Promise.resolve(
+        queryClient.getQueryData<RepairLogType[]>(
+          ADMIN_REPAIR_LOGS_QUERY_KEY
+        ) ?? []
+      ),
+    initialData: () =>
+      queryClient.getQueryData<RepairLogType[]>(
+        ADMIN_REPAIR_LOGS_QUERY_KEY
+      ) ?? [],
     retry: false,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
   const isLoading = isPending || !hasInitialRepairLogs;
 
@@ -210,15 +227,16 @@ export default function RepairLog() {
 
         if (parsedMessage.event === "initial_repair_logs") {
           setHasInitialRepairLogs(true);
+          queryClient.setQueryData(ADMIN_REPAIR_LOGS_READY_QUERY_KEY, true);
           queryClient.setQueryData<RepairLogType[]>(
-            ["admin-repair-logs"],
+            ADMIN_REPAIR_LOGS_QUERY_KEY,
             parsedMessage.repair_log.map(mapRepairLog)
           );
           return;
         }
 
         queryClient.setQueryData<RepairLogType[]>(
-          ["admin-repair-logs"],
+          ADMIN_REPAIR_LOGS_QUERY_KEY,
           (currentRepairLogs = []) =>
             upsertRepairLog(currentRepairLogs, parsedMessage.repair_log)
         );

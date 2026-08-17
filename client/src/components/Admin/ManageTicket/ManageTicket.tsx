@@ -35,6 +35,8 @@ import type { ApiTicket, Ticket } from "@/types/ticket";
 import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
 
 const ITEMS_PER_PAGE = 10;
+const ADMIN_TICKETS_QUERY_KEY = ["admin-tickets"] as const;
+const ADMIN_TICKETS_READY_QUERY_KEY = ["admin-tickets-ready"] as const;
 const TICKETS_WS_ENDPOINT = "/ws/tickets/";
 
 type InitialTicketsMessage = {
@@ -170,6 +172,8 @@ const getProfilePicture = (profileImage?: string) =>
 export default function ManageTicket() {
   const queryClient = useQueryClient();
   const ticketSocketRef = useRef<WebSocket | null>(null);
+  const cachedTicketsAreReady =
+    queryClient.getQueryData<boolean>(ADMIN_TICKETS_READY_QUERY_KEY) === true;
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -178,17 +182,24 @@ export default function ManageTicket() {
   const [dateFilter, setDateFilter] = useState<Date>();
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [hasInitialTickets, setHasInitialTickets] = useState(false);
+  const [hasInitialTickets, setHasInitialTickets] =
+    useState(cachedTicketsAreReady);
 
   const {
     data: tickets = [],
     isPending,
     isError,
   } = useQuery<Ticket[]>({
-    queryKey: ["admin-tickets"],
-    queryFn: () => Promise.resolve([]),
+    queryKey: ADMIN_TICKETS_QUERY_KEY,
+    queryFn: () =>
+      Promise.resolve(
+        queryClient.getQueryData<Ticket[]>(ADMIN_TICKETS_QUERY_KEY) ?? []
+      ),
+    initialData: () =>
+      queryClient.getQueryData<Ticket[]>(ADMIN_TICKETS_QUERY_KEY) ?? [],
     retry: false,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
   const isLoading = isPending || !hasInitialTickets;
 
@@ -222,15 +233,16 @@ export default function ManageTicket() {
 
         if (parsedMessage.event === "initial_tickets") {
           setHasInitialTickets(true);
+          queryClient.setQueryData(ADMIN_TICKETS_READY_QUERY_KEY, true);
           queryClient.setQueryData<Ticket[]>(
-            ["admin-tickets"],
+            ADMIN_TICKETS_QUERY_KEY,
             parsedMessage.ticket.map(mapTicket)
           );
           return;
         }
 
         queryClient.setQueryData<Ticket[]>(
-          ["admin-tickets"],
+          ADMIN_TICKETS_QUERY_KEY,
           (currentTickets = []) =>
             upsertTicket(currentTickets, parsedMessage.ticket)
         );

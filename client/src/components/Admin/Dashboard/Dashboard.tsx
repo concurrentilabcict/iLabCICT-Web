@@ -44,8 +44,16 @@ type DashboardRoomEvent =
     | {
         event: "room_created" | "room_updated" | "room_deleted";
         room: ApiRoom;
-    };
+};
 
+const DASHBOARD_TICKETS_QUERY_KEY = ["admin-dashboard-tickets"] as const;
+const DASHBOARD_TICKETS_READY_QUERY_KEY = [
+    "admin-dashboard-tickets-ready",
+] as const;
+const DASHBOARD_ROOMS_QUERY_KEY = ["admin-dashboard-rooms"] as const;
+const DASHBOARD_ROOMS_READY_QUERY_KEY = [
+    "admin-dashboard-rooms-ready",
+] as const;
 const DASHBOARD_TICKETS_WS_ENDPOINT = "/ws/tickets/";
 const DASHBOARD_ROOMS_WS_ENDPOINT = "/ws/rooms/";
 
@@ -166,27 +174,45 @@ export default function Dashboard() {
     const queryClient = useQueryClient();
     const ticketSocketRef = useRef<WebSocket | null>(null);
     const roomSocketRef = useRef<WebSocket | null>(null);
-    const [hasInitialTickets, setHasInitialTickets] = useState(false);
-    const [hasInitialRooms, setHasInitialRooms] = useState(false);
+    const cachedTicketsAreReady =
+        queryClient.getQueryData<boolean>(DASHBOARD_TICKETS_READY_QUERY_KEY) === true;
+    const cachedRoomsAreReady =
+        queryClient.getQueryData<boolean>(DASHBOARD_ROOMS_READY_QUERY_KEY) === true;
+    const [hasInitialTickets, setHasInitialTickets] =
+        useState(cachedTicketsAreReady);
+    const [hasInitialRooms, setHasInitialRooms] =
+        useState(cachedRoomsAreReady);
     const {
         data: tickets = [],
         isPending: isTicketsPending,
         isError: isTicketsError,
     } = useQuery<Ticket[]>({
-        queryKey: ["admin-dashboard-tickets"],
-        queryFn: () => Promise.resolve([]),
+        queryKey: DASHBOARD_TICKETS_QUERY_KEY,
+        queryFn: () =>
+            Promise.resolve(
+                queryClient.getQueryData<Ticket[]>(DASHBOARD_TICKETS_QUERY_KEY) ?? []
+            ),
+        initialData: () =>
+            queryClient.getQueryData<Ticket[]>(DASHBOARD_TICKETS_QUERY_KEY) ?? [],
         retry: false,
         staleTime: Infinity,
+        gcTime: Infinity,
     });
     const {
         data: rooms = [],
         isPending: isRoomsPending,
         isError: isRoomsError,
     } = useQuery<Room[]>({
-        queryKey: ["admin-dashboard-rooms"],
-        queryFn: () => Promise.resolve([]),
+        queryKey: DASHBOARD_ROOMS_QUERY_KEY,
+        queryFn: () =>
+            Promise.resolve(
+                queryClient.getQueryData<Room[]>(DASHBOARD_ROOMS_QUERY_KEY) ?? []
+            ),
+        initialData: () =>
+            queryClient.getQueryData<Room[]>(DASHBOARD_ROOMS_QUERY_KEY) ?? [],
         retry: false,
         staleTime: Infinity,
+        gcTime: Infinity,
     });
     const {
         data: users = [],
@@ -233,15 +259,19 @@ export default function Dashboard() {
 
                 if (parsedMessage.event === "initial_tickets") {
                     setHasInitialTickets(true);
+                    queryClient.setQueryData(
+                        DASHBOARD_TICKETS_READY_QUERY_KEY,
+                        true
+                    );
                     queryClient.setQueryData<Ticket[]>(
-                        ["admin-dashboard-tickets"],
+                        DASHBOARD_TICKETS_QUERY_KEY,
                         parsedMessage.ticket.map(mapDashboardTicket)
                     );
                     return;
                 }
 
                 queryClient.setQueryData<Ticket[]>(
-                    ["admin-dashboard-tickets"],
+                    DASHBOARD_TICKETS_QUERY_KEY,
                     (currentTickets = []) =>
                         upsertTicket(currentTickets, parsedMessage.ticket)
                 );
@@ -291,8 +321,12 @@ export default function Dashboard() {
                 if (parsedMessage.event === "initial_rooms") {
                     const initialRooms = parsedMessage.room ?? parsedMessage.rooms ?? [];
                     setHasInitialRooms(true);
+                    queryClient.setQueryData(
+                        DASHBOARD_ROOMS_READY_QUERY_KEY,
+                        true
+                    );
                     queryClient.setQueryData<Room[]>(
-                        ["admin-dashboard-rooms"],
+                        DASHBOARD_ROOMS_QUERY_KEY,
                         initialRooms.map(mapDashboardRoom)
                     );
                     return;
@@ -300,7 +334,7 @@ export default function Dashboard() {
 
                 if (parsedMessage.event === "room_deleted") {
                     queryClient.setQueryData<Room[]>(
-                        ["admin-dashboard-rooms"],
+                        DASHBOARD_ROOMS_QUERY_KEY,
                         (currentRooms = []) =>
                             currentRooms.filter((room) => room.id !== parsedMessage.room.id)
                     );
@@ -308,7 +342,7 @@ export default function Dashboard() {
                 }
 
                 queryClient.setQueryData<Room[]>(
-                    ["admin-dashboard-rooms"],
+                    DASHBOARD_ROOMS_QUERY_KEY,
                     (currentRooms = []) =>
                         upsertRoom(currentRooms, parsedMessage.room)
                 );
