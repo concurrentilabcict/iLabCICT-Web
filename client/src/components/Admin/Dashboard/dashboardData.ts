@@ -1,9 +1,9 @@
-import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
+import { createApiError, privateFetch } from "@/lib/api";
 import type { User } from "@/types/manageUser";
 import type { Room } from "@/types/room";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 
-type ApiRoom = {
+export type ApiRoom = {
   id: number;
   computer_count: number;
   active_issues_count?: number;
@@ -45,14 +45,12 @@ export type DashboardData = {
   users: User[];
 };
 
-const TICKETS_URL = buildApiUrl("/api/tickets/");
-const ROOMS_URL = buildApiUrl("/api/rooms/");
 const USERS_URL = "https://ilabcict-backend.onrender.com/api/users/";
 
 const getArrayResponse = <T>(data: T[] | { results?: T[] }) =>
   Array.isArray(data) ? data : data.results ?? [];
 
-const mapTicket = (ticket: ApiTicket): Ticket => ({
+export const mapDashboardTicket = (ticket: ApiTicket): Ticket => ({
   id: ticket.id,
   ticketCode: ticket.ticket_code,
   reportedBy: {
@@ -88,7 +86,7 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
   updatedAt: ticket.updated_at,
 });
 
-const mapRoom = (room: ApiRoom): Room => ({
+export const mapDashboardRoom = (room: ApiRoom): Room => ({
   id: room.id,
   computerCount: room.computer_count,
   activeIssuesCount: room.active_issues_count ?? 0,
@@ -131,39 +129,11 @@ async function fetchJson<T>(url: string, errorMessage: string): Promise<T> {
   return data as T;
 }
 
-async function fetchTickets() {
-  const data = await fetchJson<ApiTicket[] | { results?: ApiTicket[] }>(
-    TICKETS_URL,
-    "Failed to fetch dashboard tickets."
-  );
-
-  return getArrayResponse(data).map(mapTicket);
-}
-
-async function fetchRooms() {
-  const data = await fetchJson<ApiRoom[] | { results?: ApiRoom[] }>(
-    ROOMS_URL,
-    "Failed to fetch dashboard laboratories."
-  );
-
-  return getArrayResponse(data).map(mapRoom);
-}
-
-async function fetchUsers() {
+export async function fetchDashboardUsers() {
   const data = await fetchJson<ApiUser[] | { results?: ApiUser[] }>(
     USERS_URL,
     "Failed to fetch dashboard users."
   );
 
   return getArrayResponse(data).map(mapUser);
-}
-
-export async function fetchDashboardData(): Promise<DashboardData> {
-  const [tickets, rooms, users] = await Promise.all([
-    fetchTickets(),
-    fetchRooms(),
-    fetchUsers(),
-  ]);
-
-  return { tickets, rooms, users };
 }

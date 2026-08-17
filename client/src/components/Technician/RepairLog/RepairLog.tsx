@@ -101,6 +101,7 @@ export default function RepairLog({
     const isMobile = useMediaQuery("(max-width: 767px)");
     const [selectedRepairLogId, setSelectedRepairLogId] = useState<number | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
+    const [hasInitialRepairLogs, setHasInitialRepairLogs] = useState(false);
 
     const filterKey = JSON.stringify([typeFilter, searchQuery]);
     const [pagination, setPagination] = useState({
@@ -155,20 +156,31 @@ export default function RepairLog({
         );
     };
 
+    const canLoadRepairLogs = Number.isInteger(technicianId) && technicianId > 0;
+
     const { data: repairLogs = [], isPending } = useQuery<RepairLog[]>({
         queryKey: ["repairLogs", technicianId],
-        queryFn: () => new Promise<RepairLog[]>((resolve, reject) => {
-            const accessToken = localStorage.getItem("accessToken");
+        queryFn: () => Promise.resolve([]),
+        enabled: canLoadRepairLogs,
+        retry: false,
+        staleTime: Infinity,
+    });
+    const isLoading = isPending || (canLoadRepairLogs && !hasInitialRepairLogs);
 
-            if (!accessToken) {
-                reject(new Error("Missing access token."));
+    useEffect(() => {
+        let socket: WebSocket | null = null;
+        const connectSocket = window.setTimeout(() => {
+            if (!canLoadRepairLogs) {
                 return;
             }
 
-            repairLogSocketRef.current?.close();
+            const accessToken = localStorage.getItem("accessToken");
 
-            let hasInitialRepairLogs = false;
-            const socket = new WebSocket(
+            if (!accessToken) {
+                return;
+            }
+
+            socket = new WebSocket(
                 buildWebSocketUrl(REPAIR_LOGS_WS_ENDPOINT, { token: accessToken })
             );
 
@@ -194,8 +206,11 @@ export default function RepairLog({
                         )
                         .map(mapRepairLog);
 
-                    hasInitialRepairLogs = true;
-                    resolve(initialRepairLogs);
+                    setHasInitialRepairLogs(true);
+                    queryClient.setQueryData<RepairLog[]>(
+                        ["repairLogs", technicianId],
+                        initialRepairLogs
+                    );
                     return;
                 }
 
@@ -209,30 +224,17 @@ export default function RepairLog({
                         upsertRepairLog(currentRepairLogs, parsedMessage.repair_log)
                 );
             });
+        }, 0);
 
-            socket.addEventListener("error", () => {
-                if (!hasInitialRepairLogs) {
-                    return;
-                }
-            });
-
-            socket.addEventListener("close", () => {
-                if (!hasInitialRepairLogs) {
-                    return;
-                }
-            });
-        }),
-        enabled: Number.isInteger(technicianId) && technicianId > 0,
-        retry: false,
-        staleTime: Infinity,
-    });
-    const isLoading = isPending;
-
-    useEffect(() => {
         return () => {
-            repairLogSocketRef.current?.close();
+            window.clearTimeout(connectSocket);
+            socket?.close();
+
+            if (repairLogSocketRef.current === socket) {
+                repairLogSocketRef.current = null;
+            }
         };
-    }, []);
+    }, [canLoadRepairLogs, queryClient, technicianId]);
 
     const selectedRepairLog = useMemo(
         () => repairLogs.find((repairLog) => repairLog.id === selectedRepairLogId) ?? null,

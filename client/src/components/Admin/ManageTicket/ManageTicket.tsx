@@ -178,6 +178,7 @@ export default function ManageTicket() {
   const [dateFilter, setDateFilter] = useState<Date>();
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [hasInitialTickets, setHasInitialTickets] = useState(false);
 
   const {
     data: tickets = [],
@@ -185,18 +186,22 @@ export default function ManageTicket() {
     isError,
   } = useQuery<Ticket[]>({
     queryKey: ["admin-tickets"],
-    queryFn: () => new Promise<Ticket[]>((resolve, reject) => {
+    queryFn: () => Promise.resolve([]),
+    retry: false,
+    staleTime: Infinity,
+  });
+  const isLoading = isPending || !hasInitialTickets;
+
+  useEffect(() => {
+    let socket: WebSocket | null = null;
+    const connectSocket = window.setTimeout(() => {
       const accessToken = localStorage.getItem("accessToken");
 
       if (!accessToken) {
-        reject(new Error("Missing access token."));
         return;
       }
 
-      ticketSocketRef.current?.close();
-
-      let hasInitialTickets = false;
-      const socket = new WebSocket(
+      socket = new WebSocket(
         buildWebSocketUrl(TICKETS_WS_ENDPOINT, { token: accessToken })
       );
 
@@ -216,9 +221,11 @@ export default function ManageTicket() {
         }
 
         if (parsedMessage.event === "initial_tickets") {
-          const initialTickets = parsedMessage.ticket.map(mapTicket);
-          hasInitialTickets = true;
-          resolve(initialTickets);
+          setHasInitialTickets(true);
+          queryClient.setQueryData<Ticket[]>(
+            ["admin-tickets"],
+            parsedMessage.ticket.map(mapTicket)
+          );
           return;
         }
 
@@ -227,6 +234,7 @@ export default function ManageTicket() {
           (currentTickets = []) =>
             upsertTicket(currentTickets, parsedMessage.ticket)
         );
+
         setSelectedTicket((currentTicket) => {
           if (currentTicket?.id !== parsedMessage.ticket.id) {
             return currentTicket;
@@ -235,29 +243,17 @@ export default function ManageTicket() {
           return mapTicket(parsedMessage.ticket);
         });
       });
+    }, 0);
 
-      socket.addEventListener("error", () => {
-        if (!hasInitialTickets) {
-          return;
-        }
-      });
-
-      socket.addEventListener("close", () => {
-        if (!hasInitialTickets) {
-          return;
-        }
-      });
-    }),
-    retry: false,
-    staleTime: Infinity,
-  });
-  const isLoading = isPending;
-
-  useEffect(() => {
     return () => {
-      ticketSocketRef.current?.close();
+      window.clearTimeout(connectSocket);
+      socket?.close();
+
+      if (ticketSocketRef.current === socket) {
+        ticketSocketRef.current = null;
+      }
     };
-  }, []);
+  }, [queryClient]);
 
   const filteredTickets = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();

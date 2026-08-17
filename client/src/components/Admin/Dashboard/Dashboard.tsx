@@ -4,7 +4,8 @@ import {
     Inbox,
     Wrench,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import SummaryCard from "./SummaryCard";
 import TicketChart from "./TicketChart";
@@ -12,12 +13,105 @@ import LaboratoryStatus from "./LaboratoryStatus";
 import RecentTicket from "./RecentTicket";
 import RecentUser from "./RecentUser";
 import {
-    fetchDashboardData,
-    type DashboardData,
+    fetchDashboardUsers,
+    mapDashboardRoom,
+    mapDashboardTicket,
+    type ApiRoom,
 } from "./dashboardData";
-import type { Ticket } from "@/types/ticket";
+import { buildWebSocketUrl } from "@/lib/api";
+import type { User } from "@/types/manageUser";
+import type { Room } from "@/types/room";
+import type { ApiTicket, Ticket } from "@/types/ticket";
 
 type TicketStatus = "open" | "ongoing" | "resolved";
+type DashboardTicketEvent =
+    | {
+        event: "initial_tickets";
+        ticket: ApiTicket[];
+        next?: string | null;
+    }
+    | {
+        event: "ticket_created" | "ticket_updated" | "ticket_reassigned";
+        ticket: ApiTicket;
+    };
+type DashboardRoomEvent =
+    | {
+        event: "initial_rooms";
+        room?: ApiRoom[];
+        rooms?: ApiRoom[];
+        next?: string | null;
+    }
+    | {
+        event: "room_created" | "room_updated" | "room_deleted";
+        room: ApiRoom;
+    };
+
+const DASHBOARD_TICKETS_WS_ENDPOINT = "/ws/tickets/";
+const DASHBOARD_ROOMS_WS_ENDPOINT = "/ws/rooms/";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null;
+
+const isDashboardTicketEvent = (
+    value: unknown
+): value is DashboardTicketEvent => {
+    if (!isRecord(value) || typeof value.event !== "string") {
+        return false;
+    }
+
+    if (value.event === "initial_tickets") {
+        return Array.isArray(value.ticket);
+    }
+
+    return (
+        ["ticket_created", "ticket_updated", "ticket_reassigned"].includes(
+            value.event
+        ) && isRecord(value.ticket)
+    );
+};
+
+const isDashboardRoomEvent = (value: unknown): value is DashboardRoomEvent => {
+    if (!isRecord(value) || typeof value.event !== "string") {
+        return false;
+    }
+
+    if (value.event === "initial_rooms") {
+        return Array.isArray(value.room) || Array.isArray(value.rooms);
+    }
+
+    return (
+        ["room_created", "room_updated", "room_deleted"].includes(value.event) &&
+        isRecord(value.room)
+    );
+};
+
+const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
+    const ticket = mapDashboardTicket(apiTicket);
+    const hasTicket = tickets.some((currentTicket) =>
+        currentTicket.id === ticket.id
+    );
+
+    if (!hasTicket) {
+        return [ticket, ...tickets];
+    }
+
+    return tickets.map((currentTicket) =>
+        currentTicket.id === ticket.id ? ticket : currentTicket
+    );
+};
+
+const upsertRoom = (rooms: Room[], apiRoom: ApiRoom) => {
+    const room = mapDashboardRoom(apiRoom);
+    const hasRoom = rooms.some((currentRoom) => currentRoom.id === room.id);
+
+    if (!hasRoom) {
+        return [room, ...rooms];
+    }
+
+    return rooms.map((currentRoom) =>
+        currentRoom.id === room.id ? room : currentRoom
+    );
+};
 
 function ticketsInMonth(
     tickets: Ticket[],
@@ -69,15 +163,168 @@ function formatDuration(duration: number | null) {
 }
 
 export default function Dashboard() {
-    const { data, isLoading, isError } = useQuery<DashboardData>({
-        queryKey: ["admin-dashboard"],
-        queryFn: fetchDashboardData,
+    const queryClient = useQueryClient();
+    const ticketSocketRef = useRef<WebSocket | null>(null);
+    const roomSocketRef = useRef<WebSocket | null>(null);
+    const [hasInitialTickets, setHasInitialTickets] = useState(false);
+    const [hasInitialRooms, setHasInitialRooms] = useState(false);
+    const {
+        data: tickets = [],
+        isPending: isTicketsPending,
+        isError: isTicketsError,
+    } = useQuery<Ticket[]>({
+        queryKey: ["admin-dashboard-tickets"],
+        queryFn: () => Promise.resolve([]),
+        retry: false,
+        staleTime: Infinity,
+    });
+    const {
+        data: rooms = [],
+        isPending: isRoomsPending,
+        isError: isRoomsError,
+    } = useQuery<Room[]>({
+        queryKey: ["admin-dashboard-rooms"],
+        queryFn: () => Promise.resolve([]),
+        retry: false,
+        staleTime: Infinity,
+    });
+    const {
+        data: users = [],
+        isLoading: isUsersLoading,
+        isError: isUsersError,
+    } = useQuery<User[]>({
+        queryKey: ["admin-dashboard-users"],
+        queryFn: fetchDashboardUsers,
         staleTime: 60_000,
     });
 
-    const tickets = data?.tickets ?? [];
-    const rooms = data?.rooms ?? [];
-    const users = data?.users ?? [];
+    const isTicketsLoading = isTicketsPending || !hasInitialTickets;
+    const isRoomsLoading = isRoomsPending || !hasInitialRooms;
+
+    useEffect(() => {
+        let socket: WebSocket | null = null;
+        const connectSocket = window.setTimeout(() => {
+            const accessToken = localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return;
+            }
+
+            socket = new WebSocket(
+                buildWebSocketUrl(DASHBOARD_TICKETS_WS_ENDPOINT, {
+                    token: accessToken,
+                })
+            );
+
+            ticketSocketRef.current = socket;
+
+            socket.addEventListener("message", (event: MessageEvent<string>) => {
+                let parsedMessage: unknown;
+
+                try {
+                    parsedMessage = JSON.parse(event.data);
+                } catch {
+                    return;
+                }
+
+                if (!isDashboardTicketEvent(parsedMessage)) {
+                    return;
+                }
+
+                if (parsedMessage.event === "initial_tickets") {
+                    setHasInitialTickets(true);
+                    queryClient.setQueryData<Ticket[]>(
+                        ["admin-dashboard-tickets"],
+                        parsedMessage.ticket.map(mapDashboardTicket)
+                    );
+                    return;
+                }
+
+                queryClient.setQueryData<Ticket[]>(
+                    ["admin-dashboard-tickets"],
+                    (currentTickets = []) =>
+                        upsertTicket(currentTickets, parsedMessage.ticket)
+                );
+            });
+        }, 0);
+
+        return () => {
+            window.clearTimeout(connectSocket);
+            socket?.close();
+
+            if (ticketSocketRef.current === socket) {
+                ticketSocketRef.current = null;
+            }
+        };
+    }, [queryClient]);
+
+    useEffect(() => {
+        let socket: WebSocket | null = null;
+        const connectSocket = window.setTimeout(() => {
+            const accessToken = localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return;
+            }
+
+            socket = new WebSocket(
+                buildWebSocketUrl(DASHBOARD_ROOMS_WS_ENDPOINT, {
+                    token: accessToken,
+                })
+            );
+
+            roomSocketRef.current = socket;
+
+            socket.addEventListener("message", (event: MessageEvent<string>) => {
+                let parsedMessage: unknown;
+
+                try {
+                    parsedMessage = JSON.parse(event.data);
+                } catch {
+                    return;
+                }
+
+                if (!isDashboardRoomEvent(parsedMessage)) {
+                    return;
+                }
+
+                if (parsedMessage.event === "initial_rooms") {
+                    const initialRooms = parsedMessage.room ?? parsedMessage.rooms ?? [];
+                    setHasInitialRooms(true);
+                    queryClient.setQueryData<Room[]>(
+                        ["admin-dashboard-rooms"],
+                        initialRooms.map(mapDashboardRoom)
+                    );
+                    return;
+                }
+
+                if (parsedMessage.event === "room_deleted") {
+                    queryClient.setQueryData<Room[]>(
+                        ["admin-dashboard-rooms"],
+                        (currentRooms = []) =>
+                            currentRooms.filter((room) => room.id !== parsedMessage.room.id)
+                    );
+                    return;
+                }
+
+                queryClient.setQueryData<Room[]>(
+                    ["admin-dashboard-rooms"],
+                    (currentRooms = []) =>
+                        upsertRoom(currentRooms, parsedMessage.room)
+                );
+            });
+        }, 0);
+
+        return () => {
+            window.clearTimeout(connectSocket);
+            socket?.close();
+
+            if (roomSocketRef.current === socket) {
+                roomSocketRef.current = null;
+            }
+        };
+    }, [queryClient]);
+
     const ticketsByStatus = tickets.reduce<Record<TicketStatus, Ticket[]>>(
         (groupedTickets, ticket) => {
             const status = ticket.status.trim().toLowerCase() as TicketStatus;
@@ -100,7 +347,7 @@ export default function Dashboard() {
     const currentAverage = averageResolutionMs(resolvedThisMonth);
 
     const unavailable = {
-        change: isLoading ? "Loading" : "Unavailable",
+        change: isTicketsLoading ? "Loading" : "Unavailable",
         changeStatus: "neutral" as const,
         caption: "",
     };
@@ -108,8 +355,8 @@ export default function Dashboard() {
     const summaryCards = [
         {
             title: "Open Tickets",
-            value: isLoading || isError ? "—" : String(openTickets.length),
-            ...(isLoading || isError
+            value: isTicketsLoading || isTicketsError ? "—" : String(openTickets.length),
+            ...(isTicketsLoading || isTicketsError
                 ? unavailable
                 : {
                     change: "Awaiting action",
@@ -120,8 +367,8 @@ export default function Dashboard() {
         },
         {
             title: "Ongoing Repairs",
-            value: isLoading || isError ? "—" : String(ongoingTickets.length),
-            ...(isLoading || isError
+            value: isTicketsLoading || isTicketsError ? "—" : String(ongoingTickets.length),
+            ...(isTicketsLoading || isTicketsError
                 ? unavailable
                 : {
                     change: "Currently in progress",
@@ -132,8 +379,8 @@ export default function Dashboard() {
         },
         {
             title: "Resolved This Month",
-            value: isLoading || isError ? "—" : String(resolvedThisMonth.length),
-            ...(isLoading || isError
+            value: isTicketsLoading || isTicketsError ? "—" : String(resolvedThisMonth.length),
+            ...(isTicketsLoading || isTicketsError
                 ? unavailable
                 : {
                     change: String(resolvedLastMonth.length),
@@ -144,8 +391,8 @@ export default function Dashboard() {
         },
         {
             title: "Est. Resolution Time",
-            value: isLoading || isError ? "—" : formatDuration(currentAverage),
-            ...(isLoading || isError
+            value: isTicketsLoading || isTicketsError ? "—" : formatDuration(currentAverage),
+            ...(isTicketsLoading || isTicketsError
                 ? unavailable
                 : {
                     change: currentAverage === null
@@ -169,27 +416,27 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,70fr)_minmax(280px,30fr)]">
                 <TicketChart
                     tickets={tickets}
-                    isLoading={isLoading}
-                    isError={isError}
+                    isLoading={isTicketsLoading}
+                    isError={isTicketsError}
                 />
                 <LaboratoryStatus
                     rooms={rooms}
                     tickets={tickets}
-                    isLoading={isLoading}
-                    isError={isError}
+                    isLoading={isTicketsLoading || isRoomsLoading}
+                    isError={isTicketsError || isRoomsError}
                 />
             </div>
 
             <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,55fr)_minmax(360px,45fr)]">
                 <RecentTicket
                     tickets={tickets}
-                    isLoading={isLoading}
-                    isError={isError}
+                    isLoading={isTicketsLoading}
+                    isError={isTicketsError}
                 />
                 <RecentUser
                     users={users}
-                    isLoading={isLoading}
-                    isError={isError}
+                    isLoading={isUsersLoading}
+                    isError={isUsersError}
                 />
             </div>
         </div>
