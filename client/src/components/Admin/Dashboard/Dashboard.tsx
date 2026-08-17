@@ -226,6 +226,9 @@ export default function Dashboard() {
 
     const isTicketsLoading = isTicketsPending || !hasInitialTickets;
     const isRoomsLoading = isRoomsPending || !hasInitialRooms;
+    const isDashboardLoading =
+        isTicketsLoading || isRoomsLoading || isUsersLoading;
+    const isDashboardError = isTicketsError || isRoomsError || isUsersError;
 
     useEffect(() => {
         let socket: WebSocket | null = null;
@@ -381,7 +384,7 @@ export default function Dashboard() {
     const currentAverage = averageResolutionMs(resolvedThisMonth);
 
     const unavailable = {
-        change: isTicketsLoading ? "Loading" : "Unavailable",
+        change: isDashboardLoading ? "Loading" : "Unavailable",
         changeStatus: "neutral" as const,
         caption: "",
     };
@@ -389,8 +392,8 @@ export default function Dashboard() {
     const summaryCards = [
         {
             title: "Open Tickets",
-            value: isTicketsLoading || isTicketsError ? "—" : String(openTickets.length),
-            ...(isTicketsLoading || isTicketsError
+            value: isDashboardLoading || isDashboardError ? "—" : String(openTickets.length),
+            ...(isDashboardLoading || isDashboardError
                 ? unavailable
                 : {
                     change: "Awaiting action",
@@ -401,8 +404,8 @@ export default function Dashboard() {
         },
         {
             title: "Ongoing Repairs",
-            value: isTicketsLoading || isTicketsError ? "—" : String(ongoingTickets.length),
-            ...(isTicketsLoading || isTicketsError
+            value: isDashboardLoading || isDashboardError ? "—" : String(ongoingTickets.length),
+            ...(isDashboardLoading || isDashboardError
                 ? unavailable
                 : {
                     change: "Currently in progress",
@@ -413,8 +416,8 @@ export default function Dashboard() {
         },
         {
             title: "Resolved This Month",
-            value: isTicketsLoading || isTicketsError ? "—" : String(resolvedThisMonth.length),
-            ...(isTicketsLoading || isTicketsError
+            value: isDashboardLoading || isDashboardError ? "—" : String(resolvedThisMonth.length),
+            ...(isDashboardLoading || isDashboardError
                 ? unavailable
                 : {
                     change: String(resolvedLastMonth.length),
@@ -425,8 +428,8 @@ export default function Dashboard() {
         },
         {
             title: "Est. Resolution Time",
-            value: isTicketsLoading || isTicketsError ? "—" : formatDuration(currentAverage),
-            ...(isTicketsLoading || isTicketsError
+            value: isDashboardLoading || isDashboardError ? "—" : formatDuration(currentAverage),
+            ...(isDashboardLoading || isDashboardError
                 ? unavailable
                 : {
                     change: currentAverage === null
@@ -450,27 +453,27 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,70fr)_minmax(280px,30fr)]">
                 <TicketChart
                     tickets={tickets}
-                    isLoading={isTicketsLoading}
-                    isError={isTicketsError}
+                    isLoading={isDashboardLoading}
+                    isError={isDashboardError}
                 />
                 <LaboratoryStatus
                     rooms={rooms}
                     tickets={tickets}
-                    isLoading={isTicketsLoading || isRoomsLoading}
-                    isError={isTicketsError || isRoomsError}
+                    isLoading={isDashboardLoading}
+                    isError={isDashboardError}
                 />
             </div>
 
             <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,55fr)_minmax(360px,45fr)]">
                 <RecentTicket
                     tickets={tickets}
-                    isLoading={isTicketsLoading}
-                    isError={isTicketsError}
+                    isLoading={isDashboardLoading}
+                    isError={isDashboardError}
                 />
                 <RecentUser
                     users={users}
-                    isLoading={isUsersLoading}
-                    isError={isUsersError}
+                    isLoading={isDashboardLoading}
+                    isError={isDashboardError}
                 />
             </div>
         </div>

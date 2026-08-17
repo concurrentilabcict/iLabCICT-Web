@@ -95,7 +95,11 @@ export default function RoomCard({
 
                 <div className="flex w-full gap-2 justify-between">
                     <button
-                        onClick={()=> navigate(`/manage-laboratory/${room.roomName}`)}
+                        onClick={() =>
+                            navigate(`/manage-laboratory/${room.id}`, {
+                                state: { roomName: room.roomName },
+                            })
+                        }
                         type="button"
                         className="flex flex-1 justify-center gap-2.5 bg-white primary-bg-color shrink-0 rounded-md px-4 py-2 text-sm font-medium text-white"
                         >
