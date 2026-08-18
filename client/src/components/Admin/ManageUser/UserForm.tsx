@@ -5,7 +5,6 @@ import {
   AtSign,
   ChevronDown,
   IdCard,
-  KeyRound,
   ShieldCheck,
 } from "lucide-react";
 
@@ -44,7 +43,6 @@ type AddUserForm = {
   lastName: string;
   email: string;
   role: "technician" | "faculty";
-  password: string;
 };
 
 const initialForm: AddUserForm = {
@@ -52,7 +50,6 @@ const initialForm: AddUserForm = {
   lastName: "",
   email: "",
   role: "faculty",
-  password: "",
 };
 
 const roleOptions: Array<{
@@ -254,22 +251,6 @@ export default function UserForm({ closeSheet }: UserFormProps) {
             </PopoverContent>
           </Popover>
         </div>
-
-        <label className="flex flex-col gap-2 text-sm font-medium">
-          <span className="secondary-text-color flex items-center gap-x-1.5">
-            <KeyRound size={14} />
-            Password
-          </span>
-          <Input
-            type="password"
-            value={form.password}
-            onChange={(event) => updateField("password", event.target.value)}
-            required
-            minLength={8}
-            disabled={isSubmitting}
-            className="h-10"
-          />
-        </label>
       </div>
 
       <SheetFooter>
