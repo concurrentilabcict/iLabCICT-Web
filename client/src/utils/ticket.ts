@@ -38,7 +38,7 @@ export type TicketType =
     keyof typeof typeConfig;
 
 export type StatusFilter =
-    "All" | Status;
+    "All" | "Assigned" | Status;
 
 export type TicketTypeFilter =
     "All" | TicketType;

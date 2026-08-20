@@ -1,6 +1,12 @@
 export type Ticket = {
     id: number;
+    ticketCode?: string;
     type: string;
+    title?: string;
+    complaintDescription?: string;
+    status?: string;
+    createdAt?: string;
+    updatedAt?: string;
     reportedBy: {
         id: number;
         firstName: string;
@@ -11,6 +17,16 @@ export type Ticket = {
         firstName: string;
         lastName: string;
     };
+    room?: {
+        id: number;
+        roomName: string;
+        buildingName: string;
+        floorNumber: number;
+    };
+    computer?: {
+        id: number;
+        computerCode: string;
+    } | null;
 }
 
 export type RepairLog = {

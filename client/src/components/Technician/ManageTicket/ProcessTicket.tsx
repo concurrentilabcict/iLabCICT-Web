@@ -211,7 +211,7 @@ export default function ProcessTicket() {
 
                 <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_420px]">
                     <section className="flex flex-col gap-4">
-                        <div className="primary-border-color rounded-2xl border bg-white p-4">
+                        <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                             <div className="mb-4 flex items-start gap-3">
                                 <div className="rounded-xl bg-red-50 p-2.5 text-primary-color">
                                     <Wrench size={20} />
@@ -224,7 +224,7 @@ export default function ProcessTicket() {
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-dashed bg-muted/30 p-4">
+                            <div className="rounded-xl bg-muted/30 p-4 shadow-sm shadow-black/5">
                                 <div className="mb-2 flex items-center gap-x-1.5 font-medium secondary-text-color">
                                     <FileText size={15} />
                                     <h2>Issue Description</h2>
@@ -234,7 +234,7 @@ export default function ProcessTicket() {
                         </div>
 
                         <div className="grid gap-4 md:grid-cols-2">
-                            <div className="primary-border-color rounded-2xl border bg-white p-4">
+                            <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                                 <div className="mb-3 flex items-center gap-x-1.5 font-medium">
                                     <Monitor size={16} />
                                     <h2>Device Information</h2>
@@ -247,7 +247,7 @@ export default function ProcessTicket() {
                                 </div>
                             </div>
 
-                            <div className="primary-border-color rounded-2xl border bg-white p-4">
+                            <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                                 <div className="mb-3 flex items-center gap-x-1.5 font-medium">
                                     <User size={16} />
                                     <h2>People</h2>
@@ -261,7 +261,7 @@ export default function ProcessTicket() {
                             </div>
                         </div>
 
-                        <div className="primary-border-color rounded-2xl border bg-white p-4">
+                        <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                             <div className="mb-3 flex items-center gap-x-1.5 font-medium">
                                 <ImageOff size={16} />
                                 <h2>Attached Photo</h2>
@@ -274,7 +274,7 @@ export default function ProcessTicket() {
                                     className="h-72 w-full rounded-xl object-cover"
                                 />
                             ) : (
-                                <div className="flex h-44 flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-muted/30 text-muted-foreground">
+                                <div className="flex h-44 flex-col items-center justify-center gap-2 rounded-xl bg-muted/30 text-muted-foreground shadow-sm shadow-black/5">
                                     <ImageOff size={28} />
                                     <span className="text-sm font-medium">No image attached</span>
                                 </div>
@@ -283,7 +283,7 @@ export default function ProcessTicket() {
                     </section>
 
                     <aside className="lg:sticky lg:top-24 lg:self-start">
-                        <div className="primary-border-color rounded-2xl border bg-white p-4">
+                        <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                             <div className="mb-4 flex items-start gap-3">
                                 <div className="rounded-xl bg-red-50 p-2.5 text-primary-color">
                                     <MessageSquareText size={20} />
@@ -309,7 +309,7 @@ export default function ProcessTicket() {
                                             <button
                                                 type="button"
                                                 disabled={isSubmitting}
-                                                className="flex h-9 w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-input bg-white px-2.5 py-1 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                className="flex h-9 w-full cursor-pointer items-center justify-between gap-3 rounded-lg bg-white px-2.5 py-1 text-sm shadow-sm shadow-black/5 outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                                 <span>{selectedMaintenanceType}</span>
                                                 <ChevronDown

@@ -28,6 +28,8 @@ import WeeklyReportDetails from "./WeeklyReportDetails";
 
 const ITEMS_PER_PAGE = 8;
 const REPORTS_WS_ENDPOINT = "/ws/reports/";
+const REPORTS_QUERY_KEY_PREFIX = "technician-weekly-reports";
+const REPORTS_READY_QUERY_KEY_PREFIX = "technician-weekly-reports-ready";
 
 type InitialReportsMessage = {
     event: "initial_reports";
@@ -82,6 +84,18 @@ export default function WeeklyReport() {
     const reportSocketRef = useRef<WebSocket | null>(null);
     const isMobile = useMediaQuery("(max-width: 767px)");
     const technicianId = Number(localStorage.getItem("id"));
+    const canLoadReports = Number.isInteger(technicianId) && technicianId > 0;
+    const reportsQueryKey = useMemo(
+        () => [REPORTS_QUERY_KEY_PREFIX, technicianId] as const,
+        [technicianId]
+    );
+    const reportsReadyQueryKey = useMemo(
+        () => [REPORTS_READY_QUERY_KEY_PREFIX, technicianId] as const,
+        [technicianId]
+    );
+    const cachedReportsAreReady =
+        queryClient.getQueryData<boolean>(reportsReadyQueryKey) === true;
+    const [hasInitialReports, setHasInitialReports] = useState(cachedReportsAreReady);
     const [page, setPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
@@ -93,19 +107,34 @@ export default function WeeklyReport() {
         isPending,
         isError,
     } = useQuery<WeeklyReportType[]>({
-        queryKey: ["technician-weekly-reports", technicianId],
-        queryFn: () => new Promise<WeeklyReportType[]>((resolve, reject) => {
-            const accessToken = localStorage.getItem("accessToken");
+        queryKey: reportsQueryKey,
+        queryFn: () =>
+            Promise.resolve(
+                queryClient.getQueryData<WeeklyReportType[]>(reportsQueryKey) ?? []
+            ),
+        initialData: () =>
+            queryClient.getQueryData<WeeklyReportType[]>(reportsQueryKey) ?? [],
+        enabled: canLoadReports,
+        retry: false,
+        staleTime: Infinity,
+        gcTime: Infinity,
+    });
+    const isLoading = isPending || (canLoadReports && !hasInitialReports);
 
-            if (!accessToken) {
-                reject(new Error("Missing access token."));
+    useEffect(() => {
+        let socket: WebSocket | null = null;
+        const connectSocket = window.setTimeout(() => {
+            if (!canLoadReports) {
                 return;
             }
 
-            reportSocketRef.current?.close();
+            const accessToken = localStorage.getItem("accessToken");
 
-            let hasInitialReports = false;
-            const socket = new WebSocket(
+            if (!accessToken) {
+                return;
+            }
+
+            socket = new WebSocket(
                 buildWebSocketUrl(REPORTS_WS_ENDPOINT, { token: accessToken })
             );
 
@@ -129,8 +158,12 @@ export default function WeeklyReport() {
                         .map(mapWeeklyReport)
                         .filter((report) => report.technicianId === technicianId);
 
-                    hasInitialReports = true;
-                    resolve(initialReports);
+                    setHasInitialReports(true);
+                    queryClient.setQueryData(reportsReadyQueryKey, true);
+                    queryClient.setQueryData<WeeklyReportType[]>(
+                        reportsQueryKey,
+                        initialReports
+                    );
                     return;
                 }
 
@@ -141,35 +174,22 @@ export default function WeeklyReport() {
                 }
 
                 queryClient.setQueryData<WeeklyReportType[]>(
-                    ["technician-weekly-reports", technicianId],
+                    reportsQueryKey,
                     (currentReports = []) =>
                         upsertReport(currentReports, parsedMessage.report)
                 );
             });
+        }, 0);
 
-            socket.addEventListener("error", () => {
-                if (!hasInitialReports) {
-                    return;
-                }
-            });
-
-            socket.addEventListener("close", () => {
-                if (!hasInitialReports) {
-                    return;
-                }
-            });
-        }),
-        enabled: Number.isInteger(technicianId) && technicianId > 0,
-        retry: false,
-        staleTime: Infinity,
-    });
-    const isLoading = isPending;
-
-    useEffect(() => {
         return () => {
-            reportSocketRef.current?.close();
+            window.clearTimeout(connectSocket);
+            socket?.close();
+
+            if (reportSocketRef.current === socket) {
+                reportSocketRef.current = null;
+            }
         };
-    }, []);
+    }, [canLoadReports, queryClient, reportsQueryKey, reportsReadyQueryKey, technicianId]);
 
     const filteredReports = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -234,7 +254,7 @@ export default function WeeklyReport() {
     return (
         <>
             <div className="flex w-full flex-col gap-4 px-3 py-4">
-                <div className="primary-border-color rounded-2xl border bg-white p-4">
+                <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div className="flex items-start gap-3">
                             <div className="rounded-xl bg-red-50 p-2.5 text-primary-color">
@@ -249,11 +269,11 @@ export default function WeeklyReport() {
                         </div>
 
                         <div className="flex flex-wrap gap-3 text-sm">
-                            <div className="rounded-xl bg-muted/50 px-3 py-2">
+                            <div className="rounded-xl bg-muted/50 px-3 py-2 shadow-sm shadow-black/5">
                                 <span className="secondary-text-color">Reports</span>
                                 <span className="ml-2 font-semibold">{reports.length}</span>
                             </div>
-                            <div className="rounded-xl bg-muted/50 px-3 py-2">
+                            <div className="rounded-xl bg-muted/50 px-3 py-2 shadow-sm shadow-black/5">
                                 <span className="secondary-text-color">Latest</span>
                                 <span className="ml-2 font-semibold">
                                     {latestReportDate ? formatDate(latestReportDate) : "None"}
@@ -283,7 +303,7 @@ export default function WeeklyReport() {
                                 setPage(1);
                             }}
                             placeholder="Search my reports..."
-                            className="primary-border-color w-full rounded-xl border bg-white py-2 pl-10 pr-10 outline-none focus:border-black!"
+                            className="primary-border-color w-full rounded-xl border bg-white py-2 pl-10 pr-10 shadow-sm shadow-black/5 outline-none focus:border-black!"
                         />
 
                         {searchQuery && (
@@ -299,7 +319,7 @@ export default function WeeklyReport() {
                     </div>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2">
                     {isLoading && (
                         <p className="col-span-full py-8 text-center secondary-text-color">
                             Loading weekly reports...
@@ -319,11 +339,12 @@ export default function WeeklyReport() {
                     )}
 
                     {!isLoading && !isError && paginatedReports.map((report) => (
-                        <WeeklyReportCard
-                            key={report.id}
-                            report={report}
-                            onClick={() => openReport(report)}
-                        />
+                        <div key={report.id} className="flex h-full justify-center">
+                            <WeeklyReportCard
+                                report={report}
+                                onClick={() => openReport(report)}
+                            />
+                        </div>
                     ))}
                 </div>
 

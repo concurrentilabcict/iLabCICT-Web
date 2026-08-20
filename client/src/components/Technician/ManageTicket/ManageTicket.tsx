@@ -1,7 +1,12 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ManageTicketCard from "./ManageTicketCard";
-import { useMemo, useState } from "react";
-import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+    buildWebSocketUrl,
+    createApiError,
+    privateFetch,
+    type ApiError,
+} from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 
 import {
@@ -45,6 +50,42 @@ const formatLabel = (text: string) => {
         .join(" ");
 };
 
+type TicketWebSocketMessage =
+    | {
+        event: "initial_tickets";
+        ticket: ApiTicket[];
+        next?: string | null;
+    }
+    | {
+        event: "ticket_created" | "ticket_updated" | "ticket_reassigned";
+        ticket: ApiTicket;
+    };
+
+const TICKETS_QUERY_KEY = ["technician-tickets"] as const;
+const TICKETS_READY_QUERY_KEY = ["technician-tickets-ready"] as const;
+const TICKETS_WS_ENDPOINT = "/ws/tickets/";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null;
+
+const isTicketWebSocketMessage = (
+    value: unknown
+): value is TicketWebSocketMessage => {
+    if (!isRecord(value) || typeof value.event !== "string") {
+        return false;
+    }
+
+    if (value.event === "initial_tickets") {
+        return Array.isArray(value.ticket);
+    }
+
+    return (
+        ["ticket_created", "ticket_updated", "ticket_reassigned"].includes(
+            value.event
+        ) && isRecord(value.ticket)
+    );
+};
+
 export default function ManageTicket({
     statusFilter,
     typeFilter,
@@ -54,6 +95,7 @@ export default function ManageTicket({
     const isMobile = useMediaQuery("(max-width: 767px)");
     const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
+    const ticketSocketRef = useRef<WebSocket | null>(null);
 
     const filterKey = JSON.stringify([statusFilter, typeFilter, searchQuery]);
     const [pagination, setPagination] = useState({
@@ -68,6 +110,10 @@ export default function ManageTicket({
     const notificationTicketId = searchParams.get("ticket");
     const queryClient = useQueryClient();
     const technicianId = Number(localStorage.getItem("id"));
+    const cachedTicketsAreReady =
+        queryClient.getQueryData<boolean>(TICKETS_READY_QUERY_KEY) === true;
+    const [hasInitialTickets, setHasInitialTickets] =
+        useState(cachedTicketsAreReady);
 
     const handleTicketClick = (ticket: Ticket) => {
         if (ticket.status === "ongoing") {
@@ -125,22 +171,90 @@ export default function ManageTicket({
         updatedAt: ticket.updated_at,
     });
 
-    const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
-        queryKey: ["tickets"],
-        queryFn: async () => {
-            const res = await privateFetch("https://ilabcict-backend.onrender.com/api/tickets/");
+    const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
+        const ticket = mapTicket(apiTicket);
+        const ticketExists = tickets.some(
+            (currentTicket) => currentTicket.id === ticket.id
+        );
 
-            const data = await res.json();
+        if (!ticketExists) {
+            return [ticket, ...tickets];
+        }
 
-            if (!res.ok) {
-                throw createApiError(res.status,
-                    data.message || "Failed to fetch tickets.");
+        return tickets.map((currentTicket) =>
+            currentTicket.id === ticket.id ? ticket : currentTicket
+        );
+    };
+
+    const { data: tickets = [], isPending } = useQuery<Ticket[]>({
+        queryKey: TICKETS_QUERY_KEY,
+        queryFn: () =>
+            Promise.resolve(
+                queryClient.getQueryData<Ticket[]>(TICKETS_QUERY_KEY) ?? []
+            ),
+        initialData: () =>
+            queryClient.getQueryData<Ticket[]>(TICKETS_QUERY_KEY) ?? [],
+        retry: false,
+        staleTime: Infinity,
+        gcTime: Infinity,
+    });
+    const isLoading = isPending || !hasInitialTickets;
+
+    useEffect(() => {
+        let socket: WebSocket | null = null;
+        const connectSocket = window.setTimeout(() => {
+            const accessToken = localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return;
             }
 
-            return (data as ApiTicket[]).map(mapTicket);
-        },
-        // refetchInterval: 10000,
-    });
+            socket = new WebSocket(
+                buildWebSocketUrl(TICKETS_WS_ENDPOINT, { token: accessToken })
+            );
+
+            ticketSocketRef.current = socket;
+
+            socket.addEventListener("message", (event: MessageEvent<string>) => {
+                let parsedMessage: unknown;
+
+                try {
+                    parsedMessage = JSON.parse(event.data);
+                } catch {
+                    return;
+                }
+
+                if (!isTicketWebSocketMessage(parsedMessage)) {
+                    return;
+                }
+
+                if (parsedMessage.event === "initial_tickets") {
+                    setHasInitialTickets(true);
+                    queryClient.setQueryData(TICKETS_READY_QUERY_KEY, true);
+                    queryClient.setQueryData<Ticket[]>(
+                        TICKETS_QUERY_KEY,
+                        parsedMessage.ticket.map(mapTicket)
+                    );
+                    return;
+                }
+
+                queryClient.setQueryData<Ticket[]>(
+                    TICKETS_QUERY_KEY,
+                    (currentTickets = []) =>
+                        upsertTicket(currentTickets, parsedMessage.ticket)
+                );
+            });
+        }, 0);
+
+        return () => {
+            window.clearTimeout(connectSocket);
+            socket?.close();
+
+            if (ticketSocketRef.current === socket) {
+                ticketSocketRef.current = null;
+            }
+        };
+    }, [queryClient]);
 
     const assignToMeMutation = useMutation({
         mutationFn: async (ticketId: number) => {
@@ -161,7 +275,7 @@ export default function ManageTicket({
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({
-                queryKey: ["tickets"],
+                queryKey: TICKETS_QUERY_KEY,
             });
 
             toast.success("Ticket assigned to you.");
@@ -186,7 +300,7 @@ export default function ManageTicket({
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({
-                queryKey: ["tickets"],
+                queryKey: TICKETS_QUERY_KEY,
             });
 
             toast.success("Ticket resolved successfully.");
@@ -226,8 +340,10 @@ export default function ManageTicket({
                 const status = formatLabel(ticket.status) as Status;
                 const type = formatLabel(ticket.type) as TicketType;
 
+                const isAssigned = (ticket.assignedTo?.id ?? 0) > 0;
                 const matchesStatus =
-                    statusFilter === "All" || status === statusFilter;
+                    statusFilter === "All" ||
+                    (statusFilter === "Assigned" ? isAssigned : status === statusFilter);
                 const matchesType =
                     typeFilter === "All" || type === typeFilter;
 
@@ -312,16 +428,23 @@ export default function ManageTicket({
 
                     const status = formatLabel(ticket.status) as Status;
                     const type = formatLabel(ticket.type) as TicketType;
-                    const room = formatLabel(ticket.room.buildingName) + ", " + ticket.room.roomName;
                     const reportedBy = ticket.reportedBy.firstName + " " + ticket.reportedBy.lastName;
-                    const canAssignToMe = ticket.assignedTo?.id === 0;
+                    const assignedTo = `${ticket.assignedTo?.firstName ?? ""} ${ticket.assignedTo?.lastName ?? ""}`.trim();
+                    const canAssignToMe = ticket.assignedTo?.id !== technicianId;
                     const canResolveRequest = ticket.status === "ongoing" && ticket.type === "request";
 
                     return (
-                        <div className="w-full" key={ticket.id}>
+                        <div className="flex h-full w-full justify-center" key={ticket.id}>
                             <ManageTicketCard status={status} type={type} title={ticket.title}
                                 complaintDescription={ticket.complaintDescription} reportedBy={reportedBy}
-                                ticketCode={ticket.ticketCode} room={room} computerCode={ticket.computer?.computerCode || "Not Specified"}
+                                ticketCode={ticket.ticketCode}
+                                roomName={ticket.room.roomName}
+                                buildingName={formatLabel(ticket.room.buildingName)}
+                                floorNumber={ticket.room.floorNumber}
+                                computerCode={ticket.computer?.computerCode || "Not Specified"}
+                                assignedTechnician={assignedTo || "Unassigned"}
+                                isAssignedToCurrentUser={ticket.assignedTo?.id === technicianId}
+                                isAssignedToAnother={(ticket.assignedTo?.id ?? 0) > 0 && ticket.assignedTo?.id !== technicianId}
                                 date={ticket.createdAt}
                                 canAssignToMe={canAssignToMe}
                                 isAssigning={assignToMeMutation.isPending && assignToMeMutation.variables === ticket.id}

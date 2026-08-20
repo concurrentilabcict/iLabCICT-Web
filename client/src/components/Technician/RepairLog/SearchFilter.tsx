@@ -77,7 +77,7 @@ export default function SearchFilter({
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     className="bg-white w-full rounded-md border primary-border-color py-2 pl-10 pr-10 
-                    outline-none focus:border-black!"
+                    shadow-sm shadow-black/5 outline-none focus:border-black!"
                 />
 
                 {isSearchActive && (
@@ -101,7 +101,7 @@ export default function SearchFilter({
                     type="button"
                     onClick={() => setIsFilterOpen((isOpen) => !isOpen)}
                     className='bg-white flex items-center gap-x-5 px-3 py-2 border primary-border-color rounded-md
-             cursor-pointer secondary-text-color justify-between md:w-35'
+             cursor-pointer secondary-text-color justify-between shadow-sm shadow-black/5 md:w-35'
                     aria-expanded={isFilterOpen}
                     aria-haspopup="listbox"
                 >
@@ -118,7 +118,7 @@ export default function SearchFilter({
                 {isFilterOpen && (
                     <div
                         className='absolute right-0 top-full z-10 mt-2 w-full rounded-md bg-white
-                         border primary-border-color shadow-sm overflow-hidden'
+                         border primary-border-color shadow-md shadow-black/10 overflow-hidden'
                         role="listbox"
                     >
                         {typeOptions.map((type) => (

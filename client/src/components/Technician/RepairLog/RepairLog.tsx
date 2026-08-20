@@ -29,7 +29,13 @@ type ApiRepairLog = {
     id: number;
     ticket: {
         id: number;
+        ticket_code?: string;
         type: string;
+        title?: string;
+        complaint_description?: string;
+        status?: string;
+        created_at?: string;
+        updated_at?: string;
         reported_by: {
             id: number;
             first_name: string;
@@ -40,6 +46,16 @@ type ApiRepairLog = {
             first_name: string;
             last_name: string;
         };
+        room?: {
+            id: number;
+            room_name: string;
+            building_name: string;
+            floor_number: number;
+        };
+        computer?: {
+            id: number;
+            computer_code: string;
+        } | null;
     };
     repair_log_code: string;
     title: string;
@@ -64,6 +80,7 @@ type RepairLogWebSocketMessage =
     | RepairLogCreatedMessage;
 
 const REPAIR_LOGS_WS_ENDPOINT = "/ws/repair-logs/";
+const REPAIR_LOGS_READY_QUERY_KEY_PREFIX = "technician-repair-logs-ready";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null;
@@ -101,7 +118,16 @@ export default function RepairLog({
     const isMobile = useMediaQuery("(max-width: 767px)");
     const [selectedRepairLogId, setSelectedRepairLogId] = useState<number | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
-    const [hasInitialRepairLogs, setHasInitialRepairLogs] = useState(false);
+    const technicianId = Number(localStorage.getItem("id"));
+    const readyQueryKey = useMemo(
+        () => [REPAIR_LOGS_READY_QUERY_KEY_PREFIX, technicianId] as const,
+        [technicianId]
+    );
+    const cachedRepairLogsAreReady =
+        queryClient.getQueryData<boolean>(readyQueryKey) === true;
+    const [hasInitialRepairLogs, setHasInitialRepairLogs] = useState(
+        cachedRepairLogsAreReady
+    );
 
     const filterKey = JSON.stringify([typeFilter, searchQuery]);
     const [pagination, setPagination] = useState({
@@ -111,13 +137,17 @@ export default function RepairLog({
 
     const ITEMS_PER_PAGE = 10;
 
-    const technicianId = Number(localStorage.getItem("id"));
-
     const mapRepairLog = (repairLog: ApiRepairLog): RepairLog => ({
         id: repairLog.id,
         ticket: {
             id: repairLog.ticket.id,
+            ticketCode: repairLog.ticket.ticket_code,
             type: repairLog.ticket.type,
+            title: repairLog.ticket.title,
+            complaintDescription: repairLog.ticket.complaint_description,
+            status: repairLog.ticket.status,
+            createdAt: repairLog.ticket.created_at,
+            updatedAt: repairLog.ticket.updated_at,
             reportedBy: {
                 id: repairLog.ticket.reported_by.id,
                 firstName: repairLog.ticket.reported_by.first_name,
@@ -128,6 +158,22 @@ export default function RepairLog({
                 firstName: repairLog.ticket.assigned_to.first_name,
                 lastName: repairLog.ticket.assigned_to.last_name,
             },
+            room: repairLog.ticket.room
+                ? {
+                    id: repairLog.ticket.room.id,
+                    roomName: repairLog.ticket.room.room_name,
+                    buildingName: repairLog.ticket.room.building_name,
+                    floorNumber: repairLog.ticket.room.floor_number,
+                }
+                : undefined,
+            computer: repairLog.ticket.computer
+                ? {
+                    id: repairLog.ticket.computer.id,
+                    computerCode: repairLog.ticket.computer.computer_code,
+                }
+                : repairLog.ticket.computer === null
+                    ? null
+                    : undefined,
         },
         repairLogCode: repairLog.repair_log_code,
         title: repairLog.title,
@@ -160,10 +206,16 @@ export default function RepairLog({
 
     const { data: repairLogs = [], isPending } = useQuery<RepairLog[]>({
         queryKey: ["repairLogs", technicianId],
-        queryFn: () => Promise.resolve([]),
+        queryFn: () =>
+            Promise.resolve(
+                queryClient.getQueryData<RepairLog[]>(["repairLogs", technicianId]) ?? []
+            ),
+        initialData: () =>
+            queryClient.getQueryData<RepairLog[]>(["repairLogs", technicianId]) ?? [],
         enabled: canLoadRepairLogs,
         retry: false,
         staleTime: Infinity,
+        gcTime: Infinity,
     });
     const isLoading = isPending || (canLoadRepairLogs && !hasInitialRepairLogs);
 
@@ -207,6 +259,7 @@ export default function RepairLog({
                         .map(mapRepairLog);
 
                     setHasInitialRepairLogs(true);
+                    queryClient.setQueryData(readyQueryKey, true);
                     queryClient.setQueryData<RepairLog[]>(
                         ["repairLogs", technicianId],
                         initialRepairLogs
@@ -234,7 +287,7 @@ export default function RepairLog({
                 repairLogSocketRef.current = null;
             }
         };
-    }, [canLoadRepairLogs, queryClient, technicianId]);
+    }, [canLoadRepairLogs, queryClient, readyQueryKey, technicianId]);
 
     const selectedRepairLog = useMemo(
         () => repairLogs.find((repairLog) => repairLog.id === selectedRepairLogId) ?? null,
@@ -311,7 +364,7 @@ export default function RepairLog({
 
                 {!isLoading && paginatedRepairLogs.map((repairLog) => {
                     return (
-                        <div className="w-full" key={repairLog.id}>
+                        <div className="flex h-full w-full justify-center" key={repairLog.id}>
                             <RepairLogCard
                                 repairLog={repairLog}
                                 onClick={() => {
@@ -363,8 +416,8 @@ export default function RepairLog({
                     side={isMobile ? "bottom" : "right"}
                     className={
                         isMobile
-                            ? "h-[90vh]"
-                            : "w-[1000px]!"
+                            ? "h-[90vh] overflow-hidden border-none"
+                            : "w-[1000px]! overflow-hidden border-none"
                     }
                 >
                     {selectedRepairLog && (

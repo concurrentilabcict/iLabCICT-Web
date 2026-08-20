@@ -1,4 +1,10 @@
-import { CalendarDays, ChevronRight, ClipboardList, FileText } from "lucide-react";
+import {
+    ArrowRight,
+    CalendarDays,
+    ClipboardList,
+    FileText,
+    User,
+} from "lucide-react";
 
 import type { WeeklyReport as WeeklyReportType } from "@/types/weeklyReport";
 import {
@@ -11,49 +17,74 @@ type WeeklyReportCardProps = {
     onClick?: () => void;
 };
 
-export default function WeeklyReportCard({ report, onClick }: WeeklyReportCardProps) {
+export default function WeeklyReportCard({
+    report,
+    onClick,
+}: WeeklyReportCardProps) {
     const totalRepairLogs = getTotalRepairLogs(report.repairLogSummary);
 
     return (
         <button
             type="button"
             onClick={onClick}
-            className="primary-border-color flex w-full flex-col gap-3 rounded-2xl border bg-white p-4 text-left transition-shadow hover:shadow-[0_7px_24px_rgba(15,23,42,0.10)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="flex h-full min-h-[350px] w-full max-w-[600px] flex-col gap-4 rounded-3xl bg-white p-5 text-left shadow-[0_16px_38px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_46px_rgba(15,23,42,0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:max-w-[550px]"
         >
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-4">
                 <div className="flex min-w-0 gap-3">
-                    <div className="mt-1 rounded-xl bg-red-50 p-2.5 text-primary-color">
-                        <FileText size={19} />
+                    <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[#fbf2f0] text-[#bf3419]">
+                        <FileText size={26} />
                     </div>
                     <div className="min-w-0">
-                        <p className="text-sm font-medium secondary-text-color">
-                            {report.reportCode}
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">
+                            Weekly Maintenance Report
                         </p>
-                        <h2 className="truncate text-lg font-semibold">{report.title}</h2>
+                        <h2 className="mt-1 truncate text-xl font-bold text-zinc-950">
+                            {report.reportCode}
+                        </h2>
+                    </div>
+                </div>
+
+                <span className="mt-1 size-3 shrink-0 rounded-full bg-yellow-400" />
+            </div>
+
+            <div>
+                <h3 className="line-clamp-2 text-xl font-bold leading-snug text-zinc-950">
+                    {report.title}
+                </h3>
+
+                <div className="mt-3 flex flex-col gap-1.5 text-sm font-semibold text-zinc-500">
+                    <div className="flex items-center gap-2">
+                        <User size={16} />
+                        <span className="truncate">{report.technicianName}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <CalendarDays size={16} />
+                        <span>{formatDate(report.createdAt)}</span>
                     </div>
                 </div>
             </div>
 
-            <p className="line-clamp-3 text-sm leading-6 secondary-text-color">
-                {report.summary}
-            </p>
-
-            <div className="h-px w-full bg-gray-200" />
-
-            <div className="flex items-center justify-between gap-3 text-sm secondary-text-color">
-                <div className="flex min-w-0 items-center gap-1.5">
-                    <ClipboardList size={15} />
-                    <span>{totalRepairLogs} repair log{totalRepairLogs === 1 ? "" : "s"}</span>
-                </div>
-
-                <div className="flex min-w-0 items-center justify-end gap-1.5">
-                    <CalendarDays size={15} />
-                    <span className="truncate text-right">{formatDate(report.createdAt)}</span>
-                </div>
+            <div className="rounded-2xl bg-zinc-50 p-4">
+                <p className="line-clamp-3 text-sm font-medium leading-6 text-zinc-600">
+                    {report.summary}
+                </p>
             </div>
 
-            <div className="flex items-center justify-end">
-                <ChevronRight size={24} aria-hidden="true" />
+            <div className="mt-auto h-px w-full bg-gray-100" />
+
+            <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#fbf2f0] text-[#bf3419]">
+                        <ClipboardList size={18} />
+                    </div>
+                    <span className="truncate text-sm font-semibold text-zinc-500">
+                        {totalRepairLogs} repair log{totalRepairLogs === 1 ? "" : "s"} associated
+                    </span>
+                </div>
+
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
+                    <ArrowRight size={18} />
+                </div>
             </div>
         </button>
     );

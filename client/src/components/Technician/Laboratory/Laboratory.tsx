@@ -1,9 +1,9 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { privateFetch, createApiError } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
-import type { Room } from "@/types/room";
+import { buildWebSocketUrl } from "@/lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ApiRoom, Room } from "@/types/room";
 import RoomCard from "./RoomCard";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Status, StatusFilter, Floor, FloorFilter } from "@/utils/room";
 import {
     Pagination,
@@ -19,12 +19,47 @@ type LaboratoryProps = {
     floorFilter: FloorFilter,
     searchQuery: string
 }
+
+type RoomsWebSocketEvent =
+    | {
+        event: "initial_rooms";
+        room?: ApiRoom[];
+        rooms?: ApiRoom[];
+        next?: string | null;
+    }
+    | {
+        event: "room_created" | "room_updated" | "room_deleted";
+        room: ApiRoom;
+    };
+
+const ROOMS_QUERY_KEY = ["technician-rooms"] as const;
+const ROOMS_READY_QUERY_KEY = ["technician-rooms-ready"] as const;
+const ROOMS_WS_ENDPOINT = "/ws/rooms/";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null;
+
+const isRoomsWebSocketEvent = (value: unknown): value is RoomsWebSocketEvent => {
+    if (!isRecord(value) || typeof value.event !== "string") {
+        return false;
+    }
+
+    if (value.event === "initial_rooms") {
+        return Array.isArray(value.room) || Array.isArray(value.rooms);
+    }
+
+    return (
+        ["room_created", "room_updated", "room_deleted"].includes(value.event) &&
+        isRecord(value.room)
+    );
+};
+
 const formatLabel = (text: string) => {
     return text
         .replace(/_/g, " ")
         .trim()
         .split(/\s+/)
-        .map((word: any) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(" ")
 };
 
@@ -46,16 +81,22 @@ export default function Laboratory({
     
     const ITEMS_PER_PAGE = 10;
     const isMobile = useMediaQuery("(max-width: 767px)");
+    const queryClient = useQueryClient();
+    const roomSocketRef = useRef<WebSocket | null>(null);
+    const cachedRoomsAreReady =
+        queryClient.getQueryData<boolean>(ROOMS_READY_QUERY_KEY) === true;
+    const [hasInitialRooms, setHasInitialRooms] = useState(cachedRoomsAreReady);
     const filterKey = JSON.stringify([statusFilter, floorFilter, searchQuery]);
     const [pagination, setPagination] = useState({
         page: 1,
         filterKey
     });
 
-    const mapRoom = (room: any): Room => ({
+    const mapRoom = (room: ApiRoom): Room => ({
         id: room.id,
-        computerCount: room.computer_count,
-        activeIssuesCount: room.computer_count_with_active_issues,
+        computerCount: room.computer_count ?? 0,
+        activeIssuesCount:
+            room.active_issues_count ?? room.computer_count_with_active_issues ?? 0,
 
         assignedCustodian: room.assigned_custodian ?
         {
@@ -74,20 +115,97 @@ export default function Laboratory({
         updatedAt: room.updated_at
     });
 
-    const { data: rooms = [], isLoading } = useQuery<Room[]>({
-        queryKey: ["rooms"],
-        queryFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/`)
+    const upsertRoom = (rooms: Room[], apiRoom: ApiRoom) => {
+        const room = mapRoom(apiRoom);
+        const roomExists = rooms.some((currentRoom) => currentRoom.id === room.id);
 
-            const data = await res.json();
-            if(!res.ok){
-                throw createApiError(res.status, data.message || 'Failed to fetch rooms.')
+        if (!roomExists) {
+            return [room, ...rooms];
+        }
+
+        return rooms.map((currentRoom) =>
+            currentRoom.id === room.id ? room : currentRoom
+        );
+    };
+
+    const { data: rooms = [], isPending } = useQuery<Room[]>({
+        queryKey: ROOMS_QUERY_KEY,
+        queryFn: () =>
+            Promise.resolve(
+                queryClient.getQueryData<Room[]>(ROOMS_QUERY_KEY) ?? []
+            ),
+        initialData: () =>
+            queryClient.getQueryData<Room[]>(ROOMS_QUERY_KEY) ?? [],
+        retry: false,
+        staleTime: Infinity,
+        gcTime: Infinity,
+    });
+    const isLoading = isPending || !hasInitialRooms;
+
+    useEffect(() => {
+        let socket: WebSocket | null = null;
+        const connectSocket = window.setTimeout(() => {
+            const accessToken = localStorage.getItem("accessToken");
+
+            if (!accessToken) {
+                return;
             }
 
-            console.log(data.map(mapRoom));
-            return data.map(mapRoom)
-        },
-    });
+            socket = new WebSocket(
+                buildWebSocketUrl(ROOMS_WS_ENDPOINT, { token: accessToken })
+            );
+
+            roomSocketRef.current = socket;
+
+            socket.addEventListener("message", (event: MessageEvent<string>) => {
+                let parsedMessage: unknown;
+
+                try {
+                    parsedMessage = JSON.parse(event.data);
+                } catch {
+                    return;
+                }
+
+                if (!isRoomsWebSocketEvent(parsedMessage)) {
+                    return;
+                }
+
+                if (parsedMessage.event === "initial_rooms") {
+                    const initialRooms = parsedMessage.room ?? parsedMessage.rooms ?? [];
+                    setHasInitialRooms(true);
+                    queryClient.setQueryData(ROOMS_READY_QUERY_KEY, true);
+                    queryClient.setQueryData<Room[]>(
+                        ROOMS_QUERY_KEY,
+                        initialRooms.map(mapRoom)
+                    );
+                    return;
+                }
+
+                if (parsedMessage.event === "room_deleted") {
+                    queryClient.setQueryData<Room[]>(
+                        ROOMS_QUERY_KEY,
+                        (currentRooms = []) =>
+                            currentRooms.filter((room) => room.id !== parsedMessage.room.id)
+                    );
+                    return;
+                }
+
+                queryClient.setQueryData<Room[]>(
+                    ROOMS_QUERY_KEY,
+                    (currentRooms = []) => upsertRoom(currentRooms, parsedMessage.room)
+                );
+            });
+        }, 0);
+
+        return () => {
+            window.clearTimeout(connectSocket);
+            socket?.close();
+
+            if (roomSocketRef.current === socket) {
+                roomSocketRef.current = null;
+            }
+        };
+    }, [queryClient]);
 
 
     const filteredRooms = useMemo(() => {
