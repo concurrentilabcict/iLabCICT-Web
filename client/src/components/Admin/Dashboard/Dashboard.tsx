@@ -88,7 +88,7 @@ const isDashboardRoomEvent = (value: unknown): value is DashboardRoomEvent => {
     }
 
     return (
-        ["room_created", "room_updated", "room_deleted"].includes(value.event) &&
+            ["room_created", "room_updated", "room_deleted"].includes(value.event) &&
         isRecord(value.room)
     );
 };

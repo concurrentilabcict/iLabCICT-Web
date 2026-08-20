@@ -2,8 +2,9 @@ import type { Notification } from "@/types/notification";
 import NotificationCard from "./NotificationCard";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { privateFetch } from "@/lib/api";
+import { NOTIFICATIONS_QUERY_KEY } from "./useNotifications";
 
 type MobileNotificationProps = {
     notifications: Notification[];
@@ -11,7 +12,7 @@ type MobileNotificationProps = {
 
 type NotificationFilter = "All" | "Unread" | "Read";
 
-const notificationFilters: NotificationFilter[] = ["All", "Unread", "Read"];
+const notificationFilters: NotificationFilter[] = ["All", "Read", "Unread"];
 
 export default function MobileNotification({ notifications }: MobileNotificationProps) {
     const [selectedFilter, setSelectedFilter] = useState<NotificationFilter>("All");
@@ -44,17 +45,25 @@ export default function MobileNotification({ notifications }: MobileNotification
                 throw new Error("Failed to update notification status");
             }
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["notifications"],
-            });
+        onSuccess: (_data, id) => {
+            const notificationId = Number(id);
+
+            queryClient.setQueryData<Notification[]>(
+                NOTIFICATIONS_QUERY_KEY,
+                (currentNotifications = []) =>
+                    currentNotifications.map((notification) =>
+                        notification.id === notificationId
+                            ? { ...notification, status: "read" }
+                            : notification
+                    )
+            );
         }
     });
 
     return (
         <>
             <div className="flex flex-col py-3">
-                <div className="flex items-center gap-x-3 px-3 pb-3">
+                <div className="flex gap-3 overflow-x-auto px-3 pb-3">
                     {notificationFilters.map((filter) => {
                         const isSelected = selectedFilter === filter;
 
@@ -63,9 +72,9 @@ export default function MobileNotification({ notifications }: MobileNotification
                                 key={filter}
                                 type="button"
                                 onClick={() => setSelectedFilter(filter)}
-                                className={`rounded-full px-4 py-1.5 cursor-pointer text-base transition-colors ${isSelected
-                                        ? "primary-bg-color text-white"
-                                        : "text-black hover:bg-accent"
+                                className={`shrink-0 rounded-full px-5 py-2.5 cursor-pointer text-base font-semibold shadow-md transition-colors ${isSelected
+                                        ? "primary-bg-color text-white shadow-[#bf3419]/25"
+                                        : "bg-white secondary-text-color shadow-black/10 hover:bg-gray-50"
                                     }`}
                             >
                                 {filter}
@@ -74,7 +83,7 @@ export default function MobileNotification({ notifications }: MobileNotification
                     })}
                 </div>
 
-                <div className="flex flex-col py-3">
+                <div className="flex flex-col gap-3 px-3 py-3">
                     {filteredNotifications.length > 0 ? (
                         filteredNotifications.map((notification) => (
                             <NotificationCard

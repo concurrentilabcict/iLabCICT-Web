@@ -1,7 +1,5 @@
 
 import { Bell } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { createApiError, privateFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
     Sheet,
@@ -10,31 +8,11 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
-import type { Notification } from "@/types/notification";
 import MobileNotification from "./MobileNotification";
-import { mapNotification, sortNotificationsByNewest } from "@/utils/notification";
+import { useNotifications } from "./useNotifications";
 
 export default function DesktopNotification() {
-    const userId = localStorage.getItem("id");
-
-    const { data: notifications = [], isLoading, isError } = useQuery<Notification[]>({
-        queryKey: ["notifications"],
-        queryFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/notifications/user`);
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw createApiError(
-                    res.status,
-                    data.message || "Failed to fetch notifications."
-                );
-            }
-
-            const notificationList = Array.isArray(data) ? data : data.notifications;
-            return sortNotificationsByNewest(notificationList.map(mapNotification));
-        },
-        enabled: Boolean(userId),
-    });
+    const { notifications, isLoading, isError } = useNotifications();
 
     const unreadCount = notifications.filter(
         (notification) => notification.status.toLowerCase() === "unread"

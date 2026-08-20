@@ -1,33 +1,10 @@
-import { createApiError, privateFetch } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
-import type { Notification } from "@/types/notification";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import MobileNotification from "./MobileNotification";
-import { mapNotification, sortNotificationsByNewest } from "@/utils/notification";
+import { useNotifications } from "./useNotifications";
 
 export default function Notification() {
-    const userId = localStorage.getItem("id");
     const isMobile = useMediaQuery("(max-width: 767px)");
-
-    const { data: notifications = [], isLoading, isError } = useQuery<Notification[]>({
-        queryKey: ["notifications"],
-        queryFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/notifications/user/`);
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw createApiError(res.status,
-                    data.message || "Failed to fetch notifications.");
-            }
-
-            const notificationList = Array.isArray(data) ? data : data.notifications;
-            console.log("hello")
-            console.log(notificationList)
-            return sortNotificationsByNewest(notificationList.map(mapNotification));
-        },
-        // refetchInterval: 10000,
-    });
+    const { notifications, isLoading, isError } = useNotifications();
 
     if (isLoading) {
         return (

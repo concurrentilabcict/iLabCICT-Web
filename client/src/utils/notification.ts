@@ -42,21 +42,38 @@ const mapNotificationUser = (user: unknown, fallbackFirstName: string, fallbackL
 export const mapNotification = (notification: unknown): Notification => {
     const source = isRecord(notification) ? notification : {};
     const ticket = getRecord(source, "ticket") ?? {};
+    const activitySummary = getRecord(source, "activity_summary") ?? getRecord(source, "activitySummary") ?? {};
     const reportedBy = getRecord(ticket, "reported_by") ?? getRecord(ticket, "reportedBy");
     const assignedTo = getRecord(ticket, "assigned_to") ?? getRecord(ticket, "assignedTo");
+    const entityId = getNumber(source, "entity_id") ?? getNumber(source, "entityId") ?? getNumber(ticket, "id") ?? getNumber(source, "ticket_id") ?? 0;
+    const entityTitle =
+        getString(activitySummary, "entity_title") ??
+        getString(activitySummary, "entityTitle") ??
+        getString(ticket, "title") ??
+        getString(source, "header") ??
+        "Ticket update";
+    const actor = getString(activitySummary, "actor") ?? "Unknown";
 
     return {
         id: getNumber(source, "id") ?? 0,
+        entityId,
+        entityType: getString(source, "entity_type") ?? getString(source, "entityType") ?? "ticket",
+        eventType: getString(source, "event_type") ?? getString(source, "eventType") ?? "",
         title: getString(source, "title") ?? "Notification",
+        activitySummary: {
+            actor,
+            entityTitle,
+        },
         ticket: {
-            id: getNumber(ticket, "id") ?? getNumber(source, "ticket_id") ?? 0,
+            id: entityId,
             type: normalizeTicketType(getString(ticket, "type") ?? getString(source, "ticket_type")),
-            title: getString(ticket, "title") ?? getString(source, "header") ?? "Ticket update",
-            reportedBy: mapNotificationUser(reportedBy, "Unknown", "Reporter"),
+            title: entityTitle,
+            reportedBy: mapNotificationUser(reportedBy, actor, ""),
             assignedTo: assignedTo ? mapNotificationUser(assignedTo, "Unassigned", "Technician") : null,
         },
         status: getString(source, "status") ?? "read",
         createdAt: getString(source, "created_at") ?? getString(source, "createdAt") ?? new Date().toISOString(),
+        recipientId: getNumber(source, "recipient_id") ?? getNumber(source, "recipientId") ?? null,
     };
 };
 

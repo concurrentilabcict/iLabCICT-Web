@@ -51,8 +51,8 @@ export default function NotificationPage() {
             <SidebarProvider>
                 <NavBar />
                 <SidebarInset>
-                    <div className="min-h-screen">
-                        <MobileHeader title="Notification" />
+                    <div className="min-h-screen bg-[#f8fafc]">
+                        <MobileHeader title="Notifications" />
                         <div className="mx-auto max-w-[1000px]">
                             <Notification />
                         </div>
