@@ -1,7 +1,6 @@
 import type { Status } from "@/utils/computer";
 import { statusConfig } from "@/utils/computer";
-import { formatDateTime } from "@/utils/string";
-import { Cpu } from "lucide-react";
+import { Braces, Cpu, HardDrive, MemoryStick, Microchip, MonitorCog } from "lucide-react";
 
 
 type SystemDetailsProps = {
@@ -26,110 +25,50 @@ export default function SystemDetailsCard({
     operatingSystem,
     buildVersion,
     status,
-    createdAt,
-    updatedAt
 }: SystemDetailsProps){
 
     const statusData = statusConfig[status];
+    const items = [
+        { label: "Operating System", value: operatingSystem, icon: MonitorCog },
+        { label: "Processor", value: cpu, icon: Cpu },
+        { label: "Graphics Card", value: gpu, icon: HardDrive },
+        { label: "Installed RAM", value: ramSize, icon: MemoryStick },
+        { label: "Storage", value: diskSize, icon: HardDrive },
+        { label: "Motherboard", value: motherboard, icon: Microchip },
+        { label: "Build Version", value: buildVersion, icon: Braces },
+    ];
 
     return(
             <>
-                <div className="bg-white flex flex-col gap-y-2.5
-                rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px] shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
+                <div className="overflow-hidden bg-white rounded-3xl w-full max-w-[600px] md:max-w-[550px] shadow-[0_16px_38px_rgba(15,23,42,0.12)]">
                     
-                    <div className="flex gap-2 items-center">
-                        <Cpu size={20} className="primary-text-color"/>
-                        <span className="text-md font-semibold">Specifications</span>
-                    </div>
-
-                    <div>
-                        <div className="flex justify-between">
-                            <span className="secondary-text-color text-sm">CPU</span>
-
-                            <span className="text-sm">{cpu}</span>
+                    <div className="primary-bg-color px-6 py-6 text-white">
+                        <div className="flex items-center gap-4">
+                            <span className="grid size-14 place-items-center rounded-2xl bg-white/15">
+                                <Cpu className="size-7"/>
+                            </span>
+                            <div>
+                                <h2 className="text-2xl font-bold">System Specifications</h2>
+                                <p className="text-sm font-semibold text-white/70">Hardware and operating system details</p>
+                            </div>
                         </div>
-                        <div className="border-t primary-border-color my-1.5"></div>
                     </div>
 
-                    <div>
-                        <div className="flex justify-between">
-                            <span className="secondary-text-color text-sm">Motherboard</span>
-
-                            <span className="text-sm">{motherboard}</span>
-                        </div>
-                        <div className="border-t primary-border-color my-1.5"></div>
-                    </div>
-
-                    <div>
-                        <div className="flex justify-between">
-                            <span className="secondary-text-color text-sm">Operating System</span>
-
-                            <span className="text-sm">{operatingSystem}</span>
-                        </div>
-                        <div className="border-t primary-border-color my-1.5"></div>
-                    </div>
-
-                    <div>
-                        <div className="flex justify-between">
-                            <span className="secondary-text-color text-sm">Storage</span>
-
-                            <span className="text-sm">{diskSize}</span>
-                        </div>
-                        <div className="border-t primary-border-color my-1.5"></div>
-                    </div>
-
-                    
-                    <div>
-                        <div className="flex justify-between">
-                            <span className="secondary-text-color text-sm">GPU</span>
-
-                            <span className="text-sm">{gpu}</span>
-                        </div>
-                        <div className="border-t primary-border-color my-1.5"></div>
-                    </div>
-
-                    
-                    <div>
-                        <div className="flex justify-between">
-                            <span className="secondary-text-color text-sm">RAM</span>
-
-                            <span className="text-sm">{ramSize}</span>
-                        </div>
-                        <div className="border-t primary-border-color my-1.5"></div>
-                    </div>
-
-                    <div>
-                        <div className="flex justify-between">
-                            <span className="secondary-text-color text-sm">Build Version</span>
-
-                            <span className="text-sm">{buildVersion}</span>
-                        </div>
-                        <div className="border-t primary-border-color my-1.5"></div>
-                    </div>
-
-                    <div>
-                        <div className="flex justify-between">
-                            <span className="secondary-text-color text-sm">Creation Date</span>
-
-                            <span className="text-sm">{formatDateTime(createdAt)}</span>
-                        </div>
-                        <div className="border-t primary-border-color my-1.5"></div>
-                    </div>
-
-                    <div>
-                        <div className="flex justify-between">
-                            <span className="secondary-text-color text-sm">Last Modified</span>
-
-                            <span className="text-sm">{formatDateTime(updatedAt)}</span>
-                        </div>
-                        <div className="border-t primary-border-color my-1.5"></div>
-                    </div>
-
-                    <div>
-                        <div className="flex justify-between items-center">
-                            <span className="secondary-text-color text-sm">Status</span>
-
-                            <span className={`flex w-fit p-1 items-center rounded-md text-sm ${statusData?.className}`}>{status}</span>
+                    <div className="grid gap-6 p-6">
+                        {items.map(({ label, value, icon: Icon }) => (
+                            <div key={label} className="flex items-center gap-5">
+                                <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[#f8eee9]">
+                                    <Icon className="size-7 primary-text-color" />
+                                </span>
+                                <div className="min-w-0">
+                                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{label}</p>
+                                    <p className="truncate text-xl font-bold text-zinc-900">{value}</p>
+                                </div>
+                            </div>
+                        ))}
+                        <div className="flex items-center justify-between rounded-2xl bg-zinc-50 p-4">
+                            <span className="font-bold text-zinc-500">Computer Status</span>
+                            <span className={`flex w-fit items-center rounded-full px-3 py-1.5 text-sm font-bold ${statusData?.className}`}>{status}</span>
                         </div>
                     </div>
 

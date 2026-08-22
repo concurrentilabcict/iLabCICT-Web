@@ -1,12 +1,11 @@
-import { LaptopMinimal, Calendar, SquarePen, Trash, HardDrive, History} from "lucide-react";
+import { Cpu, HardDrive, LaptopMinimal, MemoryStick, SquarePen } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { statusConfig, type Status } from "@/utils/computer";
-import { formatDateTime } from "@/utils/string";
 import type { ComputerCardType } from "@/types/computer";
 
 type CompCardType = {
     computer: ComputerCardType
-    setSelectedComputer: Function
+    setSelectedComputer: (computer: ComputerCardType) => void
     setIsEditing: (open: boolean) => void,
     setSheetOpen: (open: boolean) => void
 }
@@ -39,38 +38,44 @@ export default function ComputerCard({
     const navigate = useNavigate()
     return(
         <>
-             <div className="bg-white flex flex-col gap-y-2.5 border primary-border-color
-        rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px] cursor-pointer">
-                <div className="flex justify-between">
-                    <h1 className="font-bold text-2xl">{computer.computerCode}</h1>
+             <div className="relative min-h-[230px] w-full max-w-[600px] cursor-pointer overflow-hidden rounded-3xl bg-white p-6 shadow-[0_16px_38px_rgba(15,23,42,0.10)] md:max-w-[550px]">
+                <div className="absolute -bottom-8 -right-10 h-36 w-40 rounded-t-3xl bg-zinc-100" />
+                <div className="relative flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-4">
+                        <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-[#f8eee9]">
+                            <LaptopMinimal className="size-8 primary-text-color" />
+                        </span>
+                        <h1 className="truncate text-3xl font-bold text-zinc-950">{computer.computerCode}</h1>
+                    </div>
                     <div
-                        className={`flex w-fit gap-x-2 items-center px-3 py-1.5 rounded-md ${statusData.className}`}
+                        className={`flex w-fit shrink-0 gap-x-2 items-center px-3 py-1.5 rounded-full text-sm font-bold ${statusData.className}`}
                     >
                         <StatusIcon size={14} />
-                        <span className="text-sm">{formatLabel(computer.computerStatus)}</span>
+                        <span>{formatLabel(computer.computerStatus)}</span>
                     </div>                    
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <h1 className="secondary-text-color text-sm">{computer.operatingSystem}</h1>
-                </div>
-
-                <div className="flex justify-between ">
-
-                    <div className="flex gap-1.5 items-center">
-                        <History className="secondary-text-color" size={22}/>
-                        <span className="font-light secondary-text-color text-sm">{formatDateTime(computer.updatedAt)}</span>
+                <div className="relative mt-8 grid gap-4 pr-24">
+                    <div className="flex items-center gap-4 text-lg font-bold text-zinc-600">
+                        <Cpu className="size-5 text-zinc-500" />
+                        <span className="truncate">{computer.cpu}</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-lg font-bold text-zinc-600">
+                        <HardDrive className="size-5 text-zinc-500" />
+                        <span className="truncate">{computer.gpu}</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-lg font-bold text-zinc-600">
+                        <MemoryStick className="size-5 text-zinc-500" />
+                        <span>{computer.ramSizeInstalled}GB RAM</span>
                     </div>
                 </div>
-
-                <div className="border-t primary-border-color my-2"></div>
                 
 
-                <div className="flex w-full gap-2">
+                <div className="relative mt-6 flex w-full gap-2">
                     <button
                         onClick={()=>navigate(`/manage-laboratory/${room}/${computer.computerCode}`)}
                         type="button"
-                        className="flex flex-1 justify-center shrink-0 gap-2.5 bg-white primary-bg-color rounded-md px-4 py-2 text-sm font-medium text-white"
+                        className="flex flex-1 justify-center shrink-0 gap-2.5 primary-bg-color rounded-xl px-4 py-2 text-sm font-bold text-white"
                         >
                         <HardDrive size={20}/> View Specifications
                     </button>
@@ -78,7 +83,7 @@ export default function ComputerCard({
                     <button
                         onClick={()=>handleEditComputerClick(computer)}
                         type="button"
-                        className="bg-white shrink-0 rounded-md border primary-border-color px-4 py-2 text-sm font-medium secondary-text-color hover: cursor-pointer"
+                        className="bg-white shrink-0 rounded-xl px-4 py-2 text-sm font-medium secondary-text-color shadow-[0_8px_22px_rgba(15,23,42,0.10)] hover: cursor-pointer"
                     >
                         <SquarePen size={20} className="secondary-text-color"/>
                     </button>

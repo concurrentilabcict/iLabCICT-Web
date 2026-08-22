@@ -23,6 +23,11 @@ const formatLabel = (text: string) => {
         .join(" ")
 };
 
+const fallbackMaintenanceType = {
+    icon: ClipboardClock,
+    className: "bg-gray-100 text-gray-700",
+};
+
 
 export default function MaintenanceHistoryCard({computerId, openSheet,setMaintenanceHistory}: MaintenanceHistoryCardType){
 
@@ -93,10 +98,12 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
 
                     {!isLoading && filterMaintenanceHistory.map((mh, index)=> {
 
-                        const typeData = maintenanceTypeConfig[formatLabel(mh.maintenanceType) as MaintenanceTypes];
+                        const typeData =
+                            maintenanceTypeConfig[formatLabel(mh.maintenanceType) as MaintenanceTypes] ??
+                            fallbackMaintenanceType;
                         const TypeIcon = typeData.icon
-                        const maintenanceTitle = formatLabel(mh.repairLog.title)
-                        const maintenanceStatus = formatLabel(mh.repairLog.ticket.status)
+                        const maintenanceTitle = formatLabel(mh.repairLog?.title || "No title")
+                        const maintenanceStatus = formatLabel(mh.repairLog?.ticket?.status || "No status")
                         console.log(mh)
 
                         return(

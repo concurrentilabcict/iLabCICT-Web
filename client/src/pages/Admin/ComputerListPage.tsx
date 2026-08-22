@@ -25,6 +25,11 @@ export default function AdminComputerListPage(){
     const queryClient = useQueryClient();
 
     const [custodian, setCustodian] = useState("");
+    const [roomMeta, setRoomMeta] = useState({
+        buildingName: "",
+        floorNumber: 0,
+        technicianName: ""
+    });
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -54,10 +59,13 @@ export default function AdminComputerListPage(){
     const location = useLocation();
     const locationState = location.state as ComputerListLocationState | null;
     const decodedRoom = room ? decodeURIComponent(room) : "";
-    const cachedRooms =
-        queryClient.getQueryData<Room[]>(["rooms"]) ??
-        queryClient.getQueryData<Room[]>(["admin-dashboard-rooms"]) ??
-        [];
+    const cachedRooms = useMemo(
+        () =>
+            queryClient.getQueryData<Room[]>(["rooms"]) ??
+            queryClient.getQueryData<Room[]>(["admin-dashboard-rooms"]) ??
+            [],
+        [queryClient]
+    );
     const matchedRoom = useMemo(
         () =>
             cachedRooms.find(
@@ -68,18 +76,22 @@ export default function AdminComputerListPage(){
         [cachedRooms, decodedRoom]
     );
     const roomId = matchedRoom ? String(matchedRoom.id) : decodedRoom;
-    const [roomName, setRoomName] = useState(
-        locationState?.roomName ?? matchedRoom?.roomName ?? decodedRoom
-    );
+    const fallbackRoomName = locationState?.roomName ?? matchedRoom?.roomName ?? decodedRoom;
+    const [resolvedRoomName, setResolvedRoomName] = useState({
+        roomId,
+        name: fallbackRoomName
+    });
+    const roomName =
+        resolvedRoomName.roomId === roomId
+            ? resolvedRoomName.name
+            : fallbackRoomName;
+    const handleRoomNameChange = (name: string) => {
+        setResolvedRoomName({ roomId, name });
+    };
 
     useEffect(()=>{
         document.title = `${roomName + ` | `}ILabCICT`;
     }, [roomName])
-
-    useEffect(() => {
-        setRoomName(locationState?.roomName ?? matchedRoom?.roomName ?? decodedRoom);
-    }, [decodedRoom, locationState?.roomName, matchedRoom?.roomName]);
-
 
     return(
         <>
@@ -98,10 +110,12 @@ export default function AdminComputerListPage(){
                                 <ButtonGroup
                                     computers={computers}
                                     roomName={roomName}
+                                    buildingName={roomMeta.buildingName}
+                                    floorNumber={roomMeta.floorNumber}
+                                    technicianName={roomMeta.technicianName}
                                     setSheetOpen={setSheetOpen}
                                     custodianName={custodian}
                                     setIsEditing={setIsEditing}
-                                    setSelectedComputer={setSelectedComputer}
                                 />
                                 <ComputerList
                                     setComputers={setComputers}
@@ -112,7 +126,8 @@ export default function AdminComputerListPage(){
                                     setSheetOpen={setSheetOpen}
                                     sheetOpen={sheetOpen}
                                     roomId={roomId}
-                                    setRoomName={setRoomName}
+                                    setRoomMeta={setRoomMeta}
+                                    setRoomName={handleRoomNameChange}
                                     statusFilter={statusFilter}
                                     searchQuery={searchQuery}
                                     setCustodian={setCustodian}

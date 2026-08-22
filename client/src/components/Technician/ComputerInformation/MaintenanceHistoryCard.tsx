@@ -5,7 +5,7 @@ import { ClipboardClock } from "lucide-react";
 import { createApiError, privateFetch } from "@/lib/api";
 import { maintenanceTypeConfig, type MaintenanceTypes } from "@/utils/maintenanceHistory";
 import { formatDateTime } from "@/utils/string";
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 
 type MaintenanceHistoryCardType = {
     computerId: number,
@@ -32,6 +32,11 @@ type ApiMaintenanceHistory = {
     technician: number;
     date_performed: string;
     repair_log: MaintenanceHistoryRepairLog;
+};
+
+const fallbackMaintenanceType = {
+    icon: ClipboardClock,
+    className: "bg-gray-100 text-gray-700",
 };
 
 
@@ -108,14 +113,15 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
 
                     {!isLoading && filterMaintenanceHistory.map((mh, index)=> {
 
-                        const typeData = maintenanceTypeConfig[formatLabel(mh.maintenanceType) as MaintenanceTypes];
+                        const typeData =
+                            maintenanceTypeConfig[formatLabel(mh.maintenanceType) as MaintenanceTypes] ??
+                            fallbackMaintenanceType;
                         const TypeIcon = typeData.icon
-                        const maintenanceTitle = formatLabel(mh.repairLog.title)
-                        const maintenanceStatus = formatLabel(mh.repairLog.ticket.status)
-                        console.log(mh)
+                        const maintenanceTitle = formatLabel(mh.repairLog?.title || "No title")
+                        const maintenanceStatus = formatLabel(mh.repairLog?.ticket?.status || "No status")
 
                         return(
-                            <>
+                            <Fragment key={mh.id}>
                             <div 
                             onClick={()=>{
                                 setMaintenanceHistory(mh)
@@ -149,7 +155,7 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
                                 <div className="border-t primary-border-color my-1.5"></div>
                             )}
                         
-                            </>
+                            </Fragment>
                         )
                     })}
                         

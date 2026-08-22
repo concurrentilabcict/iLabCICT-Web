@@ -32,7 +32,7 @@ type LaboratoryProps = {
     isEditing: boolean,
     setSheetOpen: (open: boolean) => void,
     setIsEditing: (open: boolean) => void,
-    setSelectedRoom: Function,
+    setSelectedRoom: (room: EditRoomFormType) => void,
     selectedRoom: EditRoomFormType
 }
 

@@ -25,6 +25,11 @@ export default function ComputerListPage(){
     const queryClient = useQueryClient();
 
     const [custodian, setCustodian] = useState("");
+    const [roomMeta, setRoomMeta] = useState({
+        buildingName: "",
+        floorNumber: 0,
+        technicianName: ""
+    });
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -104,11 +109,13 @@ export default function ComputerListPage(){
                                 />
                                 <ButtonGroup
                                     roomName={roomName}
+                                    buildingName={roomMeta.buildingName}
+                                    floorNumber={roomMeta.floorNumber}
+                                    technicianName={roomMeta.technicianName}
                                     computers={computers}
                                     setSheetOpen={setSheetOpen}
                                     custodianName={custodian}
                                     setIsEditing={setIsEditing}
-                                    setSelectedComputer={setSelectedComputer}
                                 />
                                 <ComputerList
                                     setComputers={setComputers}
@@ -119,6 +126,7 @@ export default function ComputerListPage(){
                                     setSheetOpen={setSheetOpen}
                                     sheetOpen={sheetOpen}
                                     roomId={roomId}
+                                    setRoomMeta={setRoomMeta}
                                     setRoomName={handleRoomNameChange}
                                     statusFilter={statusFilter}
                                     searchQuery={searchQuery}

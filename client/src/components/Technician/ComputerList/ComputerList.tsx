@@ -33,6 +33,7 @@ type ComputerListProps = {
     searchQuery: string,
     statusFilter: StatusFilter,
     setCustodian: (custodian: string) => void,
+    setRoomMeta: (meta: { buildingName: string; floorNumber: number; technicianName: string }) => void,
     setRoomName: (roomName: string) => void,
     sheetOpen: boolean,
     isEditing: boolean,
@@ -92,6 +93,7 @@ export default function ComputerList({
     searchQuery,
     statusFilter,
     setCustodian,
+    setRoomMeta,
     setRoomName,
     sheetOpen,
     isEditing,
@@ -231,10 +233,18 @@ export default function ComputerList({
                     const custodian = roomComputers.assigned_custodian
                         ? `${roomComputers.assigned_custodian.first_name} ${roomComputers.assigned_custodian.last_name}`
                         : "No custodian";
+                    const technician = roomComputers.assigned_technician
+                        ? `${roomComputers.assigned_technician.first_name} ${roomComputers.assigned_technician.last_name}`
+                        : "No Assigned";
                     const mappedComputers = roomComputers.computers.map(mapComputerCard);
 
                     setRoomName(roomComputers.room_name);
                     setCustodian(custodian);
+                    setRoomMeta({
+                        buildingName: roomComputers.building_name,
+                        floorNumber: roomComputers.floor_number,
+                        technicianName: technician
+                    });
                     setRoomDatabaseId(roomComputers.id);
                     setComputerReadiness({ roomId, isReady: true });
                     queryClient.setQueryData(readyQueryKey, true);
@@ -269,7 +279,7 @@ export default function ComputerList({
                 computerSocketRef.current = null;
             }
         };
-    }, [queryClient, queryKey, readyQueryKey, roomId, setCustodian, setComputers, setRoomName, upsertComputer]);
+    }, [queryClient, queryKey, readyQueryKey, roomId, setCustodian, setComputers, setRoomMeta, setRoomName, upsertComputer]);
 
     const filteredComputers = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLowerCase()

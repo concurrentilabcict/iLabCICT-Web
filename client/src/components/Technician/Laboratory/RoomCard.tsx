@@ -1,4 +1,4 @@
-import { Building, LaptopMinimal, TriangleAlert, User } from "lucide-react";
+import { Building2, LaptopMinimal, Layers3, User, Wrench } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { statusConfig, type Status } from "@/utils/room";
 import type { Room } from "@/types/room";
@@ -19,73 +19,84 @@ export default function RoomCard({
 
     const statusData = statusConfig[status];
     const StatusIcon = statusData.icon
+    const technician = room.assignedTechnician
+        ? `${room.assignedTechnician.firstName} ${room.assignedTechnician.lastName}`
+        : "No Assigned";
+    const custodianTone = assignedCustodian === "No assigned custodian" ? "text-red-500" : "text-zinc-900";
+    const technicianTone = technician === "No Assigned" ? "text-red-500" : "text-zinc-900";
 
     const navigate = useNavigate()
     return(
         <>
-        <div className="bg-white flex flex-col gap-y-2.5 border primary-border-color
-        rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px] cursor-pointer">
+        <div
+            onClick={() =>
+                navigate(`/manage-laboratory/${room.id}`, {
+                    state: { roomName: room.roomName },
+                })
+            }
+            className="relative min-h-[290px] w-full max-w-[600px] cursor-pointer overflow-hidden rounded-3xl bg-white p-6 shadow-[0_16px_38px_rgba(15,23,42,0.10)] md:max-w-[550px]"
+        >
+                <div className="absolute -bottom-10 -right-6 h-44 w-36 rounded-t-[2rem] bg-[#f8eee9]" />
+                <div className="absolute bottom-8 right-14 grid grid-cols-3 gap-4 opacity-90">
+                    {Array.from({ length: 12 }).map((_, index) => (
+                        <span key={index} className="size-3 rounded-full bg-white" />
+                    ))}
+                </div>
 
-                <div className="flex justify-between">
-                    <h1 className="font-bold text-2xl">{room.roomName}</h1>   
-                    
+                <div className="relative flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-4">
+                        <div className="grid size-16 shrink-0 place-items-center rounded-2xl bg-[#f8eee9]">
+                            <LaptopMinimal className="size-8 primary-text-color" />
+                        </div>
+                        <h1 className="truncate text-3xl font-bold text-zinc-950">{room.roomName}</h1>
+                    </div>
                     <div
-                        className={`flex w-fit gap-x-2 items-center px-3 py-1.5 rounded-md ${statusData.className}`}
+                        className={`flex w-fit shrink-0 items-center gap-x-2 rounded-full px-3 py-1.5 text-sm font-bold ${statusData.className}`}
                     >
                         <StatusIcon size={14} />
-                        <span className="text-sm">{status}</span>
+                        <span>{statusData.value}</span>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <Building className="secondary-text-color" size={16}/>
-                    <h1 className="secondary-text-color">{location}</h1>
-                </div>
+                <div className="relative my-6 h-px bg-zinc-100" />
 
-                <div className="flex items-center gap-2">
-                    <User className="secondary-text-color" size={16}/>
-                    <h1 className="secondary-text-color">{assignedCustodian}</h1>
-                </div>
-
-                <div className="flex justify-between ">
-                    <div className="flex flex-col gap-3 py-3 px-6 bg-[#f8fafc] rounded-xl">
-                       <span className="flex items-center gap-3 ">
-                            <LaptopMinimal size={20}
-                                className="primary-text-color"
-                            />
-                            <h1 className="secondary-text-color">Computers</h1>
+                <div className="relative grid gap-4 pr-20">
+                    <div className="flex items-center gap-4">
+                        <span className="grid size-12 place-items-center rounded-xl bg-zinc-50">
+                            <Building2 className="size-6 text-zinc-500" />
                         </span>
-
-                        <span className="font-bold text-2xl">{room.computerCount}</span> 
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Building</p>
+                            <p className="text-lg font-bold text-zinc-900">{room.buildingName}</p>
+                        </div>
                     </div>
-
-                    <div className="flex flex-col gap-3 py-3 px-6 bg-[#f8fafc] rounded-xl">
-                       <span className="flex items-center gap-3">
-                            <TriangleAlert 
-                                className="text-[#FF0000]"
-                                size={20}/>
-                            <h1 className="secondary-text-color">Active Issues</h1>
+                    <div className="flex items-center gap-4">
+                        <span className="grid size-12 place-items-center rounded-xl bg-zinc-50">
+                            <Layers3 className="size-6 text-zinc-500" />
                         </span>
-
-                        <span className="font-bold text-2xl">{room.activeIssuesCount}</span> 
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Floor</p>
+                            <p className="text-lg font-bold text-zinc-900">{location.split(" - ")[1]?.split(",")[0] ?? room.floorNumber}</p>
+                        </div>
                     </div>
-                </div>
-
-                <div className="border-t primary-border-color my-2"></div>
-                
-
-                <div className="flex w-full gap-2">
-                    <button
-                        onClick={() =>
-                            navigate(`/manage-laboratory/${room.id}`, {
-                                state: { roomName: room.roomName },
-                            })
-                        }
-                        type="button"
-                        className="flex w-full justify-center gap-2.5 bg-white primary-bg-color shrink-0 rounded-md px-4 py-2 text-sm font-medium text-white"
-                        >
-                        <LaptopMinimal size={20}/> View Computers
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <span className="grid size-12 place-items-center rounded-xl bg-zinc-50">
+                            <User className="size-6 text-zinc-500" />
+                        </span>
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Custodian</p>
+                            <p className={`text-lg font-bold ${custodianTone}`}>{assignedCustodian}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <span className="grid size-12 place-items-center rounded-xl bg-zinc-50">
+                            <Wrench className="size-6 text-zinc-500" />
+                        </span>
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Assigned Technician</p>
+                            <p className={`text-lg font-bold ${technicianTone}`}>{technician}</p>
+                        </div>
+                    </div>
                 </div>
                 
              </div>

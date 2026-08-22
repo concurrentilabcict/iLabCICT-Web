@@ -8,7 +8,7 @@ import type {
 } from "@/types/computer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getPaginationWindow } from "@/utils/pagination";
 
@@ -28,18 +28,19 @@ import {
 import AddComputerForm from "./AddComputerForm";
 import EditComputerForm from "./EditComputerForm";
 type ComputerListProps = {
-    setComputers: Function,
+    setComputers: (computers: ComputerCardType[]) => void,
     roomId: string,
     searchQuery: string,
     statusFilter: StatusFilter,
-    setCustodian: Function,
+    setCustodian: (custodian: string) => void,
+    setRoomMeta: (meta: { buildingName: string; floorNumber: number; technicianName: string }) => void,
     setRoomName: (roomName: string) => void,
     sheetOpen: boolean,
     isEditing: boolean,
     selectedComputer: ComputerCardType, 
     setSheetOpen: (open: boolean) => void,
     setIsEditing: (open: boolean) => void,
-    setSelectedComputer: Function
+    setSelectedComputer: (computer: ComputerCardType) => void
 }
 
 type RoomComputersWebSocketEvent =
@@ -92,6 +93,7 @@ export default function ComputerList({
     searchQuery,
     statusFilter,
     setCustodian,
+    setRoomMeta,
     setRoomName,
     sheetOpen,
     isEditing,
@@ -102,7 +104,7 @@ export default function ComputerList({
 }: ComputerListProps){
 
     const isMobile = useMediaQuery("(max-width: 767px)");
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [, setSearchParams] = useSearchParams();
     const queryClient = useQueryClient();
     const computerSocketRef = useRef<WebSocket | null>(null);
     const queryKey = useMemo(
@@ -115,9 +117,14 @@ export default function ComputerList({
     );
     const cachedComputersAreReady =
         queryClient.getQueryData<boolean>(readyQueryKey) === true;
-    const [hasInitialComputers, setHasInitialComputers] = useState(
-        cachedComputersAreReady
-    );
+    const [computerReadiness, setComputerReadiness] = useState({
+        roomId,
+        isReady: cachedComputersAreReady
+    });
+    const hasInitialComputers =
+        computerReadiness.roomId === roomId
+            ? computerReadiness.isReady
+            : cachedComputersAreReady;
     const [roomDatabaseId, setRoomDatabaseId] = useState<number | null>(null);
 
     const ITEMS_PER_PAGE = 10;
@@ -155,7 +162,7 @@ export default function ComputerList({
         updatedAt: computerCard.updated_at
     })
 
-    const upsertComputer = (
+    const upsertComputer = useCallback((
         currentComputers: ComputerCardType[],
         apiComputer: ApiComputerCard
     ) => {
@@ -171,7 +178,7 @@ export default function ComputerList({
         return currentComputers.map((currentComputer) =>
             currentComputer.id === computer.id ? computer : currentComputer
         );
-    };
+    }, []);
 
     const { data: computers = [], isPending } = useQuery<ComputerCardType[]>({
         queryKey,
@@ -190,12 +197,6 @@ export default function ComputerList({
     useEffect(() => {
         setComputers(computers);
     }, [computers, setComputers]);
-
-    useEffect(() => {
-        setHasInitialComputers(
-            queryClient.getQueryData<boolean>(readyQueryKey) === true
-        );
-    }, [queryClient, readyQueryKey]);
 
     useEffect(() => {
         let socket: WebSocket | null = null;
@@ -232,12 +233,20 @@ export default function ComputerList({
                     const custodian = roomComputers.assigned_custodian
                         ? `${roomComputers.assigned_custodian.first_name} ${roomComputers.assigned_custodian.last_name}`
                         : "No custodian";
+                    const technician = roomComputers.assigned_technician
+                        ? `${roomComputers.assigned_technician.first_name} ${roomComputers.assigned_technician.last_name}`
+                        : "No Assigned";
                     const mappedComputers = roomComputers.computers.map(mapComputerCard);
 
                     setRoomName(roomComputers.room_name);
                     setCustodian(custodian);
+                    setRoomMeta({
+                        buildingName: roomComputers.building_name,
+                        floorNumber: roomComputers.floor_number,
+                        technicianName: technician
+                    });
                     setRoomDatabaseId(roomComputers.id);
-                    setHasInitialComputers(true);
+                    setComputerReadiness({ roomId, isReady: true });
                     queryClient.setQueryData(readyQueryKey, true);
                     queryClient.setQueryData<ComputerCardType[]>(
                         queryKey,
@@ -270,7 +279,7 @@ export default function ComputerList({
                 computerSocketRef.current = null;
             }
         };
-    }, [queryClient, queryKey, readyQueryKey, roomId, setCustodian, setComputers, setRoomName]);
+    }, [queryClient, queryKey, readyQueryKey, roomId, setCustodian, setComputers, setRoomMeta, setRoomName, upsertComputer]);
 
     const filteredComputers = useMemo(() => {
         const normalizedQuery = searchQuery?.trim()
