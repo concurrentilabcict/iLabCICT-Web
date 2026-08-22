@@ -1,4 +1,4 @@
-import { buildWebSocketUrl } from "@/lib/api";
+import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
 import type { Notification } from "@/types/notification";
 import { mapNotification, sortNotificationsByNewest } from "@/utils/notification";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -98,8 +98,8 @@ export const useNotifications = () => {
 
     useEffect(() => {
         let socket: WebSocket | null = null;
-        const connectSocket = window.setTimeout(() => {
-            const accessToken = localStorage.getItem("accessToken");
+        const connectSocket = window.setTimeout(async () => {
+            const accessToken = await getFreshAccessToken();
 
             if (!accessToken) {
                 return;

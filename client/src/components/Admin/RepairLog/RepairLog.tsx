@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { buildWebSocketUrl } from "@/lib/api";
+import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
 import type { RepairLog as RepairLogType } from "@/types/repairLog";
 import { getPaginationWindow } from "@/utils/pagination";
 import type { TicketTypeFilter } from "@/utils/ticket";
@@ -200,8 +200,8 @@ export default function RepairLog() {
 
   useEffect(() => {
     let socket: WebSocket | null = null;
-    const connectSocket = window.setTimeout(() => {
-      const accessToken = localStorage.getItem("accessToken");
+    const connectSocket = window.setTimeout(async () => {
+      const accessToken = await getFreshAccessToken();
 
       if (!accessToken) {
         return;

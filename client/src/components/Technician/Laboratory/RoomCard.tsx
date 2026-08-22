@@ -1,25 +1,20 @@
 import { Building, LaptopMinimal, TriangleAlert, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { statusConfig, type Status } from "@/utils/room";
+import type { Room } from "@/types/room";
 
 type RoomCardProps = {
     status: Status,
     location:string,
     assignedCustodian: string,
-    roomName: string,
-    computerCount: number,
-    activeIssuesCount: number,
-    roomId: number
+    room: Room
 }
 
 export default function RoomCard({
-    roomId,
     status,
     location,
     assignedCustodian,
-    roomName,
-    computerCount,
-    activeIssuesCount
+    room
 }: RoomCardProps){
 
     const statusData = statusConfig[status];
@@ -32,7 +27,7 @@ export default function RoomCard({
         rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px] cursor-pointer">
 
                 <div className="flex justify-between">
-                    <h1 className="font-bold text-2xl">{roomName}</h1>   
+                    <h1 className="font-bold text-2xl">{room.roomName}</h1>   
                     
                     <div
                         className={`flex w-fit gap-x-2 items-center px-3 py-1.5 rounded-md ${statusData.className}`}
@@ -61,7 +56,7 @@ export default function RoomCard({
                             <h1 className="secondary-text-color">Computers</h1>
                         </span>
 
-                        <span className="font-bold text-2xl">{computerCount}</span> 
+                        <span className="font-bold text-2xl">{room.computerCount}</span> 
                     </div>
 
                     <div className="flex flex-col gap-3 py-3 px-6 bg-[#f8fafc] rounded-xl">
@@ -72,7 +67,7 @@ export default function RoomCard({
                             <h1 className="secondary-text-color">Active Issues</h1>
                         </span>
 
-                        <span className="font-bold text-2xl">{activeIssuesCount}</span> 
+                        <span className="font-bold text-2xl">{room.activeIssuesCount}</span> 
                     </div>
                 </div>
 
@@ -81,7 +76,11 @@ export default function RoomCard({
 
                 <div className="flex w-full gap-2">
                     <button
-                        onClick={()=> navigate(`/manage-laboratory/${roomName}`)}
+                        onClick={() =>
+                            navigate(`/manage-laboratory/${room.id}`, {
+                                state: { roomName: room.roomName },
+                            })
+                        }
                         type="button"
                         className="flex w-full justify-center gap-2.5 bg-white primary-bg-color shrink-0 rounded-md px-4 py-2 text-sm font-medium text-white"
                         >

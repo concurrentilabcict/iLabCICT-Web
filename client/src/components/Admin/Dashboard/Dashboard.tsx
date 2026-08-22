@@ -18,7 +18,7 @@ import {
     mapDashboardTicket,
     type ApiRoom,
 } from "./dashboardData";
-import { buildWebSocketUrl } from "@/lib/api";
+import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
 import type { User } from "@/types/manageUser";
 import type { Room } from "@/types/room";
 import type { ApiTicket, Ticket } from "@/types/ticket";
@@ -232,8 +232,8 @@ export default function Dashboard() {
 
     useEffect(() => {
         let socket: WebSocket | null = null;
-        const connectSocket = window.setTimeout(() => {
-            const accessToken = localStorage.getItem("accessToken");
+        const connectSocket = window.setTimeout(async () => {
+            const accessToken = await getFreshAccessToken();
 
             if (!accessToken) {
                 return;
@@ -293,8 +293,8 @@ export default function Dashboard() {
 
     useEffect(() => {
         let socket: WebSocket | null = null;
-        const connectSocket = window.setTimeout(() => {
-            const accessToken = localStorage.getItem("accessToken");
+        const connectSocket = window.setTimeout(async () => {
+            const accessToken = await getFreshAccessToken();
 
             if (!accessToken) {
                 return;

@@ -6,17 +6,23 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Header from "@/components/Header/Header";
 import MobileHeader from "@/components/Header/MobileHeader";
+import { useQueryClient } from "@tanstack/react-query";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ButtonGroup from "@/components/Technician/ComputerList/ButtonGroup";
 import type { StatusFilter } from "@/utils/computer";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import type { ComputerCardType } from "@/types/computer";
+import type { Room } from "@/types/room";
 
+type ComputerListLocationState = {
+    roomName?: string;
+};
 
 export default function ComputerListPage(){
     
     const isMobile = useMediaQuery("(max-width: 767px)");
+    const queryClient = useQueryClient();
 
     const [custodian, setCustodian] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
@@ -45,12 +51,42 @@ export default function ComputerListPage(){
     const [computers, setComputers] = useState<ComputerCardType[]>([])
 
     const { room } = useParams();
-    const roomName = room ? decodeURIComponent(room) : "";
+    const location = useLocation();
+    const locationState = location.state as ComputerListLocationState | null;
+    const decodedRoom = room ? decodeURIComponent(room) : "";
+    const cachedRooms = useMemo(
+        () =>
+            queryClient.getQueryData<Room[]>(["technician-rooms"]) ??
+            queryClient.getQueryData<Room[]>(["rooms"]) ??
+            [],
+        [queryClient]
+    );
+    const matchedRoom = useMemo(
+        () =>
+            cachedRooms.find(
+                (currentRoom) =>
+                    currentRoom.roomName === decodedRoom ||
+                    String(currentRoom.id) === decodedRoom
+            ),
+        [cachedRooms, decodedRoom]
+    );
+    const roomId = matchedRoom ? String(matchedRoom.id) : decodedRoom;
+    const fallbackRoomName = locationState?.roomName ?? matchedRoom?.roomName ?? decodedRoom;
+    const [resolvedRoomName, setResolvedRoomName] = useState({
+        roomId,
+        name: fallbackRoomName
+    });
+    const roomName =
+        resolvedRoomName.roomId === roomId
+            ? resolvedRoomName.name
+            : fallbackRoomName;
+    const handleRoomNameChange = (name: string) => {
+        setResolvedRoomName({ roomId, name });
+    };
 
     useEffect(()=>{
         document.title = `${roomName + ` | `}ILabCICT`;
     }, [roomName])
-
 
     return(
         <>
@@ -58,7 +94,7 @@ export default function ComputerListPage(){
                 {isMobile ? <NavBar/> : <Sidebar/>}
                     <SidebarInset>
                         <div className="min-h-screen bg-[#f8fafc]">
-                            {isMobile ? <Header title={roomName}/>: <MobileHeader title={roomName}/>}
+                            {isMobile ? <MobileHeader title={roomName}/> : <Header title={roomName}/>}
                             <div className="mx-auto max-w-[1000px]">
                                 <SearchFilter
                                     searchQuery={searchQuery}
@@ -67,7 +103,7 @@ export default function ComputerListPage(){
                                     onStatusChange={setStatusFilter}
                                 />
                                 <ButtonGroup
-                                    roomName={room || ""}
+                                    roomName={roomName}
                                     computers={computers}
                                     setSheetOpen={setSheetOpen}
                                     custodianName={custodian}
@@ -82,7 +118,8 @@ export default function ComputerListPage(){
                                     setSelectedComputer={setSelectedComputer}
                                     setSheetOpen={setSheetOpen}
                                     sheetOpen={sheetOpen}
-                                    roomName={roomName}
+                                    roomId={roomId}
+                                    setRoomName={handleRoomNameChange}
                                     statusFilter={statusFilter}
                                     searchQuery={searchQuery}
                                     setCustodian={setCustodian}

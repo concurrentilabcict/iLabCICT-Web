@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
     buildWebSocketUrl,
     createApiError,
+    getFreshAccessToken,
     privateFetch,
     type ApiError,
 } from "@/lib/api";
@@ -202,8 +203,8 @@ export default function ManageTicket({
 
     useEffect(() => {
         let socket: WebSocket | null = null;
-        const connectSocket = window.setTimeout(() => {
-            const accessToken = localStorage.getItem("accessToken");
+        const connectSocket = window.setTimeout(async () => {
+            const accessToken = await getFreshAccessToken();
 
             if (!accessToken) {
                 return;

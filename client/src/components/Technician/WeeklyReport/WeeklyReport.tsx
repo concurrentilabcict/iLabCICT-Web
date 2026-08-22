@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/pagination";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { buildWebSocketUrl } from "@/lib/api";
+import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
 import type {
     ApiWeeklyReport,
     WeeklyReport as WeeklyReportType,
@@ -123,12 +123,12 @@ export default function WeeklyReport() {
 
     useEffect(() => {
         let socket: WebSocket | null = null;
-        const connectSocket = window.setTimeout(() => {
+        const connectSocket = window.setTimeout(async () => {
             if (!canLoadReports) {
                 return;
             }
 
-            const accessToken = localStorage.getItem("accessToken");
+            const accessToken = await getFreshAccessToken();
 
             if (!accessToken) {
                 return;

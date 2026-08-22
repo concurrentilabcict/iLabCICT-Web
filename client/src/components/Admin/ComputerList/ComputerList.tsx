@@ -7,7 +7,7 @@ import type {
     ComputerCardType
 } from "@/types/computer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { buildWebSocketUrl } from "@/lib/api";
+import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getPaginationWindow } from "@/utils/pagination";
@@ -199,8 +199,8 @@ export default function ComputerList({
 
     useEffect(() => {
         let socket: WebSocket | null = null;
-        const connectSocket = window.setTimeout(() => {
-            const accessToken = localStorage.getItem("accessToken");
+        const connectSocket = window.setTimeout(async () => {
+            const accessToken = await getFreshAccessToken();
 
             if (!accessToken || !roomId) {
                 return;

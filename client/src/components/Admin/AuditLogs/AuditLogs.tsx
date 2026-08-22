@@ -13,6 +13,7 @@ import {
   buildApiUrl,
   buildWebSocketUrl,
   createApiError,
+  getFreshAccessToken,
   privateFetch,
 } from "@/lib/api";
 import AuditLogsTable from "./AuditLogsTable";
@@ -90,8 +91,8 @@ export default function AuditLogs() {
 
   useEffect(() => {
     let socket: WebSocket | null = null;
-    const connectSocket = window.setTimeout(() => {
-      const accessToken = localStorage.getItem("accessToken");
+    const connectSocket = window.setTimeout(async () => {
+      const accessToken = await getFreshAccessToken();
 
       if (!accessToken) {
         return;

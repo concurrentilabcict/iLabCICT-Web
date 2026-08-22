@@ -1,11 +1,16 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ComputerCard from "./ComputerCard";
 import type { Status, StatusFilter } from "@/utils/computer";
-import type { ComputerList, ComputerCardType } from "@/types/computer";
-import { useQuery } from "@tanstack/react-query";
-import { createApiError, privateFetch } from "@/lib/api";
-import { useMemo, useState } from "react";
+import type {
+    ApiComputerCard,
+    ApiRoomComputers,
+    ComputerCardType
+} from "@/types/computer";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { getPaginationWindow } from "@/utils/pagination";
 
 import {
     Sheet,
@@ -23,18 +28,54 @@ import {
 import AddComputerForm from "./AddComputerForm";
 import EditComputerForm from "./EditComputerForm";
 type ComputerListProps = {
-    setComputers: Function
-    roomName: string,
+    setComputers: (computers: ComputerCardType[]) => void,
+    roomId: string,
     searchQuery: string,
     statusFilter: StatusFilter,
-    setCustodian: Function,
+    setCustodian: (custodian: string) => void,
+    setRoomName: (roomName: string) => void,
     sheetOpen: boolean,
     isEditing: boolean,
     selectedComputer: ComputerCardType, 
     setSheetOpen: (open: boolean) => void,
     setIsEditing: (open: boolean) => void,
-    setSelectedComputer: Function
+    setSelectedComputer: (computer: ComputerCardType) => void
 }
+
+type RoomComputersWebSocketEvent =
+    | {
+        event: "initial_room_computers";
+        initial_computers: ApiRoomComputers;
+        next?: string | null;
+        next_after_id?: string | null;
+    }
+    | {
+        event: "computer_created" | "computer_updated";
+        computer: ApiComputerCard | ApiComputerCard[];
+    };
+
+const ROOM_COMPUTERS_QUERY_KEY = "technician-room-computers";
+const ROOM_COMPUTERS_READY_QUERY_KEY = "technician-room-computers-ready";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null;
+
+const isRoomComputersWebSocketEvent = (
+    value: unknown
+): value is RoomComputersWebSocketEvent => {
+    if (!isRecord(value) || typeof value.event !== "string") {
+        return false;
+    }
+
+    if (value.event === "initial_room_computers") {
+        return isRecord(value.initial_computers);
+    }
+
+    return (
+        ["computer_created", "computer_updated"].includes(value.event) &&
+        (isRecord(value.computer) || Array.isArray(value.computer))
+    );
+};
 
 const formatLabel = (text: string) => {
     return text
@@ -47,10 +88,11 @@ const formatLabel = (text: string) => {
 
 export default function ComputerList({
     setComputers,
-    roomName,
+    roomId,
     searchQuery,
     statusFilter,
     setCustodian,
+    setRoomName,
     sheetOpen,
     isEditing,
     selectedComputer,
@@ -60,8 +102,28 @@ export default function ComputerList({
 }: ComputerListProps){
 
     const isMobile = useMediaQuery("(max-width: 767px)");
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [roomId, setRoomId] = useState<number | null>(null);
+    const [, setSearchParams] = useSearchParams();
+    const queryClient = useQueryClient();
+    const computerSocketRef = useRef<WebSocket | null>(null);
+    const queryKey = useMemo(
+        () => [ROOM_COMPUTERS_QUERY_KEY, roomId] as const,
+        [roomId]
+    );
+    const readyQueryKey = useMemo(
+        () => [ROOM_COMPUTERS_READY_QUERY_KEY, roomId] as const,
+        [roomId]
+    );
+    const cachedComputersAreReady =
+        queryClient.getQueryData<boolean>(readyQueryKey) === true;
+    const [computerReadiness, setComputerReadiness] = useState({
+        roomId,
+        isReady: cachedComputersAreReady
+    });
+    const hasInitialComputers =
+        computerReadiness.roomId === roomId
+            ? computerReadiness.isReady
+            : cachedComputersAreReady;
+    const [roomDatabaseId, setRoomDatabaseId] = useState<number | null>(null);
 
     const ITEMS_PER_PAGE = 10;
     const filterKey  = JSON.stringify([statusFilter, searchQuery]);
@@ -78,7 +140,7 @@ export default function ComputerList({
         }
     }
 
-    const mapComputerCard = (computerCard: any): ComputerCardType => ({
+    const mapComputerCard = (computerCard: ApiComputerCard): ComputerCardType => ({
         id:computerCard.id,
         computerCode: computerCard.computer_code,
         room: computerCard.room,
@@ -98,30 +160,119 @@ export default function ComputerList({
         updatedAt: computerCard.updated_at
     })
 
+    const upsertComputer = useCallback((
+        currentComputers: ComputerCardType[],
+        apiComputer: ApiComputerCard
+    ) => {
+        const computer = mapComputerCard(apiComputer);
+        const computerExists = currentComputers.some(
+            (currentComputer) => currentComputer.id === computer.id
+        );
 
-    const { data: computers = [], isLoading } = useQuery<ComputerCardType[]>({
-        queryKey: ["computers", roomName],
-        queryFn: async ()=> {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/${roomName}/computers/`);
+        if (!computerExists) {
+            return [computer, ...currentComputers];
+        }
 
-            const data = await res.json();
+        return currentComputers.map((currentComputer) =>
+            currentComputer.id === computer.id ? computer : currentComputer
+        );
+    }, []);
 
-            console.log(data)
-            const custodian = data.assigned_custodian.first_name + " " + data.assigned_custodian.last_name
-            setCustodian(custodian)
-            setRoomId(data.id)
+    const { data: computers = [], isPending } = useQuery<ComputerCardType[]>({
+        queryKey,
+        queryFn: () =>
+            Promise.resolve(
+                queryClient.getQueryData<ComputerCardType[]>(queryKey) ?? []
+            ),
+        initialData: () =>
+            queryClient.getQueryData<ComputerCardType[]>(queryKey) ?? [],
+        retry: false,
+        staleTime: Infinity,
+        gcTime: Infinity,
+    });
+    const isLoading = isPending || !hasInitialComputers;
 
-            if(!res.ok){
-                throw createApiError(res.status, data.message || 'Failed to fetch computers.');
+    useEffect(() => {
+        setComputers(computers);
+    }, [computers, setComputers]);
+
+    useEffect(() => {
+        let socket: WebSocket | null = null;
+        const connectSocket = window.setTimeout(async () => {
+            const accessToken = await getFreshAccessToken();
+
+            if (!accessToken || !roomId) {
+                return;
             }
 
-            setComputers(data.computers.map(mapComputerCard))
-            return data.computers.map(mapComputerCard)
-         }
-    });
+            socket = new WebSocket(
+                buildWebSocketUrl(`/ws/rooms/${roomId}/computers/`, {
+                    token: accessToken,
+                })
+            );
+
+            computerSocketRef.current = socket;
+
+            socket.addEventListener("message", (event: MessageEvent<string>) => {
+                let parsedMessage: unknown;
+
+                try {
+                    parsedMessage = JSON.parse(event.data);
+                } catch {
+                    return;
+                }
+
+                if (!isRoomComputersWebSocketEvent(parsedMessage)) {
+                    return;
+                }
+
+                if (parsedMessage.event === "initial_room_computers") {
+                    const roomComputers = parsedMessage.initial_computers;
+                    const custodian = roomComputers.assigned_custodian
+                        ? `${roomComputers.assigned_custodian.first_name} ${roomComputers.assigned_custodian.last_name}`
+                        : "No custodian";
+                    const mappedComputers = roomComputers.computers.map(mapComputerCard);
+
+                    setRoomName(roomComputers.room_name);
+                    setCustodian(custodian);
+                    setRoomDatabaseId(roomComputers.id);
+                    setComputerReadiness({ roomId, isReady: true });
+                    queryClient.setQueryData(readyQueryKey, true);
+                    queryClient.setQueryData<ComputerCardType[]>(
+                        queryKey,
+                        mappedComputers
+                    );
+                    return;
+                }
+
+                const updatedComputers = Array.isArray(parsedMessage.computer)
+                    ? parsedMessage.computer
+                    : [parsedMessage.computer];
+
+                queryClient.setQueryData<ComputerCardType[]>(
+                    queryKey,
+                    (currentComputers = []) =>
+                        updatedComputers.reduce(
+                            (nextComputers, computer) =>
+                                upsertComputer(nextComputers, computer),
+                            currentComputers
+                        )
+                );
+            });
+        }, 0);
+
+        return () => {
+            window.clearTimeout(connectSocket);
+            socket?.close();
+
+            if (computerSocketRef.current === socket) {
+                computerSocketRef.current = null;
+            }
+        };
+    }, [queryClient, queryKey, readyQueryKey, roomId, setCustodian, setComputers, setRoomName, upsertComputer]);
 
     const filteredComputers = useMemo(() => {
-        const normalizedQuery = searchQuery?.trim()
+        const normalizedQuery = searchQuery.trim().toLowerCase()
 
         return [...computers]
             .sort(
@@ -159,6 +310,7 @@ export default function ComputerList({
     const currentPage = pagination.filterKey === filterKey
         ?Math.min(pagination.page, maxPage)
         : 1;
+    const visiblePages = getPaginationWindow(currentPage, totalPages);
 
     const goToPage = (page: number) => {
         setPagination({
@@ -217,13 +369,13 @@ export default function ComputerList({
                                 />
                             </PaginationItem>
 
-                            {Array.from({ length: totalPages }, (_, i) => (
-                                <PaginationItem key={i + 1}>
+                            {visiblePages.map((pageNumber) => (
+                                <PaginationItem key={pageNumber}>
                                     <PaginationLink
-                                        isActive={currentPage === i + 1}
-                                        onClick={() => goToPage(i + 1)}
+                                        isActive={currentPage === pageNumber}
+                                        onClick={() => goToPage(pageNumber)}
                                     >
-                                        {i + 1}
+                                        {pageNumber}
                                     </PaginationLink>
                                 </PaginationItem>
                             ))}
@@ -257,7 +409,7 @@ export default function ComputerList({
                         />
                         ) : (
                         <AddComputerForm
-                            room={roomId}
+                            room={roomDatabaseId}
                             closeSheet={() => setSheetOpen(false)}
                         />
                         )}

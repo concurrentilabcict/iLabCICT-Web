@@ -1,5 +1,5 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { buildWebSocketUrl } from "@/lib/api";
+import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ApiRoom, Room } from "@/types/room";
 import RoomCard from "./RoomCard";
@@ -153,8 +153,8 @@ export default function Laboratory({
 
     useEffect(() => {
         let socket: WebSocket | null = null;
-        const connectSocket = window.setTimeout(() => {
-            const accessToken = localStorage.getItem("accessToken");
+        const connectSocket = window.setTimeout(async () => {
+            const accessToken = await getFreshAccessToken();
 
             if (!accessToken) {
                 return;
@@ -309,9 +309,12 @@ export default function Laboratory({
                             "No assigned custodian"
 
                     return(
-                        <RoomCard key={room.id} roomId={room.id}
-                            status={status} location={location} assignedCustodian={custodian} roomName={room.roomName}
-                            computerCount={room.computerCount} activeIssuesCount={room.activeIssuesCount}
+                        <RoomCard
+                            key={room.id}
+                            room={room}
+                            status={status}
+                            location={location}
+                            assignedCustodian={custodian}
                         />
                     )
                 })

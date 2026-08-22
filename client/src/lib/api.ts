@@ -38,6 +38,105 @@ export const buildWebSocketUrl = (
     return url.toString();
 };
 
+const TOKEN_REFRESH_BUFFER_SECONDS = 60;
+
+const getJwtExpiresAt = (token: string) => {
+    const [, payload] = token.split(".");
+
+    if (!payload) {
+        return null;
+    }
+
+    try {
+        const normalizedPayload = payload
+            .replace(/-/g, "+")
+            .replace(/_/g, "/")
+            .padEnd(Math.ceil(payload.length / 4) * 4, "=");
+        const parsedPayload: unknown = JSON.parse(atob(normalizedPayload));
+
+        if (
+            typeof parsedPayload === "object" &&
+            parsedPayload !== null &&
+            "exp" in parsedPayload &&
+            typeof parsedPayload.exp === "number"
+        ) {
+            return parsedPayload.exp;
+        }
+    } catch {
+        return null;
+    }
+
+    return null;
+};
+
+const shouldRefreshAccessToken = (token: string) => {
+    const expiresAt = getJwtExpiresAt(token);
+
+    if (!expiresAt) {
+        return true;
+    }
+
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+
+    return expiresAt - nowInSeconds <= TOKEN_REFRESH_BUFFER_SECONDS;
+};
+
+export const refreshAccessToken = async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    if (!refreshToken) {
+        return null;
+    }
+
+    const refreshRes = await fetch(buildApiUrl("/api/auth/refresh/"), {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            refresh: refreshToken,
+        }),
+    });
+
+    if (!refreshRes.ok) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+
+        window.location.href = "/login";
+
+        throw new Error("Session expired");
+    }
+
+    const data: unknown = await refreshRes.json();
+
+    if (
+        typeof data !== "object" ||
+        data === null ||
+        !("access" in data) ||
+        typeof data.access !== "string"
+    ) {
+        throw new Error("Invalid refresh response");
+    }
+
+    localStorage.setItem("accessToken", data.access);
+
+    return data.access;
+};
+
+export const getFreshAccessToken = async () => {
+    const accessToken = localStorage.getItem("accessToken");
+
+    if (!accessToken) {
+        return refreshAccessToken();
+    }
+
+    if (!shouldRefreshAccessToken(accessToken)) {
+        return accessToken;
+    }
+
+    return refreshAccessToken();
+};
+
 export const privateFetch = async (
     url: string,
     options: RequestInit = {}
@@ -64,35 +163,7 @@ export const privateFetch = async (
     let res = await makeRequest();
 
     if (res.status === 401) {
-        const refreshToken = localStorage.getItem("refreshToken");
-
-        const refreshRes = await fetch(
-            "https://ilabcict-backend.onrender.com/api/auth/refresh/",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    refresh: refreshToken,
-                }),
-            }
-        );
-
-        if (!refreshRes.ok) {
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
-
-            window.location.href = "/login";
-
-            throw new Error("Session expired");
-        }
-
-        const data = await refreshRes.json();
-
-        accessToken = data.access;
-
-        localStorage.setItem("accessToken", accessToken);
+        accessToken = await refreshAccessToken() ?? "";
 
         res = await makeRequest();
     }

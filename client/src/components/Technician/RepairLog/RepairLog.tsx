@@ -6,7 +6,7 @@ import {
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import RepairLogDetails from "./RepairLogDetails";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { buildWebSocketUrl } from "@/lib/api";
+import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
 import type { RepairLog } from "@/types/repairLog";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { TicketTypeFilter } from "@/utils/ticket";
@@ -221,12 +221,12 @@ export default function RepairLog({
 
     useEffect(() => {
         let socket: WebSocket | null = null;
-        const connectSocket = window.setTimeout(() => {
+        const connectSocket = window.setTimeout(async () => {
             if (!canLoadRepairLogs) {
                 return;
             }
 
-            const accessToken = localStorage.getItem("accessToken");
+            const accessToken = await getFreshAccessToken();
 
             if (!accessToken) {
                 return;
