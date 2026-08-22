@@ -1,4 +1,3 @@
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -8,7 +7,6 @@ import toast from "react-hot-toast";
 
 export default function AccountSecurity() {
 
-    const isMobile = useMediaQuery("(max-width: 767px)");
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -102,11 +100,12 @@ export default function AccountSecurity() {
 
     return (
         <>
-            <div className={`flex flex-col gap-y-5 ${isMobile ? "" : "px-3"}`}>
-                <h1 className={`text-lg mt-2 font-semibold ${isMobile ? "px-3" : ""}`}>Account Security</h1>
+            <div className="px-3">
+                <div className="flex flex-col gap-y-5 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+                <h1 className="text-lg font-semibold">Account Security</h1>
                 <div className="h-px w-full bg-[#e5e5e5]" />
 
-                <div className={`flex flex-col mb-5 ${isMobile ? "px-3" : ""}`}>
+                <div className="flex flex-col">
                     <div className="flex flex-col gap-y-4">
                         <div className="flex flex-col gap-y-4">
 
@@ -184,7 +183,7 @@ export default function AccountSecurity() {
                     </div>
                 </div>
 
-                <div className="hidden md:block h-px w-full bg-[#e5e5e5]" />
+                </div>
             </div>
         </>
     );

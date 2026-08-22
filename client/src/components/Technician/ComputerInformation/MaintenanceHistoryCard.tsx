@@ -1,8 +1,7 @@
 
-import type { MaintenanceHistory } from "@/types/maintenanceHistory";
+import type { MaintenanceHistory, MaintenanceHistoryRepairLog } from "@/types/maintenanceHistory";
 import { useQuery } from "@tanstack/react-query";
-import { ClipboardClock, Cpu, CodeSquare } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ClipboardClock } from "lucide-react";
 import { createApiError, privateFetch } from "@/lib/api";
 import { maintenanceTypeConfig, type MaintenanceTypes } from "@/utils/maintenanceHistory";
 import { formatDateTime } from "@/utils/string";
@@ -11,7 +10,7 @@ import { useMemo } from "react";
 type MaintenanceHistoryCardType = {
     computerId: number,
     openSheet: (open: boolean) => void,
-    setMaintenanceHistory: Function
+    setMaintenanceHistory: (maintenanceHistory: MaintenanceHistory) => void
 }
 
 const formatLabel = (text: string) => {
@@ -19,14 +18,26 @@ const formatLabel = (text: string) => {
         .replace(/_/g, " ")
         .trim()
         .split(/\s+/)
-        .map((word: any) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(" ")
+};
+
+type ApiMaintenanceHistory = {
+    id: number;
+    maintenance_history_code: string;
+    maintenance_type: string;
+    maintenance_notes: string;
+    performed_by: string;
+    computer: number;
+    technician: number;
+    date_performed: string;
+    repair_log: MaintenanceHistoryRepairLog;
 };
 
 
 export default function MaintenanceHistoryCard({computerId, openSheet,setMaintenanceHistory}: MaintenanceHistoryCardType){
 
-    const mapMaintenanceHistory = (maintenanceHistory: any) : MaintenanceHistory=>({
+    const mapMaintenanceHistory = (maintenanceHistory: ApiMaintenanceHistory) : MaintenanceHistory=>({
         id: maintenanceHistory.id,
         maintenanceHistoryCode: maintenanceHistory.maintenance_history_code,
         maintenanceType: maintenanceHistory.maintenance_type,
@@ -39,7 +50,7 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
     });
 
     const {data: maintenanceHistory = [], isLoading } = useQuery<MaintenanceHistory[]>({
-        queryKey: ["maintenanceHistory"],
+        queryKey: ["maintenanceHistory", computerId],
         queryFn: async () => {
              const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/maintenance-history/?computer-id=${computerId}`);
                
@@ -47,10 +58,14 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
             const data = await res.json();
 
             if(!res.ok){
-                throw createApiError(res.status, data.message || 'Failed to fetch rooms.')
+                const message = data && typeof data === "object" && "message" in data
+                    ? String(data.message)
+                    : "Failed to fetch maintenance history.";
+
+                throw createApiError(res.status, message)
             }
 
-            return data.map(mapMaintenanceHistory)
+            return (data as ApiMaintenanceHistory[]).map(mapMaintenanceHistory)
         } 
     });
 
@@ -66,8 +81,8 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
 
     return(
         <>
-              <div className="self-start bg-white flex flex-col gap-y-2.5 border primary-border-color
-                rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px] max-h-[480px] min-h-[480px]">
+              <div className="self-start bg-white flex flex-col gap-y-2.5
+                rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px] max-h-[480px] min-h-[480px] shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
                     
                     <div className="flex justify-between items-center mb-1.5">
                         <div className="flex gap-2 items-center">

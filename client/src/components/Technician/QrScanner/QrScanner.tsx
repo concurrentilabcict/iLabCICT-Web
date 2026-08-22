@@ -1,10 +1,10 @@
 import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
-import { Flashlight, X } from "lucide-react";
+import { Flashlight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 type QrScannerProps = {
-    onScan?: (value: string) => void;
+    onScan?: (value: string) => boolean | void | Promise<boolean | void>;
 };
 
 export function QrScanner({ onScan }: QrScannerProps) {
@@ -46,7 +46,15 @@ export function QrScanner({ onScan }: QrScannerProps) {
 
                         console.log("Scanned:", value);
 
-                        onScanRef.current?.(value);
+                        Promise.resolve(onScanRef.current?.(value))
+                            .then((shouldKeepLocked) => {
+                                if (shouldKeepLocked === false) {
+                                    scannedRef.current = false;
+                                }
+                            })
+                            .catch(() => {
+                                scannedRef.current = false;
+                            });
                     }
                 );
 
@@ -91,92 +99,85 @@ export function QrScanner({ onScan }: QrScannerProps) {
         }
     };
 
-    const handleClose = () => {
-        navigate(-1);
-    };
-
     return (
-        <section className="relative min-h-[100svh] overflow-hidden bg-black text-white">
+        <section className="mx-auto flex w-full max-w-[620px] flex-col px-5 pb-32 pt-8">
             <style>
                 {`
                     @keyframes qr-scan-line {
-                        0% {
-                            top: 12%;
-                        }
-                        50% {
-                            top: 88%;
-                        }
-                        100% {
-                            top: 12%;
-                        }
+                        0% { top: 24%; }
+                        50% { top: 76%; }
+                        100% { top: 24%; }
                     }
                 `}
             </style>
 
-            <video
-                ref={videoRef}
-                className="absolute inset-0 z-0 h-full w-full object-cover"
-                autoPlay
-                playsInline
-                muted
-            />
+            <div className="text-center">
+                <h1 className="text-3xl font-bold tracking-tight text-zinc-950">
+                    Scan Computer QR Code
+                </h1>
+                <p className="mt-3 text-base font-medium secondary-text-color">
+                    Scan the computer QR code to automatically view details.
+                </p>
+            </div>
 
-            <div className="relative z-10 flex min-h-[100svh] flex-col items-center px-3 pb-0 pt-3">
-                <div className="mb-10 mt-5 px-3 flex w-full items-center justify-between">
-                    <button
-                        type="button"
-                        onClick={handleClose}
-                        className="cursor-pointer flex flex-col items-center text-sm font-medium text-white/80 transition hover:text-white"
-                        aria-label="Close QR scanner"
-                    >
-                        <span className="z-20 grid size-16 place-items-center rounded-full border border-white/10 bg-white/10 transition">
-                            <X className="size-7" />
-                        </span>
-                    </button>
+            <div className="mt-8 overflow-hidden rounded-[2rem] bg-black shadow-[0_18px_44px_rgba(15,23,42,0.18)]">
+                <div className="relative aspect-[4/5] w-full">
+                    <video
+                        ref={videoRef}
+                        className="absolute inset-0 h-full w-full object-cover"
+                        autoPlay
+                        playsInline
+                        muted
+                    />
+
+                    <div className="absolute inset-0 bg-black/10" />
+
+                    <p className="absolute left-0 right-0 top-9 text-center text-sm font-semibold text-white/75">
+                        Align QR code inside frame
+                    </p>
+
+                    {cameraError && (
+                        <div className="absolute inset-0 grid place-items-center bg-black/60 px-6 text-center text-sm text-white/80">
+                            {cameraError}
+                        </div>
+                    )}
+
+                    <div className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[72%] -translate-x-1/2 -translate-y-1/2 border border-white/10">
+                        <div className="absolute left-0 top-0 h-20 w-20 border-l-8 border-t-8 border-[#d3522f]" />
+                        <div className="absolute right-0 top-0 h-20 w-20 border-r-8 border-t-8 border-[#d3522f]" />
+                        <div className="absolute bottom-0 left-0 h-20 w-20 border-b-8 border-l-8 border-[#d3522f]" />
+                        <div className="absolute bottom-0 right-0 h-20 w-20 border-b-8 border-r-8 border-[#d3522f]" />
+                        <div className="absolute left-8 right-8 h-0.5 bg-[#d3522f]" style={{ animation: "qr-scan-line 2.2s ease-in-out infinite" }} />
+                    </div>
 
                     <button
                         type="button"
                         onClick={handleLightToggle}
                         disabled={!isTorchAvailable}
-                        className={`cursor-pointer flex flex-col items-center text-sm font-medium transition ${isLightOn ? "text-green-400" : "text-white/80"
-                            } disabled:text-white/35`}
+                        className={`absolute bottom-5 left-1/2 grid size-16 -translate-x-1/2 place-items-center rounded-2xl primary-bg-color text-white shadow-lg shadow-black/25 transition ${
+                            isLightOn ? "ring-4 ring-emerald-400/40" : ""
+                        } disabled:opacity-60`}
                         aria-pressed={isLightOn}
                         aria-label="Toggle flashlight"
                     >
-                        <span
-                            className={`z-20 grid size-16 place-items-center rounded-full border transition ${isLightOn
-                                ? "border-green-400/40"
-                                : "border-white/10 bg-white/10"
-                                }`}
-                        >
-                            <Flashlight className="size-7" />
-                        </span>
+                        <Flashlight className="size-6" />
                     </button>
                 </div>
+            </div>
 
-                <div className="text-center z-20">
-                    <h1 className="text-3xl font-semibold tracking-normal">Scan QR Code</h1>
-                    <p className="mt-3 text-white/70">Align the QR code within the frame</p>
-                </div>
+            <div className="my-4 h-px w-full bg-gray-300" />
 
-                <div className="mt-10 w-full max-w-sm">
-                    <div className="relative mx-auto aspect-square w-80 max-w-full">
-                        <div className="pointer-events-none rounded-[30px] absolute inset-0 shadow-[0_0_0_9999px_rgba(0,0,0,0.70)]" />
-
-                        {cameraError && (
-                            <div className="absolute inset-0 grid place-items-center  bg-black/60 px-6 text-center text-sm text-white/80">
-                                {cameraError}
-                            </div>
-                        )}
-
-                        <div className="absolute left-0 top-0 h-10 w-10 rounded-tl-[20px] border-l-4 border-t-4 border-white" />
-                        <div className="absolute right-0 top-0 h-10 w-10 rounded-tr-[20px] border-r-4 border-t-4 border-white" />
-                        <div className="absolute bottom-0 left-0 h-10 w-10 rounded-bl-[20px] border-b-4 border-l-4 border-white" />
-                        <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-[20px] border-b-4 border-r-4 border-white" />
-                    </div>
-
-
-                </div>
+            <div className="text-center">
+                <p className="text-sm font-semibold text-zinc-400">
+                    Could not scan computer QR code?
+                </p>
+                <button
+                    type="button"
+                    onClick={() => navigate("/manage-laboratory")}
+                    className="mt-3 rounded-2xl primary-bg-color px-10 py-4 text-base font-bold text-white shadow-[0_14px_34px_rgba(191,52,25,0.22)]"
+                >
+                    Search Manually
+                </button>
             </div>
         </section>
     );

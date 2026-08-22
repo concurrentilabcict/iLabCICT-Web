@@ -2,6 +2,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import SystemDetailsCard from "./SystemDetailsCard";
 import PeripheralDetailCard from "./PeripheralDetailCard";
 import MaintenanceHistoryCard from "./MaintenanceHistoryCard";
+import ComputerAssetCard from "./ComputerAssetCard/ComputerAssetCard";
 import type { Computer } from "@/types/computer";
 import { useQuery } from "@tanstack/react-query";
 import { createApiError, privateFetch } from "@/lib/api";
@@ -19,7 +20,7 @@ import type { MaintenanceHistory } from "@/types/maintenanceHistory";
 type ComputerInformationType = {
     roomName: string,
     computerCode: string,
-    setAddress: Function,
+    setAddress: (address: string) => void,
     setSheetOpen: (open: boolean) => void,
     sheetOpen: boolean
 }
@@ -29,7 +30,7 @@ const formatLabel = (text: string) => {
         .replace(/_/g, " ")
         .trim()
         .split(/\s+/)
-        .map((word: any) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(" ")
 };
 
@@ -43,6 +44,32 @@ const floorConverter = (floor: number) => {
     }
 }
 
+type ApiComputerDetails = {
+    id: number;
+    computer_code: string;
+    room: {
+        id: number;
+        room_name: string;
+        building_name: string;
+        floor_number: number;
+    };
+    operating_system: string;
+    gpu: string;
+    cpu: string;
+    ram_size_installed: number;
+    disk_size_installed: number;
+    build_version: string;
+    computer_status: string;
+    motherboard: string;
+    monitor_status: string;
+    mouse_status: string;
+    keyboard_status: string;
+    ups_status: string;
+    created_at: string;
+    updated_at: string;
+    message?: string;
+};
+
 export default function ComputerInformation({
     roomName,
     computerCode,
@@ -54,7 +81,7 @@ export default function ComputerInformation({
     const isMobile = useMediaQuery("(max-width: 767px)");
     const [maintenanceHistory, setMaintenanceHistory] = useState<MaintenanceHistory>()
 
-    const mapComputer = (computer: any): Computer => ({
+    const mapComputer = (computer: ApiComputerDetails): Computer => ({
         id:computer.id,
         computerCode: computer.computer_code,
         room: {
@@ -87,9 +114,9 @@ export default function ComputerInformation({
         queryKey: ["computer", roomName, computerCode],
         queryFn: async () => {
             console.log("fetching...")
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/${roomName}/computers/${computerCode}`);
+            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/${encodeURIComponent(roomName)}/computers/${encodeURIComponent(computerCode)}`);
 
-            const data = await res.json();
+            const data = (await res.json()) as ApiComputerDetails;
             if(!res.ok){
                 throw createApiError(res.status, data.message || 'Failed to fetch computer information.');
             }
@@ -110,8 +137,8 @@ export default function ComputerInformation({
     return(
         <>
         
-        <div className={`flex items-center w-full flex-col gap-3 px-3 py-3 ${isMobile ? 'mb-20' : ''}
-        sm:grid sm:grid-cols-2 bg-red`}>
+        <div className={`flex items-center w-full flex-col gap-4 px-3 py-3 ${isMobile ? 'mb-20' : ''}
+        sm:grid sm:grid-cols-2`}>
 
             {isLoading && (
                 <p className="col-span-full py-8 text-center secondary-text-color">
@@ -121,6 +148,14 @@ export default function ComputerInformation({
             
             {!isLoading && computer && (
                 <>
+                    <ComputerAssetCard
+                        computerCode={computer.computerCode}
+                        buildingName={formatLabel(computer.room.buildingName)}
+                        roomName={computer.room.roomName}
+                        floorNumber={computer.room.floorNumber}
+                        status={formatLabel(computer.computerStatus) as Status}
+                    />
+
                     <SystemDetailsCard 
                         cpu={computer.cpu}
                         gpu={computer.gpu}

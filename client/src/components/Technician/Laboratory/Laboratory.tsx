@@ -13,6 +13,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
+import { getPaginationWindow } from "@/utils/pagination";
 
 type LaboratoryProps = {
     statusFilter: StatusFilter,
@@ -73,6 +74,50 @@ const floorConverter = (floor: number) => {
     }
 }
 
+const mapRoom = (room: ApiRoom): Room => ({
+    id: room.id,
+    computerCount: room.computer_count ?? 0,
+    activeIssuesCount:
+        room.active_issues_count ?? room.computer_count_with_active_issues ?? 0,
+
+    assignedCustodian: room.assigned_custodian
+        ? {
+            id: room.assigned_custodian.id,
+            lastName: room.assigned_custodian.last_name,
+            firstName: room.assigned_custodian.first_name
+        }
+        : null,
+
+    assignedTechnician: room.assigned_technician
+        ? {
+            id: room.assigned_technician.id,
+            lastName: room.assigned_technician.last_name,
+            firstName: room.assigned_technician.first_name
+        }
+        : null,
+
+    floorNumber: room.floor_number,
+    roomName: room.room_name,
+    buildingName: room.building_name,
+
+    status: room.status,
+    createdAt: room.created_at,
+    updatedAt: room.updated_at
+});
+
+const upsertRoom = (rooms: Room[], apiRoom: ApiRoom) => {
+    const room = mapRoom(apiRoom);
+    const roomExists = rooms.some((currentRoom) => currentRoom.id === room.id);
+
+    if (!roomExists) {
+        return [room, ...rooms];
+    }
+
+    return rooms.map((currentRoom) =>
+        currentRoom.id === room.id ? room : currentRoom
+    );
+};
+
 export default function Laboratory({
     statusFilter,
     floorFilter,
@@ -91,42 +136,6 @@ export default function Laboratory({
         page: 1,
         filterKey
     });
-
-    const mapRoom = (room: ApiRoom): Room => ({
-        id: room.id,
-        computerCount: room.computer_count ?? 0,
-        activeIssuesCount:
-            room.active_issues_count ?? room.computer_count_with_active_issues ?? 0,
-
-        assignedCustodian: room.assigned_custodian ?
-        {
-            id: room.assigned_custodian.id,
-            lastName: room.assigned_custodian.last_name,
-            firstName: room.assigned_custodian.first_name
-        } :
-        null,
-        
-        floorNumber: room.floor_number,
-        roomName: room.room_name,
-        buildingName: room.building_name,
-        
-        status: room.status,
-        createdAt: room.created_at,
-        updatedAt: room.updated_at
-    });
-
-    const upsertRoom = (rooms: Room[], apiRoom: ApiRoom) => {
-        const room = mapRoom(apiRoom);
-        const roomExists = rooms.some((currentRoom) => currentRoom.id === room.id);
-
-        if (!roomExists) {
-            return [room, ...rooms];
-        }
-
-        return rooms.map((currentRoom) =>
-            currentRoom.id === room.id ? room : currentRoom
-        );
-    };
 
     const { data: rooms = [], isPending } = useQuery<Room[]>({
         queryKey: ROOMS_QUERY_KEY,
@@ -209,7 +218,7 @@ export default function Laboratory({
 
 
     const filteredRooms = useMemo(() => {
-        const normalizedQuery = searchQuery?.trim()
+        const normalizedQuery = searchQuery.trim().toLowerCase()
 
         return [...rooms]
             .sort(
@@ -232,6 +241,8 @@ export default function Laboratory({
                     room.buildingName,
                     room?.assignedCustodian?.lastName,
                     room?.assignedCustodian?.firstName,
+                    room?.assignedTechnician?.lastName,
+                    room?.assignedTechnician?.firstName,
                     room.floorNumber,
                     status,
                     floor
@@ -255,6 +266,7 @@ export default function Laboratory({
     const currentPage = pagination.filterKey === filterKey
         ? Math.min(pagination.page, maxPage)
         : 1;
+    const visiblePages = getPaginationWindow(currentPage, totalPages);
 
     const goToPage = (page: number) => {
         setPagination({
@@ -318,13 +330,13 @@ export default function Laboratory({
                                 />
                             </PaginationItem>
 
-                            {Array.from({ length: totalPages }, (_, i) => (
-                                <PaginationItem key={i + 1}>
+                            {visiblePages.map((pageNumber) => (
+                                <PaginationItem key={pageNumber}>
                                     <PaginationLink
-                                        isActive={currentPage === i + 1}
-                                        onClick={() => goToPage(i + 1)}
+                                        isActive={currentPage === pageNumber}
+                                        onClick={() => goToPage(pageNumber)}
                                     >
-                                        {i + 1}
+                                        {pageNumber}
                                     </PaginationLink>
                                 </PaginationItem>
                             ))}

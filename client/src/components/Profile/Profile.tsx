@@ -1,6 +1,7 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import AccountSecurity from "./AccountSecurity";
 import ProfileForm from "./ProfileForm";
+import ProfileTicketStats from "./ProfileTicketStats/ProfileTicketStats";
 
 export default function Profile() {
 
@@ -8,8 +9,9 @@ export default function Profile() {
 
     return(
         <>
-            <div className={`flex flex-col py-3 ${isMobile ? "mb-23" : "mb-10"}`}>
+            <div className={`flex flex-col gap-5 py-3 ${isMobile ? "mb-23" : "mb-10"}`}>
                 <ProfileForm />
+                <ProfileTicketStats />
                 <AccountSecurity />
             </div>
         </>

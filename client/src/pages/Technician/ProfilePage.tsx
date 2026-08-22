@@ -27,7 +27,7 @@ export default function ProfilePage() {
             <SidebarProvider>
                 {isMobile ? <NavBar /> : <Sidebar />}
                 <SidebarInset>
-                    <div className="min-h-screen ">
+                    <div className="min-h-screen bg-[#f8fafc]">
                         {isMobile ? <MobileHeader title="Profile" /> : <Header title="Profile" />}
                         <div className="mx-auto max-w-[1000px]">
                             <Profile />

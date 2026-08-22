@@ -34,8 +34,8 @@ export default function SystemDetailsCard({
 
     return(
             <>
-                <div className="bg-white flex flex-col gap-y-2.5 border primary-border-color
-                rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px]">
+                <div className="bg-white flex flex-col gap-y-2.5
+                rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px] shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
                     
                     <div className="flex gap-2 items-center">
                         <Cpu size={20} className="primary-text-color"/>
