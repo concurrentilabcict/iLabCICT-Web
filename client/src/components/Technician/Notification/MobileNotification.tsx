@@ -72,10 +72,10 @@ export default function MobileNotification({ notifications }: MobileNotification
                                 key={filter}
                                 type="button"
                                 onClick={() => setSelectedFilter(filter)}
-                                className={`shrink-0 rounded-full px-5 py-2.5 cursor-pointer text-base font-semibold shadow-md transition-colors ${isSelected
-                                        ? "primary-bg-color text-white shadow-[#bf3419]/25"
-                                        : "bg-white secondary-text-color shadow-black/10 hover:bg-gray-50"
-                                    }`}
+	                                className={`shrink-0 rounded-full px-5 py-2.5 cursor-pointer text-base font-semibold transition-colors ${isSelected
+	                                        ? "primary-bg-color text-white shadow-[0_3px_10px_rgba(15,23,42,0.12)]"
+	                                        : "bg-white secondary-text-color shadow-[0_3px_10px_rgba(15,23,42,0.10)] hover:bg-gray-50"
+	                                    }`}
                             >
                                 {filter}
                             </button>

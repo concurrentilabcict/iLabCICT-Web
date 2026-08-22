@@ -56,8 +56,7 @@ export default function SearchFilter({
                     placeholder="Search Tickets..."
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    className="bg-white w-full rounded-md border primary-border-color py-2 pl-10 pr-10 
-                    shadow-sm shadow-black/5 outline-none focus:border-black!"
+	                    className="w-full rounded-xl bg-white py-2 pl-10 pr-10 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none"
                 />
 
                 {isSearchActive && (
@@ -81,8 +80,7 @@ export default function SearchFilter({
                     <DropdownMenuTrigger asChild>
                         <button
                             type="button"
-                            className='bg-white flex items-center gap-x-5 px-3 py-2 border primary-border-color rounded-md
-                 cursor-pointer secondary-text-color justify-between shadow-sm shadow-black/5 md:w-35'
+	                            className='flex items-center justify-between gap-x-5 rounded-xl bg-white px-3 py-2 secondary-text-color shadow-[0_4px_14px_rgba(15,23,42,0.08)] cursor-pointer md:w-35'
                         >
                             <div className='flex items-center gap-x-1'>
                                 <Funnel size={14} />
@@ -98,7 +96,7 @@ export default function SearchFilter({
                     <DropdownMenuContent
                         align="end"
                         sideOffset={8}
-                        className="rounded-md"
+	                        className="rounded-xl border-none shadow-[0_4px_14px_rgba(15,23,42,0.08)]"
                     >
                         {typeOptions.map((type) => (
                             <DropdownMenuItem

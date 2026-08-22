@@ -36,7 +36,7 @@ export default function MoreMenu({ isActive, showWeeklyReport = true }: MoreMenu
             </DropdownMenuTrigger>
 
             <DropdownMenuContent
-                className="w-40 rounded-lg"
+                className="w-40 rounded-2xl"
                 side="top"
                 align="end"
                 sideOffset={20}

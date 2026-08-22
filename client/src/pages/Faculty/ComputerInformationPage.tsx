@@ -3,7 +3,6 @@ import ComputerInformation from "@/components/Faculty/ComputerInformation/Comput
 import Header from "@/components/Header/Header";
 import MobileHeader from "@/components/Header/MobileHeader";
 import Sidebar from "@/components/Sidebar/Sidebar";
-import ComputerTitle from "@/components/Faculty/ComputerInformation/ComputerTitle";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useParams } from "react-router-dom";
@@ -19,7 +18,6 @@ export default function FacultyComputerInformationPage(){
     
     const pcCode = code ? decodeURIComponent(code) : "";
     const roomName = room ? decodeURIComponent(room) : "";
-    const [address, setAddress] = useState("No address information.");
     const [sheetOpen,setSheetOpen] = useState(false);
 
     
@@ -34,20 +32,14 @@ export default function FacultyComputerInformationPage(){
                 {isMobile ? <NavBar/> : <Sidebar/>}
                     <SidebarInset>
                          <div className="min-h-screen bg-[#f8fafc]">
-                            {isMobile ? <Header title={pcCode}/> : <MobileHeader title={pcCode}/>}
-                            <div className="mx-auto max-w-[1000px]">
-                                <ComputerTitle
-                                    room={roomName}
-                                    computerCode={pcCode}
-                                    address={address}
-                                />
-                                <ComputerInformation
-                                    sheetOpen={sheetOpen}
-                                    setSheetOpen={setSheetOpen}
-                                    setAddress={setAddress}
-                                    computerCode={pcCode}
-                                    roomName={roomName}
-                                />
+	                            {isMobile ? <Header title={pcCode}/> : <MobileHeader title={pcCode}/>}
+	                            <div className="mx-auto max-w-[1000px]">
+	                                <ComputerInformation
+	                                    sheetOpen={sheetOpen}
+	                                    setSheetOpen={setSheetOpen}
+	                                    computerCode={pcCode}
+	                                    roomName={roomName}
+	                                />
                             </div>
                          </div>
                     </SidebarInset>

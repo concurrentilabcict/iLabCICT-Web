@@ -28,7 +28,7 @@ export default function ProfileFooter() {
                 <DropdownMenuTrigger asChild>
                     <button
                         className="
-    flex w-full items-center rounded-lg
+    flex w-full items-center rounded-2xl
     transition-colors hover:bg-muted
     h-[61px] px-2 overflow-hidden
   "
@@ -60,7 +60,7 @@ export default function ProfileFooter() {
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent
-                    className="w-56 rounded-lg"
+                    className="w-56 rounded-2xl"
                     side="top"
                     align="end"
                     sideOffset={20}

@@ -1,13 +1,12 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery"
-import type { ComputerCardType } from "@/types/computer"
-import type { Room } from "@/types/room"
+import type { EditRoomFormType, Room } from "@/types/room"
 import { Download, Upload, Plus } from "lucide-react"
 
 type ButtonGroupType = {
     rooms: Room[]
     setSheetOpen: (open: boolean) => void,
     setIsEditing: (open: boolean) => void,
-    setSelectedRoom: Function
+    setSelectedRoom: (room: EditRoomFormType) => void
 }
 
 const formatDate = (date: string) =>
@@ -33,14 +32,19 @@ export default function ButtonGroup({
 }: ButtonGroupType){
 
     const handleAddComputerClick = () => {
-        setSelectedRoom(null);
+        setSelectedRoom({
+            id: null,
+            roomName: "",
+            floorNumber: 1,
+            buildingName: "pimentel",
+            roomStatus: "operational",
+            assignedCustodianId: null,
+        });
         setIsEditing(false)
         setSheetOpen(true)
     }
 
     const exportRooms = () =>{
-        console.log()
-
         if(rooms.length === 0){
             return;
         }
@@ -97,34 +101,34 @@ export default function ButtonGroup({
     return(
         <>
 
-        <div className="flex flex-col px-3 py-2 gap-2">
-            <div className="flex items-center justify-between gap-x-2">
-                <div>
-                    <button
-                    type="button"
-                    onClick={handleAddComputerClick}
-                    className="flex gap-1.5 items-center bg-white primary-bg-color shrink-0 rounded-full px-4 py-2 text-sm font-medium text-white hover:cursor-pointer"
-                    >
-                        <Plus size={16}/> 
+	        <div className="px-3 py-2">
+	            <div className="flex items-center justify-between gap-x-2 rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+	                <div>
+	                    <button
+	                    type="button"
+	                    onClick={handleAddComputerClick}
+	                    className="flex h-9 shrink-0 items-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20 hover:cursor-pointer"
+	                    >
+	                        <Plus size={16}/> 
                         
                         <span>Add Room</span>
                     </button>
                 </div>
 
                 <div className="flex gap-2.5">
-                    <button
-                        onClick={exportRooms}
-                        type="button"
-                        className="flex gap-1.5 items-center bg-white shrink-0 rounded-full border primary-border-color px-4 py-2 text-sm font-medium secondary-text-color hover:cursor-pointer"
-                    >
+	                    <button
+	                        onClick={exportRooms}
+	                        type="button"
+	                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color shadow-sm shadow-black/5 hover:cursor-pointer hover:bg-gray-50"
+	                    >
                         <Download size={16}/>
                         <span className={isMobile ? 'hidden' : ''} >Export</span>
                     </button>
 
-                    <button
-                        type="button"
-                        className="flex gap-1.5 items-center bg-white shrink-0 rounded-full border primary-border-color px-4 py-2 text-sm font-medium secondary-text-color"
-                    >
+	                    <button
+	                        type="button"
+	                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color shadow-sm shadow-black/5 hover:bg-gray-50"
+	                    >
                         <Upload size={16}/>
                         <span className={isMobile ? 'hidden' : ''}>Import</span>
                     </button>

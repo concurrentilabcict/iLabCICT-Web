@@ -13,7 +13,7 @@ export default function Filter({
     onFloorChange
 }: FilterProps){
     return (
-        <div className="mx-3 my-3 flex flex-nowrap items-center gap-x-2 overflow-x-auto rounded-2xl bg-zinc-200/60 p-2 shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
+        <div className="flex flex-nowrap items-center gap-x-2 overflow-x-auto px-3 py-3">
             {floorOptions.map((floor) => {
                 const isSelected = selectedFloor === floor;
                 const label = floor === "All" ? "All" : floorConfig[floor];
@@ -23,10 +23,10 @@ export default function Filter({
                         key={floor}
                         type="button"
                         onClick={() => onFloorChange(floor)}
-                        className={`shrink-0 cursor-pointer rounded-full px-5 py-2 text-sm font-bold transition-colors ${
+                        className={`shrink-0 cursor-pointer rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-colors ${
                             isSelected
-                                ? "primary-bg-color text-white shadow-[0_8px_18px_rgba(191,82,48,0.25)]"
-                                : "text-zinc-500 hover:bg-white/60"
+                                ? "primary-bg-color text-white shadow-[#bf3419]/20"
+                                : "bg-white border primary-border-color secondary-text-color shadow-black/5 hover:bg-gray-50"
                         }`}
                     >
                         {label}

@@ -76,8 +76,7 @@ export default function SearchFilter({
                     placeholder="Search Repair Logs..."
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    className="bg-white w-full rounded-md border primary-border-color py-2 pl-10 pr-10 
-                    shadow-sm shadow-black/5 outline-none focus:border-black!"
+	                    className="w-full rounded-xl bg-white py-2 pl-10 pr-10 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none"
                 />
 
                 {isSearchActive && (
@@ -100,8 +99,7 @@ export default function SearchFilter({
                 <button
                     type="button"
                     onClick={() => setIsFilterOpen((isOpen) => !isOpen)}
-                    className='bg-white flex items-center gap-x-5 px-3 py-2 border primary-border-color rounded-md
-             cursor-pointer secondary-text-color justify-between shadow-sm shadow-black/5 md:w-35'
+	                    className='flex items-center justify-between gap-x-5 rounded-xl bg-white px-3 py-2 secondary-text-color shadow-[0_4px_14px_rgba(15,23,42,0.08)] cursor-pointer md:w-35'
                     aria-expanded={isFilterOpen}
                     aria-haspopup="listbox"
                 >
@@ -117,8 +115,7 @@ export default function SearchFilter({
 
                 {isFilterOpen && (
                     <div
-                        className='absolute right-0 top-full z-10 mt-2 w-full rounded-md bg-white
-                         border primary-border-color shadow-md shadow-black/10 overflow-hidden'
+	                        className='absolute right-0 top-full z-10 mt-2 w-full overflow-hidden rounded-xl bg-white shadow-[0_4px_14px_rgba(15,23,42,0.08)]'
                         role="listbox"
                     >
                         {typeOptions.map((type) => (

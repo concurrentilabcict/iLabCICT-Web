@@ -2,6 +2,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import SystemDetailsCard from "./SystemDetailsCard";
 import PeripheralDetailCard from "./PeripheralDetailCard";
 import MaintenanceHistoryCard from "./MaintenanceHistoryCard";
+import ComputerAssetCard from "@/components/ComputerInformation/ComputerAssetCard/ComputerAssetCard";
 import type { Computer } from "@/types/computer";
 import { useQuery } from "@tanstack/react-query";
 import { createApiError, privateFetch } from "@/lib/api";
@@ -19,7 +20,6 @@ import type { MaintenanceHistory } from "@/types/maintenanceHistory";
 type ComputerInformationType = {
     roomName: string,
     computerCode: string,
-    setAddress: Function,
     setSheetOpen: (open: boolean) => void,
     sheetOpen: boolean
 }
@@ -33,20 +33,9 @@ const formatLabel = (text: string) => {
         .join(" ")
 };
 
-const floorConverter = (floor: number) => {
-    if (floor === 1){
-        return "1st Floor";
-    }else if(floor === 2){
-        return "2nd Floor";
-    }else{
-        return "3rd Floor";
-    }
-}
-
 export default function ComputerInformation({
     roomName,
     computerCode,
-    setAddress,
     setSheetOpen,
     sheetOpen
 }: ComputerInformationType){
@@ -86,22 +75,12 @@ export default function ComputerInformation({
     const { data: computer, isLoading } = useQuery<Computer>({
         queryKey: ["computer", roomName, computerCode],
         queryFn: async () => {
-            console.log("fetching...")
             const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/${roomName}/computers/${computerCode}`);
 
             const data = await res.json();
             if(!res.ok){
                 throw createApiError(res.status, data.message || 'Failed to fetch computer information.');
             }
-
-            console.log(data)
-            const computerAddress = 
-            formatLabel(data.room.building_name) + " - " 
-            + floorConverter(data.room.floor_number) + ", " 
-            + data.room.room_name;
-            
-            console.log(computerAddress)
-            setAddress(computerAddress);
 
             return mapComputer(data)
         }
@@ -110,8 +89,7 @@ export default function ComputerInformation({
     return(
         <>
         
-        <div className={`flex items-center w-full flex-col gap-3 px-3 py-3 ${isMobile ? 'mb-20' : ''}
-        sm:grid sm:grid-cols-2 bg-red`}>
+        <div className={`w-full px-3 py-3 ${isMobile ? 'mb-20' : ''}`}>
 
             {isLoading && (
                 <p className="col-span-full py-8 text-center secondary-text-color">
@@ -120,33 +98,44 @@ export default function ComputerInformation({
             )}
             
             {!isLoading && computer && (
-                <>
-                    <SystemDetailsCard 
-                        cpu={computer.cpu}
-                        gpu={computer.gpu}
-                        motherboard={computer.motherboard}
-                        operatingSystem={computer.operatingSystem}
-                        ramSize={`${computer.ramSizeInstalled} GB`}
-                        diskSize={`${computer.diskSizeInstalled} GB`}
-                        buildVersion={computer.buildVersion}
-                        updatedAt={computer.updatedAt}
-                        createdAt={computer.createdAt}
+                <div className="space-y-3">
+                    <ComputerAssetCard
+                        computerCode={computer.computerCode}
+                        buildingName={formatLabel(computer.room.buildingName)}
+                        roomName={computer.room.roomName}
+                        floorNumber={computer.room.floorNumber}
                         status={formatLabel(computer.computerStatus) as Status}
                     />
 
-                    <MaintenanceHistoryCard
-                        setMaintenanceHistory={setMaintenanceHistory}
-                        openSheet={handleSheetOpenChange}
-                        computerId={computer.id}
-                    />
-                    <PeripheralDetailCard
-                        monitorStatus={formatLabel(computer.monitorStatus) as PeripheralStatus}
-                        upsStatus={formatLabel(computer.upsStatus) as PeripheralStatus}
-                        keyboardStatus={formatLabel(computer.keyboardStatus) as PeripheralStatus}
-                        mouseStatus={formatLabel(computer.mouseStatus) as PeripheralStatus}
-                    />
-                
-                </>
+                    <div className="grid items-start gap-3 sm:grid-cols-2">
+                        <SystemDetailsCard 
+                            cpu={computer.cpu}
+                            gpu={computer.gpu}
+                            motherboard={computer.motherboard}
+                            operatingSystem={computer.operatingSystem}
+                            ramSize={`${computer.ramSizeInstalled} GB`}
+                            diskSize={`${computer.diskSizeInstalled} GB`}
+                            buildVersion={computer.buildVersion}
+                            updatedAt={computer.updatedAt}
+                            createdAt={computer.createdAt}
+                            status={formatLabel(computer.computerStatus) as Status}
+                        />
+
+                        <div className="flex flex-col gap-3">
+                            <MaintenanceHistoryCard
+                                setMaintenanceHistory={setMaintenanceHistory}
+                                openSheet={handleSheetOpenChange}
+                                computerId={computer.id}
+                            />
+                            <PeripheralDetailCard
+                                monitorStatus={formatLabel(computer.monitorStatus) as PeripheralStatus}
+                                upsStatus={formatLabel(computer.upsStatus) as PeripheralStatus}
+                                keyboardStatus={formatLabel(computer.keyboardStatus) as PeripheralStatus}
+                                mouseStatus={formatLabel(computer.mouseStatus) as PeripheralStatus}
+                            />
+                        </div>
+                    </div>    
+                </div>
             )}
 
             

@@ -295,7 +295,7 @@ export default function Dashboard() {
         let socket: WebSocket | null = null;
         const connectSocket = window.setTimeout(async () => {
             const accessToken = await getFreshAccessToken();
-
+            
             if (!accessToken) {
                 return;
             }

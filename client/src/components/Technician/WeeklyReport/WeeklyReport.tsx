@@ -303,7 +303,7 @@ export default function WeeklyReport() {
                                 setPage(1);
                             }}
                             placeholder="Search my reports..."
-                            className="primary-border-color w-full rounded-xl border bg-white py-2 pl-10 pr-10 shadow-sm shadow-black/5 outline-none focus:border-black!"
+	                            className="w-full rounded-xl bg-white py-2 pl-10 pr-10 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none"
                         />
 
                         {searchQuery && (

@@ -1,7 +1,6 @@
-import { LaptopMinimal, Calendar, SquarePen, Trash, HardDrive, History} from "lucide-react";
+import { Cpu, HardDrive, LaptopMinimal, MemoryStick, type LucideIcon } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { statusConfig, type Status } from "@/utils/computer";
-import { formatDateTime } from "@/utils/string";
 import type { ComputerCardType } from "@/types/computer";
 
 type CompCardType = {
@@ -26,43 +25,61 @@ export default function ComputerCard({computer}: CompCardType){
     const navigate = useNavigate()
     return(
         <>
-             <div className="bg-white flex flex-col gap-y-2.5 border primary-border-color
-        rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px] cursor-pointer">
-                <div className="flex justify-between">
-                    <h1 className="font-bold text-2xl">{computer.computerCode}</h1>
+             <article className="group flex h-full min-h-[300px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] md:max-w-[550px]">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl primary-bg-color text-white shadow-md shadow-[#bf3419]/20">
+                            <LaptopMinimal size={18} />
+                        </div>
+                        <div className="min-w-0">
+                            <h1 className="truncate text-lg font-bold leading-snug text-zinc-950">{computer.computerCode}</h1>
+                            <p className="mt-0.5 truncate text-sm font-medium text-zinc-500">{computer.operatingSystem}</p>
+                        </div>
+                    </div>
                     <div
-                        className={`flex w-fit gap-x-2 items-center px-3 py-1.5 rounded-md ${statusData.className}`}
+                        className={`flex w-fit shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${statusData.className}`}
                     >
                         <StatusIcon size={14} />
-                        <span className="text-sm">{formatLabel(computer.computerStatus)}</span>
+                        <span>{formatLabel(computer.computerStatus)}</span>
                     </div>                    
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <h1 className="secondary-text-color text-sm">{computer.operatingSystem}</h1>
+                <div className="grid gap-2.5">
+                    <InfoTile icon={Cpu} label="Processor" value={computer.cpu} />
+                    <InfoTile icon={LaptopMinimal} label="Graphics" value={computer.gpu} />
+                    <InfoTile icon={MemoryStick} label="Memory" value={`${computer.ramSizeInstalled} GB RAM`} />
                 </div>
 
-                <div className="flex justify-between ">
-
-                    <div className="flex gap-1.5 items-center">
-                        <History className="secondary-text-color" size={22}/>
-                        <span className="font-light secondary-text-color text-sm">{formatDateTime(computer.updatedAt)}</span>
-                    </div>
-                </div>
-
-                <div className="border-t primary-border-color my-2"></div>
-                
-
-                <div className="flex w-full gap-2">
+                <div className="mt-auto border-t border-gray-100 pt-3">
                     <button
                         onClick={()=>navigate(`/manage-laboratory/${room}/${computer.computerCode}`)}
                         type="button"
-                        className="flex flex-1 justify-center shrink-0 gap-2.5 bg-white primary-bg-color rounded-md px-4 py-2 text-sm font-medium text-white"
+                        className="flex h-9 w-full shrink-0 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20"
                         >
-                        <HardDrive size={20}/> View Specifications
+                        <HardDrive size={17}/> View Specifications
                     </button>
                 </div>
-             </div>
+             </article>
         </>
+    );
+}
+
+type InfoTileProps = {
+    icon: LucideIcon;
+    label: string;
+    value: string;
+};
+
+function InfoTile({ icon: Icon, label, value }: InfoTileProps) {
+    return (
+        <div className="flex min-w-0 items-center gap-2.5 rounded-2xl bg-zinc-50 p-3">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-400">
+                <Icon size={16} />
+            </span>
+            <div className="min-w-0">
+                <p className="text-[0.65rem] font-bold uppercase tracking-[0.12em] text-zinc-400">{label}</p>
+                <p className="mt-0.5 truncate text-sm font-bold text-zinc-800">{value}</p>
+            </div>
+        </div>
     );
 }

@@ -67,7 +67,7 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
     return(
         <>
               <div className="self-start bg-white flex flex-col gap-y-2.5 border primary-border-color
-                rounded-2xl p-3.5 w-full max-w-[600px] md:max-w-[550px] max-h-[480px] min-h-[480px]">
+	                h-[430px] min-h-0 rounded-3xl border border-white p-4 w-full max-w-[600px] md:max-w-[550px] shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                     
                     <div className="flex justify-between items-center mb-1.5">
                         <div className="flex gap-2 items-center">
@@ -76,7 +76,7 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
                         </div>
                     </div>
 
-                    <div className="flex-1 gap-y-1.5 overflow-y-auto">
+	                    <div className="min-h-0 flex-1 gap-y-1.5 overflow-y-auto pr-1">
 
 
                     {isLoading && (
@@ -97,9 +97,7 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
                         const TypeIcon = typeData.icon
                         const maintenanceTitle = formatLabel(mh.repairLog.title)
                         const maintenanceStatus = formatLabel(mh.repairLog.ticket.status)
-                        console.log(mh)
-
-                        return(
+	                        return(
                             <>
                             <div 
                             onClick={()=>{
@@ -108,9 +106,9 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
                             }}
                             className="flex gap-2 items-start hover:cursor-pointer">
                             
-                                <div className={`shrink-0 ${typeData.className} p-2 rounded-md`}>
+                                <div className={`shrink-0 ${typeData.className} p-1.5 pt-1 rounded-md`}>
                                     <TypeIcon
-                                    size={32}
+                                    size={24}
                                     />
                                 </div>
 

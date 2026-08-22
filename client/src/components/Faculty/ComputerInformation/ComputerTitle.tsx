@@ -2,8 +2,6 @@
 
 import { Link } from "react-router-dom";
 import { ArrowLeft, LaptopMinimal } from "lucide-react";
-import { MapPin } from "lucide-react";
-
 
 type ComputerTitleType = {
     computerCode: string,
@@ -13,7 +11,6 @@ type ComputerTitleType = {
 
 export default function ComputerTitle({
     computerCode,
-    address,
     room
 }:ComputerTitleType){
 
@@ -24,16 +21,11 @@ export default function ComputerTitle({
                 <span className="text-sm"> Back to Computer List</span>
             </Link>
 
-            <div className="flex gap-1 items-center">
-                <div className="bg-[#FFE4DB] p-2 rounded-md">
-                    <LaptopMinimal size={24} className="primary-text-color"/>
+            <div className="flex items-center gap-3">
+                <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
+                    <LaptopMinimal size={18}/>
                 </div>
-                <span className="text-2xl font-semibold">{computerCode}</span>
-            </div>
-
-            <div className="flex gap-1 items-center">
-                <MapPin className={'secondary-text-color'} size={12}/>
-                <span className="secondary-text-color text-sm">{address}</span>
+                <span className="text-lg font-bold leading-snug text-zinc-950">{computerCode}</span>
             </div>
         
         </div>

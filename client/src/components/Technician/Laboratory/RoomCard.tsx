@@ -1,4 +1,4 @@
-import { Building2, LaptopMinimal, Layers3, User, Wrench } from "lucide-react";
+import { Building2, LaptopMinimal, Layers3, Monitor, TriangleAlert, User, Wrench, type LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { statusConfig, type Status } from "@/utils/room";
 import type { Room } from "@/types/room";
@@ -22,85 +22,64 @@ export default function RoomCard({
     const technician = room.assignedTechnician
         ? `${room.assignedTechnician.firstName} ${room.assignedTechnician.lastName}`
         : "No Assigned";
-    const custodianTone = assignedCustodian === "No assigned custodian" ? "text-red-500" : "text-zinc-900";
-    const technicianTone = technician === "No Assigned" ? "text-red-500" : "text-zinc-900";
+    const floorLabel = location.split(" - ")[1]?.split(",")[0] ?? `Floor ${room.floorNumber}`;
 
     const navigate = useNavigate()
     return(
-        <>
-        <div
+        <article
             onClick={() =>
                 navigate(`/manage-laboratory/${room.id}`, {
                     state: { roomName: room.roomName },
                 })
             }
-            className="relative min-h-[290px] w-full max-w-[600px] cursor-pointer overflow-hidden rounded-3xl bg-white p-6 shadow-[0_16px_38px_rgba(15,23,42,0.10)] md:max-w-[550px]"
+            className="group flex h-full min-h-[320px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] md:max-w-[550px]"
         >
-                <div className="absolute -bottom-10 -right-6 h-44 w-36 rounded-t-[2rem] bg-[#f8eee9]" />
-                <div className="absolute bottom-8 right-14 grid grid-cols-3 gap-4 opacity-90">
-                    {Array.from({ length: 12 }).map((_, index) => (
-                        <span key={index} className="size-3 rounded-full bg-white" />
-                    ))}
-                </div>
-
-                <div className="relative flex items-center justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-4">
-                        <div className="grid size-16 shrink-0 place-items-center rounded-2xl bg-[#f8eee9]">
-                            <LaptopMinimal className="size-8 primary-text-color" />
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#fbf2f0] text-[#bf3419]">
+                            <LaptopMinimal size={18} />
                         </div>
-                        <h1 className="truncate text-3xl font-bold text-zinc-950">{room.roomName}</h1>
+                        <h1 className="truncate text-lg font-bold leading-snug text-zinc-950">{room.roomName}</h1>
                     </div>
                     <div
-                        className={`flex w-fit shrink-0 items-center gap-x-2 rounded-full px-3 py-1.5 text-sm font-bold ${statusData.className}`}
+                        className={`inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${statusData.className}`}
                     >
                         <StatusIcon size={14} />
                         <span>{statusData.value}</span>
                     </div>
                 </div>
 
-                <div className="relative my-6 h-px bg-zinc-100" />
-
-                <div className="relative grid gap-4 pr-20">
-                    <div className="flex items-center gap-4">
-                        <span className="grid size-12 place-items-center rounded-xl bg-zinc-50">
-                            <Building2 className="size-6 text-zinc-500" />
-                        </span>
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Building</p>
-                            <p className="text-lg font-bold text-zinc-900">{room.buildingName}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <span className="grid size-12 place-items-center rounded-xl bg-zinc-50">
-                            <Layers3 className="size-6 text-zinc-500" />
-                        </span>
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Floor</p>
-                            <p className="text-lg font-bold text-zinc-900">{location.split(" - ")[1]?.split(",")[0] ?? room.floorNumber}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <span className="grid size-12 place-items-center rounded-xl bg-zinc-50">
-                            <User className="size-6 text-zinc-500" />
-                        </span>
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Custodian</p>
-                            <p className={`text-lg font-bold ${custodianTone}`}>{assignedCustodian}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <span className="grid size-12 place-items-center rounded-xl bg-zinc-50">
-                            <Wrench className="size-6 text-zinc-500" />
-                        </span>
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Assigned Technician</p>
-                            <p className={`text-lg font-bold ${technicianTone}`}>{technician}</p>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <InfoTile icon={Monitor} label="Computers" value={String(room.computerCount)} />
+                    <InfoTile icon={TriangleAlert} label="Active Issues" value={String(room.activeIssuesCount)} />
                 </div>
-                
-             </div>
-                
-        </>
+
+                <div className="grid gap-3">
+                    <InfoTile icon={Building2} label="Building" value={room.buildingName} />
+                    <InfoTile icon={Layers3} label="Floor" value={floorLabel} />
+                    <InfoTile icon={User} label="Custodian" value={assignedCustodian} />
+                    <InfoTile icon={Wrench} label="Assigned Technician" value={technician} />
+                </div>
+             </article>
+    );
+}
+
+type InfoTileProps = {
+    icon: LucideIcon;
+    label: string;
+    value: string;
+};
+
+function InfoTile({ icon: Icon, label, value }: InfoTileProps) {
+    return (
+        <div className="flex min-w-0 items-center gap-2.5 rounded-2xl bg-zinc-50 p-3 shadow-sm shadow-black/[0.01]">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-400">
+                <Icon size={16} />
+            </div>
+            <div className="min-w-0">
+                <p className="text-[0.65rem] font-bold uppercase tracking-[0.12em] text-zinc-400">{label}</p>
+                <p className="mt-0.5 truncate text-sm font-bold text-zinc-800">{value}</p>
+            </div>
+        </div>
     );
 }

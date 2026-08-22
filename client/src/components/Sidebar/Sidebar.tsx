@@ -109,6 +109,7 @@ export default function Sidebar() {
                                         py-5
                                         mb-1
                                         ml-1
+                                        rounded-2xl
                                         transition-colors   
                                         data-[active=true]:bg-muted
                                         data-[active=true]:text-foreground

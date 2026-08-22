@@ -22,11 +22,11 @@ export default function Filter({
                         key={status}
                         type="button"
                         onClick={() => onStatusChange(status)}
-                        className={`shrink-0 cursor-pointer rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-colors ${
-                            isSelected
-                                ? "primary-bg-color text-white shadow-[#bf3419]/20"
-                                : "bg-white border primary-border-color secondary-text-color shadow-black/5 hover:bg-gray-50"
-                        }`}
+	                        className={`shrink-0 cursor-pointer rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+	                            isSelected
+	                                ? "primary-bg-color text-white shadow-[0_3px_10px_rgba(15,23,42,0.12)]"
+	                                : "bg-white secondary-text-color shadow-[0_3px_10px_rgba(15,23,42,0.10)] hover:bg-gray-50"
+	                        }`}
                     >
                         {status}
                     </button>

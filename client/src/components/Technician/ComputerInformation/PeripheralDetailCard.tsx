@@ -29,29 +29,26 @@ export default function PeripheralDetailCard({
 
     return(
                 <>
-                <div className="overflow-hidden bg-white rounded-3xl w-full max-w-[600px] md:max-w-[550px] shadow-[0_16px_38px_rgba(15,23,42,0.12)]">
-                    
-                    <div className="primary-bg-color px-6 py-6 text-white">
-                        <div className="flex items-center gap-4">
-                            <span className="grid size-14 place-items-center rounded-2xl bg-white/15">
-                                <Cable className="size-7"/>
-                            </span>
-                            <div>
-                                <h2 className="text-2xl font-bold">Peripherals</h2>
-                                <p className="text-sm font-semibold text-white/70">Connected peripheral devices status</p>
-                            </div>
+                <div className="w-full max-w-[600px] shrink-0 rounded-3xl border border-white bg-white p-3.5 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:max-w-[550px]">
+                    <div className="flex items-center gap-3">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
+                            <Cable size={18}/>
+                        </span>
+                        <div className="min-w-0">
+                            <h2 className="truncate text-lg font-bold leading-snug text-zinc-950">Peripherals</h2>
+                            <p className="truncate text-sm font-medium text-zinc-500">Connected device status</p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6 p-6">
+                    <div className="mt-3 grid grid-cols-2 gap-3">
                         {items.map(({ label, status, data, icon: Icon }) => (
-                            <div key={label} className="flex items-center gap-4">
-                                <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[#f8eee9]">
-                                    <Icon className="size-7 primary-text-color" />
+                            <div key={label} className="flex min-w-0 items-center gap-2 rounded-2xl bg-zinc-50 p-2.5">
+                                <span className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-400">
+                                    <Icon size={15} />
                                 </span>
-                                <div>
-                                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{label}</p>
-                                    <span className={`mt-1 inline-flex rounded-full px-3 py-1 text-sm font-bold ${data?.className}`}>{status}</span>
+                                <div className="min-w-0">
+                                    <p className="text-[0.65rem] font-bold uppercase tracking-[0.12em] text-zinc-400">{label}</p>
+                                    <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${data?.className}`}>{status}</span>
                                 </div>
                             </div>
                         ))}

@@ -53,10 +53,11 @@ export default function SearchFilter({
                     type="text"
                     value={searchQuery}
                     onChange={(event) => onSearchChange(event.target.value)}
-                    placeholder="eg. SLD 1"
+                    placeholder="Search Rooms..."
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    className="h-14 w-full rounded-2xl bg-white py-2 pl-12 pr-10 text-base shadow-[0_8px_24px_rgba(15,23,42,0.10)] outline-none placeholder:text-zinc-400 focus:ring-2 focus:ring-[#d3522f]/20"
+                    className="bg-white w-full rounded-md border primary-border-color py-2 pl-10 pr-10 
+                    shadow-sm shadow-black/5 outline-none focus:border-black!"
                 />
 
                 {isSearchActive && (
@@ -80,7 +81,8 @@ export default function SearchFilter({
                     <DropdownMenuTrigger asChild>
                         <button
                             type="button"
-                            className='flex h-14 items-center justify-between gap-x-5 rounded-2xl bg-white px-4 text-sm font-semibold secondary-text-color shadow-[0_8px_24px_rgba(15,23,42,0.10)] cursor-pointer md:w-40'
+                            className='bg-white flex items-center gap-x-5 px-3 py-2 border primary-border-color rounded-md
+                 cursor-pointer secondary-text-color justify-between shadow-sm shadow-black/5 md:w-40'
                         >
                             <div className='flex items-center gap-x-1'>
                                 <Funnel size={14} />
