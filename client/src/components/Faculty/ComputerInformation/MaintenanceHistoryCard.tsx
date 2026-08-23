@@ -1,17 +1,18 @@
 
-import type { MaintenanceHistory } from "@/types/maintenanceHistory";
+import type { MaintenanceHistory, MaintenanceHistoryRepairLog } from "@/types/maintenanceHistory";
 import { useQuery } from "@tanstack/react-query";
-import { ClipboardClock, Cpu, CodeSquare } from "lucide-react";
-import { Link } from "react-router-dom";
-import { createApiError, privateFetch } from "@/lib/api";
+import { ClipboardClock } from "lucide-react";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { maintenanceTypeConfig, type MaintenanceTypes } from "@/utils/maintenanceHistory";
 import { formatDateTime } from "@/utils/string";
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 
 type MaintenanceHistoryCardType = {
     computerId: number,
     openSheet: (open: boolean) => void,
-    setMaintenanceHistory: Function
+    setMaintenanceHistory: (maintenanceHistory: MaintenanceHistory) => void,
+    maintenanceHistoryData?: MaintenanceHistory[],
+    isLoadingOverride?: boolean
 }
 
 const formatLabel = (text: string) => {
@@ -19,14 +20,37 @@ const formatLabel = (text: string) => {
         .replace(/_/g, " ")
         .trim()
         .split(/\s+/)
-        .map((word: any) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(" ")
 };
 
+type ApiMaintenanceHistory = {
+    id: number;
+    maintenance_history_code: string;
+    maintenance_type: string;
+    maintenance_notes: string;
+    performed_by: string;
+    computer: number;
+    technician: number;
+    date_performed: string;
+    repair_log: MaintenanceHistoryRepairLog;
+};
 
-export default function MaintenanceHistoryCard({computerId, openSheet,setMaintenanceHistory}: MaintenanceHistoryCardType){
+const fallbackMaintenanceType = {
+    icon: ClipboardClock,
+    className: "bg-gray-100 text-gray-700",
+};
 
-    const mapMaintenanceHistory = (maintenanceHistory: any) : MaintenanceHistory=>({
+
+export default function MaintenanceHistoryCard({
+    computerId,
+    openSheet,
+    setMaintenanceHistory,
+    maintenanceHistoryData,
+    isLoadingOverride
+}: MaintenanceHistoryCardType){
+
+    const mapMaintenanceHistory = (maintenanceHistory: ApiMaintenanceHistory) : MaintenanceHistory=>({
         id: maintenanceHistory.id,
         maintenanceHistoryCode: maintenanceHistory.maintenance_history_code,
         maintenanceType: maintenanceHistory.maintenance_type,
@@ -38,21 +62,28 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
         repairLog: maintenanceHistory.repair_log
     });
 
-    const {data: maintenanceHistory = [], isLoading } = useQuery<MaintenanceHistory[]>({
-        queryKey: ["maintenanceHistory"],
+    const {data: queriedMaintenanceHistory = [], isLoading } = useQuery<MaintenanceHistory[]>({
+        queryKey: ["maintenanceHistory", computerId],
+        enabled: !maintenanceHistoryData,
         queryFn: async () => {
-             const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/maintenance-history/?computer-id=${computerId}`);
+             const res = await privateFetch(buildApiUrl(`/api/maintenance-history/?computer-id=${computerId}`));
                
              
             const data = await res.json();
 
             if(!res.ok){
-                throw createApiError(res.status, data.message || 'Failed to fetch rooms.')
+                const message = data && typeof data === "object" && "message" in data
+                    ? String(data.message)
+                    : "Failed to fetch maintenance history.";
+
+                throw createApiError(res.status, message)
             }
 
-            return data.map(mapMaintenanceHistory)
+            return (data as ApiMaintenanceHistory[]).map(mapMaintenanceHistory)
         } 
     });
+    const maintenanceHistory = maintenanceHistoryData ?? queriedMaintenanceHistory;
+    const isHistoryLoading = isLoadingOverride ?? isLoading;
 
     const filterMaintenanceHistory = useMemo(() => {
         return[...maintenanceHistory]
@@ -79,26 +110,28 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
 	                    <div className="min-h-0 flex-1 gap-y-1.5 overflow-y-auto pr-1">
 
 
-                    {isLoading && (
+                    {isHistoryLoading && (
                     <p className="col-span-full py-8 text-center secondary-text-color">
                         Loading maintenance history...
                     </p>
                     )}
 
-                    {!isLoading && filterMaintenanceHistory.length === 0 &&(
+                    {!isHistoryLoading && filterMaintenanceHistory.length === 0 &&(
                     <p className="col-span-full py-8 text-center secondary-text-color">
                         No history found.
                     </p>
                     )}
 
-                    {!isLoading && filterMaintenanceHistory.map((mh, index)=> {
+                    {!isHistoryLoading && filterMaintenanceHistory.map((mh, index)=> {
 
-                        const typeData = maintenanceTypeConfig[formatLabel(mh.maintenanceType) as MaintenanceTypes];
+                        const typeData =
+                            maintenanceTypeConfig[formatLabel(mh.maintenanceType) as MaintenanceTypes] ??
+                            fallbackMaintenanceType;
                         const TypeIcon = typeData.icon
-                        const maintenanceTitle = formatLabel(mh.repairLog.title)
-                        const maintenanceStatus = formatLabel(mh.repairLog.ticket.status)
+                        const maintenanceTitle = formatLabel(mh.repairLog?.title || "No title")
+                        const maintenanceStatus = formatLabel(mh.repairLog?.ticket?.status || "No status")
 	                        return(
-                            <>
+                            <Fragment key={mh.id}>
                             <div 
                             onClick={()=>{
                                 setMaintenanceHistory(mh)
@@ -132,7 +165,7 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
                                 <div className="border-t primary-border-color my-1.5"></div>
                             )}
                         
-                            </>
+                            </Fragment>
                         )
                     })}
                         

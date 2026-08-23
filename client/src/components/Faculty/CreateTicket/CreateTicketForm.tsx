@@ -51,6 +51,7 @@ export default function CreateTicketForm() {
   const queryClient = useQueryClient();
   const scannerState = location.state as ScannerState;
   const computerCode = scannerState?.computerCode?.trim() ?? "";
+  const isScannedReport = computerCode.length > 0;
   const [type, setType] = useState<TicketType>("report");
   const [roomId, setRoomId] = useState("");
   const [selectedComputerCode, setSelectedComputerCode] = useState("");
@@ -101,6 +102,16 @@ export default function CreateTicketForm() {
   const selectedPeripheralStatus = selectedComputerDetails ? getPeripheralStatuses(selectedComputerDetails) : [];
   const selectedComputerFromList = roomComputers.find((computer) => computer.computer_code === activeComputerCode);
   const selectedComputerId = selectedComputerDetails?.id ?? selectedComputerFromList?.id ?? null;
+  const displayRoom = selectedComputerDetails?.room ?? selectedRoom;
+  const isReport = type === "report";
+  const descriptionPlaceholder =
+    type === "report" ? "Describe the issue you are experiencing..." : "Describe what you are requesting...";
+
+  useEffect(() => {
+    if (computerCode) {
+      setType("report");
+    }
+  }, [computerCode]);
 
   useEffect(() => {
     if (computerCode && selectedComputerDetails?.room?.id) {
@@ -153,32 +164,48 @@ export default function CreateTicketForm() {
     }
   };
 
+  const ticketTitle = type === "report" ? "Create a Report Ticket" : "Create a Request Ticket";
+  const ticketSubtitle =
+    type === "report"
+      ? "Tell us what's wrong and provide a few details. Our technicians will review your report and help resolve the issue quickly."
+      : "Need assistance? Submit a request and our technicians will review it and provide the support you need.";
+
+  const computerInformation = isReport && (selectedComputerDetails || isLoadingComputerDetails) && (
+    <>
+      <ComputerInfoCard computer={selectedComputerDetails} isLoading={isLoadingComputerDetails} />
+      {selectedPeripheralStatus.length > 0 && <PeripheralStatusCard items={selectedPeripheralStatus} />}
+      {displayRoom && <LaboratoryLocationCard room={displayRoom} />}
+    </>
+  );
+
   return (
-    <form onSubmit={handleSubmitRequest} className="mx-auto w-full max-w-[760px] space-y-4 px-3 py-5 md:px-5 md:py-6">
-      <section>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-950">Create a Ticket</h1>
-        <p className="mt-1 text-sm text-gray-500">Add the issue details so a technician can resolve it quickly.</p>
+    <form onSubmit={handleSubmitRequest} className="mx-auto w-full max-w-[760px] space-y-5 px-5 py-6 md:px-6 md:py-7">
+      <section className="space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-950">{ticketTitle}</h1>
+        <p className="text-sm font-medium leading-relaxed text-zinc-500">{ticketSubtitle}</p>
       </section>
 
-      <TicketTypeToggle type={type} onTypeChange={setType} />
+      {!isScannedReport && <TicketTypeToggle type={type} onTypeChange={setType} />}
 
-      {type === "report" && !computerCode && (
+      {isReport && !isScannedReport && (
         <QrScanButton onClick={() => navigate("/qr-scanner")} />
       )}
 
-      {type === "report" && (selectedComputerDetails || isLoadingComputerDetails) && (
-        <ComputerInfoCard computer={selectedComputerDetails} isLoading={isLoadingComputerDetails} />
+      {isScannedReport && computerInformation}
+
+      {!isScannedReport && isReport && selectedComputerDetails && computerInformation}
+
+      {!isScannedReport && (
+        <LaboratoryDropdown
+          rooms={rooms}
+          selectedRoom={selectedRoom}
+          roomId={roomId}
+          isLoadingRooms={isLoadingRooms}
+          onSelectRoom={handleSelectRoom}
+        />
       )}
 
-      <LaboratoryDropdown
-        rooms={rooms}
-        selectedRoom={selectedRoom}
-        roomId={roomId}
-        isLoadingRooms={isLoadingRooms}
-        onSelectRoom={handleSelectRoom}
-      />
-
-      {type === "report" && !computerCode && (
+      {isReport && !isScannedReport && (
         <ComputerDropdown
           selectedRoom={selectedRoom}
           selectedComputerCode={selectedComputerCode}
@@ -190,12 +217,6 @@ export default function CreateTicketForm() {
         />
       )}
 
-      {selectedRoom && <LaboratoryLocationCard room={selectedRoom} />}
-
-      {type === "report" && selectedPeripheralStatus.length > 0 && (
-        <PeripheralStatusCard items={selectedPeripheralStatus} />
-      )}
-
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Title" className="md:col-span-2">
           <input
@@ -203,7 +224,7 @@ export default function CreateTicketForm() {
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             placeholder={type === "report" ? "e.g., PC automatically restarts" : "e.g., Aircon not working"}
-            className="w-full rounded-xl bg-white px-3 py-2 text-sm shadow-sm outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-primary/30"
+            className="h-12 w-full rounded-xl bg-white px-4 text-sm font-medium text-zinc-950 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none placeholder:text-zinc-300 focus:ring-2 focus:ring-primary/30"
           />
         </Field>
 
@@ -212,16 +233,18 @@ export default function CreateTicketForm() {
             required
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            placeholder="Describe the issue..."
-            className="min-h-28 w-full resize-y rounded-xl border border-gray-200 bg-white p-3 text-sm shadow-sm outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-primary/30"
+            maxLength={500}
+            placeholder={descriptionPlaceholder}
+            className="min-h-36 w-full resize-y rounded-xl bg-white p-4 text-sm font-medium text-zinc-950 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none placeholder:text-zinc-300 focus:ring-2 focus:ring-primary/30"
           />
+          <span className="mt-1 block text-right text-xs font-medium text-zinc-400">{description.length}</span>
         </Field>
       </div>
 
       <ImageUploadField image={image} onImageChange={setImage} />
 
-      <button type="submit" disabled={isSubmitting} className="mt-5 primary-button w-full rounded-full!">
-        {isSubmitting ? <><Spinner className="size-5" /> Submitting...</> : "Submit Ticket"}
+      <button type="submit" disabled={isSubmitting} className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl primary-bg-color text-sm font-semibold text-white shadow-[0_4px_14px_rgba(15,23,42,0.08)] transition disabled:cursor-not-allowed disabled:bg-primary/35">
+        {isSubmitting ? <><Spinner className="size-5" /> Submitting...</> : type === "report" ? "Submit report" : "Submit request"}
       </button>
 
       <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>

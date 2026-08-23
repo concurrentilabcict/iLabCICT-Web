@@ -66,23 +66,23 @@ export default function ComputerAssetCard({
     }, [qrValue]);
 
     return (
-        <section className="w-full rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-            <div className="flex flex-col gap-5 rounded-2xl primary-bg-color p-5 text-white md:flex-row md:items-center md:justify-between">
+        <section className="w-full rounded-2xl border border-white bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:rounded-3xl md:p-4">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-2xl primary-bg-color p-4 text-white md:flex md:items-center md:justify-between md:gap-5 md:p-5">
                 <div className="min-w-0">
-                    <div className="flex items-center gap-3">
-                        <span className="grid size-10 place-items-center rounded-xl bg-white/15">
-                            <Monitor className="size-5" />
+                    <div className="flex min-w-0 items-center gap-2 md:gap-3">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/15 md:size-10">
+                            <Monitor className="size-4 md:size-5" />
                         </span>
-                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/75">
+                        <p className="min-w-0 truncate text-[10px] font-bold uppercase tracking-[0.18em] text-white/75 md:text-xs md:tracking-[0.2em]">
                             Laboratory Asset
                         </p>
                     </div>
 
-                    <h1 className="mt-5 break-words text-3xl font-bold leading-tight">
+                    <h1 className="mt-4 break-words text-2xl font-bold leading-tight md:mt-5 md:text-3xl">
                         {computerCode}
                     </h1>
 
-                    <div className="mt-5 grid gap-3 text-sm font-semibold text-white/90 sm:grid-cols-3 md:grid-cols-1">
+                    <div className="mt-4 grid gap-2 text-sm font-semibold text-white/90 sm:grid-cols-3 md:mt-5 md:grid-cols-1 md:gap-3">
                         <div className="flex items-center gap-2">
                             <MapPin className="size-4 text-white/70" />
                             <span>{buildingName}</span>
@@ -98,15 +98,15 @@ export default function ComputerAssetCard({
                     </div>
 
                     <div
-                        className={`mt-5 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold ${statusData?.className}`}
+                        className={`mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold md:mt-5 ${statusData?.className}`}
                     >
                         <StatusIcon className="size-4" />
                         {status}
                     </div>
                 </div>
 
-                <div className="flex shrink-0 items-center justify-center md:justify-end">
-                    <div className="grid size-36 place-items-center rounded-2xl bg-white p-2 shadow-lg shadow-black/15 sm:size-40">
+                <div className="flex shrink-0 items-end justify-end self-end md:items-center md:self-center">
+                    <div className="grid size-24 place-items-center rounded-2xl bg-white p-2 shadow-lg shadow-black/15 sm:size-32 md:size-40">
                         {qrDataUrl ? (
                             <img
                                 src={qrDataUrl}

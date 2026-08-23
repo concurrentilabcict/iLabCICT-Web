@@ -23,7 +23,7 @@ import UnauthorizedPage from "./pages/UnauthorizedPage"
 import { useAuth } from "./auth/useAuth"
 import ManageUserPage from "./pages/Admin/ManageUserPage"
 import DashboardPage from "./pages/Admin/DashboardPage"
-import FacultyPage from "./pages/Faculty/FacultyPage"
+import FacultyNotificationPage from "./pages/Faculty/NotificationPage"
 import FacultyQrScannerPage from "./pages/Faculty/QrScannerPage"
 import FacultyManageTicket from "./pages/Faculty/ManageTicketPage"
 import FacultyFaqPage from "./pages/Faculty/FaqPage"
@@ -93,7 +93,7 @@ function App() {
 
         {/* Technician, Faculty */}
         <Route path="/notifications" element={<ProtectedRoute allowedRoles={technicianAndFaculty}>
-          {role === "faculty" ? <FacultyPage title="Notifications" /> : <NotificationPage />}</ProtectedRoute>} />
+          {role === "faculty" ? <FacultyNotificationPage /> : <NotificationPage />}</ProtectedRoute>} />
         <Route path="/qr-scanner" element={<ProtectedRoute allowedRoles={technicianAndFaculty}>
           {role === "faculty" ? <FacultyQrScannerPage /> : <QrScannerPage />}</ProtectedRoute>} />
        

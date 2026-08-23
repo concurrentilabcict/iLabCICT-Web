@@ -144,12 +144,14 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
               type={type}
               title={ticket.title}
               complaintDescription={ticket.complaintDescription}
-              ticketCode={ticket.ticketCode}
-              reportedBy={`${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`}
-              assignedTo={`${ticket.assignedTo?.firstName} ${ticket.assignedTo?.lastName}`.trim()}
-              room={`${formatLabel(ticket.room.buildingName)}, ${ticket.room.roomName}`}
-              computerCode={ticket.computer?.computerCode || "No Computer"}
-              date={ticket.createdAt}
+	              ticketCode={ticket.ticketCode}
+	              reportedBy={`${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`}
+	              assignedTo={`${ticket.assignedTo?.firstName} ${ticket.assignedTo?.lastName}`.trim()}
+	              roomName={ticket.room.roomName}
+	              buildingName={formatLabel(ticket.room.buildingName)}
+	              floorNumber={ticket.room.floorNumber}
+	              computerCode={ticket.computer?.computerCode || "No Computer"}
+	              date={ticket.createdAt}
               onClick={() => openTicket(ticket)}
             />
           );

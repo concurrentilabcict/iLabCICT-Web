@@ -1,11 +1,18 @@
+import { useAuth } from "@/auth/useAuth";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import AccountSecurity from "./AccountSecurity";
+import FacultyProfile from "./FacultyProfile/FacultyProfile";
 import ProfileForm from "./ProfileForm";
 import ProfileTicketStats from "./ProfileTicketStats/ProfileTicketStats";
 
 export default function Profile() {
 
     const isMobile = useMediaQuery("(max-width: 767px)");
+    const { role } = useAuth();
+
+    if (role.toLowerCase() === "faculty") {
+        return <FacultyProfile />;
+    }
 
     return(
         <>

@@ -2,7 +2,7 @@
 import type { MaintenanceHistory, MaintenanceHistoryRepairLog } from "@/types/maintenanceHistory";
 import { useQuery } from "@tanstack/react-query";
 import { ClipboardClock } from "lucide-react";
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { maintenanceTypeConfig, type MaintenanceTypes } from "@/utils/maintenanceHistory";
 import { formatDateTime } from "@/utils/string";
 import { Fragment, useMemo } from "react";
@@ -10,7 +10,9 @@ import { Fragment, useMemo } from "react";
 type MaintenanceHistoryCardType = {
     computerId: number,
     openSheet: (open: boolean) => void,
-    setMaintenanceHistory: (maintenanceHistory: MaintenanceHistory) => void
+    setMaintenanceHistory: (maintenanceHistory: MaintenanceHistory) => void,
+    maintenanceHistoryData?: MaintenanceHistory[],
+    isLoadingOverride?: boolean
 }
 
 const formatLabel = (text: string) => {
@@ -40,7 +42,13 @@ const fallbackMaintenanceType = {
 };
 
 
-export default function MaintenanceHistoryCard({computerId, openSheet,setMaintenanceHistory}: MaintenanceHistoryCardType){
+export default function MaintenanceHistoryCard({
+    computerId,
+    openSheet,
+    setMaintenanceHistory,
+    maintenanceHistoryData,
+    isLoadingOverride
+}: MaintenanceHistoryCardType){
 
     const mapMaintenanceHistory = (maintenanceHistory: ApiMaintenanceHistory) : MaintenanceHistory=>({
         id: maintenanceHistory.id,
@@ -54,10 +62,11 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
         repairLog: maintenanceHistory.repair_log
     });
 
-    const {data: maintenanceHistory = [], isLoading } = useQuery<MaintenanceHistory[]>({
+    const {data: queriedMaintenanceHistory = [], isLoading } = useQuery<MaintenanceHistory[]>({
         queryKey: ["maintenanceHistory", computerId],
+        enabled: !maintenanceHistoryData,
         queryFn: async () => {
-             const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/maintenance-history/?computer-id=${computerId}`);
+             const res = await privateFetch(buildApiUrl(`/api/maintenance-history/?computer-id=${computerId}`));
                
              
             const data = await res.json();
@@ -73,6 +82,8 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
             return (data as ApiMaintenanceHistory[]).map(mapMaintenanceHistory)
         } 
     });
+    const maintenanceHistory = maintenanceHistoryData ?? queriedMaintenanceHistory;
+    const isHistoryLoading = isLoadingOverride ?? isLoading;
 
     const filterMaintenanceHistory = useMemo(() => {
         return[...maintenanceHistory]
@@ -98,19 +109,19 @@ export default function MaintenanceHistoryCard({computerId, openSheet,setMainten
 	                    <div className="min-h-0 flex-1 gap-y-1.5 overflow-y-auto pr-1">
 
 
-                    {isLoading && (
+                    {isHistoryLoading && (
                     <p className="col-span-full py-8 text-center secondary-text-color">
                         Loading maintenance history...
                     </p>
                     )}
 
-                    {!isLoading && filterMaintenanceHistory.length === 0 &&(
+                    {!isHistoryLoading && filterMaintenanceHistory.length === 0 &&(
                     <p className="col-span-full py-8 text-center secondary-text-color">
                         No history found.
                     </p>
                     )}
 
-                    {!isLoading && filterMaintenanceHistory.map((mh, index)=> {
+                    {!isHistoryLoading && filterMaintenanceHistory.map((mh, index)=> {
 
                         const typeData =
                             maintenanceTypeConfig[formatLabel(mh.maintenanceType) as MaintenanceTypes] ??

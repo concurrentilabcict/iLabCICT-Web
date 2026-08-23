@@ -46,7 +46,7 @@ export default function SearchFilter({
           placeholder="Search tickets..."
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="w-full rounded-xl bg-white py-2 pl-10 pr-10 outline-none shadow-sm focus:ring-2 focus:ring-primary/30"
+	          className="w-full rounded-xl bg-white py-2 pl-10 pr-10 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none"
         />
         {isSearchActive && (
           <button type="button" aria-label="Clear search" onMouseDown={(event) => event.preventDefault()} onClick={clearSearch} className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-950">
@@ -58,12 +58,12 @@ export default function SearchFilter({
       <div className={isSearchActive ? "hidden md:block" : ""}>
         <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <DropdownMenuTrigger asChild>
-            <button type="button" className="flex w-32 cursor-pointer items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-gray-500 shadow-sm">
+	            <button type="button" className="flex w-32 cursor-pointer items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-gray-500 shadow-[0_4px_14px_rgba(15,23,42,0.08)]">
               <span className="flex items-center gap-1"><Funnel size={14} />{selectedType}</span>
               <ChevronDown size={14} className={isFilterOpen ? "rotate-180 transition-transform" : "transition-transform"} />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" sideOffset={8}>
+	          <DropdownMenuContent align="end" sideOffset={8} className="rounded-xl border-none shadow-[0_4px_14px_rgba(15,23,42,0.08)]">
             {typeOptions.map((type) => (
               <DropdownMenuItem key={type} className={`cursor-pointer ${selectedType === type ? "font-medium" : ""}`} onSelect={() => onTypeChange(type)}>
                 {type}

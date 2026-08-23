@@ -51,7 +51,7 @@ export default function RoomCard({
                     state: { roomName: room.roomName },
                 })
             }
-            className="group flex h-full min-h-[360px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] md:max-w-[550px]"
+            className="group flex h-full min-h-[360px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 md:max-w-[550px]"
         >
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
@@ -91,7 +91,7 @@ export default function RoomCard({
                             });
                         }}
                         type="button"
-                        className="flex h-9 flex-1 shrink-0 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20"
+                        className="flex h-9 flex-1 shrink-0 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white"
                         >
                         <LaptopMinimal size={17}/> View Computers
                     </button>
@@ -102,7 +102,7 @@ export default function RoomCard({
                             handleEditRoomClick(room)
                         }}
                         type="button"
-                        className="grid h-9 w-10 shrink-0 place-items-center rounded-xl border primary-border-color bg-white text-zinc-500 shadow-sm shadow-black/5 hover:cursor-pointer hover:bg-gray-50"
+                        className="grid h-9 w-10 shrink-0 place-items-center rounded-xl border primary-border-color bg-white text-zinc-500 hover:cursor-pointer hover:bg-gray-50"
                     >
                         <SquarePen size={17}/>
                     </button>
@@ -119,8 +119,8 @@ type InfoTileProps = {
 
 function InfoTile({ icon: Icon, label, value }: InfoTileProps) {
     return (
-        <div className="flex min-w-0 items-center gap-2.5 rounded-2xl bg-zinc-50 p-3 shadow-sm shadow-black/[0.01]">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-400">
+        <div className="flex min-w-0 items-center gap-2.5 rounded-xl border border-gray-100 bg-zinc-50 p-3">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-400">
                 <Icon size={16} />
             </div>
             <div className="min-w-0">

@@ -14,14 +14,19 @@ export type ApiComputer = {
   room: ApiRoom;
   computer_code: string;
   operating_system: string;
+  gpu?: string;
   cpu: string;
+  motherboard?: string;
   ram_size_installed: number;
   disk_size_installed: number;
+  build_version?: string;
   computer_status: string;
   monitor_status: string;
   mouse_status: string;
   keyboard_status: string;
   ups_status: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type ScannerState = { computerCode?: string } | null;

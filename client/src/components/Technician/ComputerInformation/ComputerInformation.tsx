@@ -5,7 +5,7 @@ import MaintenanceHistoryCard from "./MaintenanceHistoryCard";
 import ComputerAssetCard from "@/components/ComputerInformation/ComputerAssetCard/ComputerAssetCard";
 import type { Computer } from "@/types/computer";
 import { useQuery } from "@tanstack/react-query";
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import type { PeripheralStatus, Status } from "@/utils/computer";
 import {
     Sheet,
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import MaintenanceHistoryDetails from "./MaintenanceHistoryDetails";
 import { useState } from "react";
-import type { MaintenanceHistory } from "@/types/maintenanceHistory";
+import type { MaintenanceHistory, MaintenanceHistoryRepairLog } from "@/types/maintenanceHistory";
 
 
 
@@ -59,6 +59,23 @@ type ApiComputerDetails = {
     message?: string;
 };
 
+type ApiMaintenanceHistory = {
+    id: number;
+    maintenance_history_code: string;
+    maintenance_type: string;
+    maintenance_notes: string;
+    performed_by: string;
+    computer: number;
+    technician: number;
+    date_performed: string;
+    repair_log: MaintenanceHistoryRepairLog;
+};
+
+type ComputerInformationData = {
+    computer: Computer;
+    maintenanceHistory: MaintenanceHistory[];
+};
+
 export default function ComputerInformation({
     roomName,
     computerCode,
@@ -94,23 +111,55 @@ export default function ComputerInformation({
         updatedAt: computer.updated_at
     });
 
+    const mapMaintenanceHistory = (history: ApiMaintenanceHistory): MaintenanceHistory => ({
+        id: history.id,
+        maintenanceHistoryCode: history.maintenance_history_code,
+        maintenanceType: history.maintenance_type,
+        maintenanceNotes: history.maintenance_notes,
+        performedBy: history.performed_by,
+        datePerformed: history.date_performed,
+        computerId: history.computer,
+        technicianId: history.technician,
+        repairLog: history.repair_log
+    });
+
     const handleSheetOpenChange = (open: boolean) => {
         setSheetOpen(open);
     }
 
-    const { data: computer, isLoading } = useQuery<Computer>({
+    const { data, isLoading } = useQuery<ComputerInformationData>({
         queryKey: ["computer", roomName, computerCode],
         queryFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/${encodeURIComponent(roomName)}/computers/${encodeURIComponent(computerCode)}`);
+            const computerRes = await privateFetch(buildApiUrl(`/api/rooms/${encodeURIComponent(roomName)}/computers/${encodeURIComponent(computerCode)}`));
 
-            const data = (await res.json()) as ApiComputerDetails;
-            if(!res.ok){
-                throw createApiError(res.status, data.message || 'Failed to fetch computer information.');
+            const computerData = (await computerRes.json()) as ApiComputerDetails;
+            if(!computerRes.ok){
+                throw createApiError(computerRes.status, computerData.message || 'Failed to fetch computer information.');
             }
 
-            return mapComputer(data)
+            const computer = mapComputer(computerData);
+            const historyRes = await privateFetch(buildApiUrl(`/api/maintenance-history/?computer-id=${computer.id}`));
+
+            const [historyData] = await Promise.all([
+                historyRes.json() as Promise<ApiMaintenanceHistory[] | { message?: string }>,
+            ]);
+
+            if (!historyRes.ok) {
+                const message = typeof historyData === "object" && historyData !== null && "message" in historyData
+                    ? String(historyData.message)
+                    : "Failed to fetch maintenance history.";
+
+                throw createApiError(historyRes.status, message);
+            }
+
+            return {
+                computer,
+                maintenanceHistory: (historyData as ApiMaintenanceHistory[]).map(mapMaintenanceHistory),
+            };
         }
     });
+    const computer = data?.computer;
+    const maintenanceHistoryList = data?.maintenanceHistory ?? [];
    
     return(
         <>
@@ -152,6 +201,8 @@ export default function ComputerInformation({
                                 setMaintenanceHistory={setMaintenanceHistory}
                                 openSheet={handleSheetOpenChange}
                                 computerId={computer.id}
+                                maintenanceHistoryData={maintenanceHistoryList}
+                                isLoadingOverride={isLoading}
                             />
                             <PeripheralDetailCard
                                 monitorStatus={formatLabel(computer.monitorStatus) as PeripheralStatus}

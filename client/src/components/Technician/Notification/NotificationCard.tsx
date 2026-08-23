@@ -27,29 +27,29 @@ export default function NotificationCard({
         <button
             type="button"
             onClick={onClick}
-            className={`relative flex w-full cursor-pointer items-start gap-4 rounded-3xl bg-white px-4 py-4 text-left shadow-sm transition hover:shadow-[0_14px_34px_rgba(15,23,42,0.08)] ${
+            className={`relative flex w-full cursor-pointer items-start gap-3 rounded-xl bg-white px-4 py-4 text-left shadow-[0_4px_14px_rgba(15,23,42,0.08)] transition hover:shadow-[0_8px_18px_rgba(15,23,42,0.10)] ${
                 isUnread ? "ring-1 ring-orange-200" : ""
             }`}
             aria-label={`Open ticket: ${notification.ticket.title}`}
         >
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                <Ticket size={28} />
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                <Ticket size={18} />
             </div>
 
             <div className="min-w-0 flex-1 pr-4">
-                <h2 className="truncate text-lg font-bold text-zinc-950">
+                <h2 className="truncate text-base font-bold leading-snug text-zinc-950">
                     {notification.title}
                 </h2>
-                <p className="mt-1 line-clamp-1 text-sm font-medium text-zinc-600">
+                <p className="mt-1.5 line-clamp-1 text-sm font-medium leading-relaxed text-zinc-500">
                     {summary}
                 </p>
-                <p className="mt-4 text-sm font-semibold text-zinc-400">
+                <p className="mt-3 text-sm font-semibold text-zinc-400">
                     {formatDateTime(notification.createdAt)}
                 </p>
             </div>
 
             {isUnread && (
-                <span className="absolute right-4 top-5 size-3 rounded-full bg-orange-500" />
+                <span className="absolute right-3.5 top-4 size-2.5 rounded-full bg-orange-500" />
             )}
         </button>
     );
