@@ -153,7 +153,7 @@ export default function ButtonGroup({
                     className="flex h-9 items-center gap-1.5 rounded-xl border border-[#bf3419] bg-white px-3.5 text-sm font-semibold primary-text-color shadow-sm shadow-black/5 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     <Eye size={16} />
-                    <span className={isMobile ? "hidden" : ""}>Request History</span>
+                    <span>Request History</span>
                 </button>
                 <div className="flex items-center gap-2.5">
                     <button
