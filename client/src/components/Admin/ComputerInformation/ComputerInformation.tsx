@@ -105,6 +105,7 @@ export default function ComputerInformation({
                         roomName={computer.room.roomName}
                         floorNumber={computer.room.floorNumber}
                         status={formatLabel(computer.computerStatus) as Status}
+                        variant="bordered"
                     />
 
                     <div className="grid items-start gap-3 sm:grid-cols-2">

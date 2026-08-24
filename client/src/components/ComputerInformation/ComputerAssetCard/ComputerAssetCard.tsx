@@ -18,6 +18,7 @@ type ComputerAssetCardProps = {
     roomName: string;
     floorNumber: number;
     status: Status;
+    variant?: "elevated" | "bordered";
 };
 
 const formatFloor = (floorNumber: number) => `Floor ${floorNumber}`;
@@ -28,6 +29,7 @@ export default function ComputerAssetCard({
     roomName,
     floorNumber,
     status,
+    variant = "elevated",
 }: ComputerAssetCardProps) {
     const [qrDataUrl, setQrDataUrl] = useState("");
     const statusData = statusConfig[status];
@@ -66,7 +68,13 @@ export default function ComputerAssetCard({
     }, [qrValue]);
 
     return (
-        <section className="w-full rounded-2xl border border-white bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:rounded-3xl md:p-4">
+        <section
+            className={`w-full rounded-2xl border bg-white p-3 md:p-4 ${
+                variant === "bordered"
+                    ? "border-gray-200"
+                    : "border-white shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:rounded-3xl"
+            }`}
+        >
             <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-2xl primary-bg-color p-4 text-white md:flex md:items-center md:justify-between md:gap-5 md:p-5">
                 <div className="min-w-0">
                     <div className="flex min-w-0 items-center gap-2 md:gap-3">
@@ -106,7 +114,11 @@ export default function ComputerAssetCard({
                 </div>
 
                 <div className="flex shrink-0 items-end justify-end self-end md:items-center md:self-center">
-                    <div className="grid size-24 place-items-center rounded-2xl bg-white p-2 shadow-lg shadow-black/15 sm:size-32 md:size-40">
+                    <div
+                        className={`grid size-24 place-items-center rounded-2xl bg-white p-2 sm:size-32 md:size-40 ${
+                            variant === "bordered" ? "border border-white/30" : "shadow-lg shadow-black/15"
+                        }`}
+                    >
                         {qrDataUrl ? (
                             <img
                                 src={qrDataUrl}

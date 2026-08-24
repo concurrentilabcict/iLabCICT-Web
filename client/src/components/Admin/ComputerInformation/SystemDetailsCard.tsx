@@ -33,7 +33,7 @@ export default function SystemDetailsCard({
 
     return(
             <>
-                <div className="w-full max-w-[600px] rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:max-w-[550px]">
+                <div className="w-full max-w-[600px] rounded-2xl border border-gray-200 bg-white p-4 md:max-w-[550px]">
                     <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-4">
                         <div className="flex min-w-0 items-center gap-3">
                             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
@@ -95,8 +95,8 @@ type SpecItemProps = {
 
 function SpecItem({ icon: Icon, label, value, className = "" }: SpecItemProps) {
     return (
-        <div className={`flex min-w-0 items-center gap-2.5 rounded-2xl bg-zinc-50 p-3 ${className}`}>
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-400">
+        <div className={`flex min-w-0 items-center gap-2.5 rounded-xl border border-gray-100 bg-zinc-50 p-3 ${className}`}>
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-400">
                 <Icon size={16} />
             </span>
             <div className="min-w-0">

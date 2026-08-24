@@ -58,7 +58,7 @@ export default function SearchFilter({
                     placeholder="Search PCs..."
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    className="w-full rounded-md border primary-border-color bg-white py-2 pl-10 pr-10 shadow-sm shadow-black/5 outline-none placeholder:text-zinc-400 focus:border-black!"
+                    className="w-full rounded-md border primary-border-color bg-white py-2 pl-10 pr-10 outline-none placeholder:text-zinc-400 focus:border-black!"
                 />
 
                 {isSearchActive && (
@@ -82,7 +82,7 @@ export default function SearchFilter({
                     <DropdownMenuTrigger asChild>
                         <button
                             type="button"
-                            className='flex items-center justify-between gap-x-5 rounded-md border primary-border-color bg-white px-3 py-2 text-sm secondary-text-color shadow-sm shadow-black/5 cursor-pointer md:w-40'
+                            className='flex items-center justify-between gap-x-5 rounded-md border primary-border-color bg-white px-3 py-2 text-sm secondary-text-color cursor-pointer md:w-40'
                         >
                             <div className='flex items-center gap-x-1'>
                                 <Funnel size={14} />
