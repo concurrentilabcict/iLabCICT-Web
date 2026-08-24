@@ -40,7 +40,7 @@ export default function AdminManageLaboratoryPage(){
             <SidebarProvider>
                 {isMobile ? <NavBar/> : <Sidebar/>}
                     <SidebarInset>
-                        <div className="min-h-screen bg-[#f8fafc]">
+                        <div className="min-h-screen bg-[#fbfbfb]">
                             {isMobile ? <MobileHeader title="Laboratory"/> : <Header title="Laboratory"/>}
                              <div className="mx-auto max-w-[1000px]">
                                 <Filter
