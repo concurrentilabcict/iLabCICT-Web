@@ -35,6 +35,7 @@ type ComputerListProps = {
     setCustodian: (custodian: string) => void,
     setRoomMeta: (meta: { buildingName: string; floorNumber: number; technicianName: string }) => void,
     setRoomName: (roomName: string) => void,
+    setRequestHistoryRoomId: (roomId: number | null) => void,
     sheetOpen: boolean,
     isEditing: boolean,
     selectedComputer: ComputerCardType, 
@@ -95,6 +96,7 @@ export default function ComputerList({
     setCustodian,
     setRoomMeta,
     setRoomName,
+    setRequestHistoryRoomId,
     sheetOpen,
     isEditing,
     selectedComputer,
@@ -246,6 +248,7 @@ export default function ComputerList({
                         technicianName: technician
                     });
                     setRoomDatabaseId(roomComputers.id);
+                    setRequestHistoryRoomId(roomComputers.id);
                     setComputerReadiness({ roomId, isReady: true });
                     queryClient.setQueryData(readyQueryKey, true);
                     queryClient.setQueryData<ComputerCardType[]>(
@@ -279,7 +282,7 @@ export default function ComputerList({
                 computerSocketRef.current = null;
             }
         };
-    }, [queryClient, queryKey, readyQueryKey, roomId, setCustodian, setComputers, setRoomMeta, setRoomName, upsertComputer]);
+    }, [queryClient, queryKey, readyQueryKey, roomId, setCustodian, setComputers, setRequestHistoryRoomId, setRoomMeta, setRoomName, upsertComputer]);
 
     const filteredComputers = useMemo(() => {
         const normalizedQuery = searchQuery?.trim()

@@ -1,6 +1,6 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import type { ComputerCardType } from "@/types/computer"
-import { Building2, Download, Layers3, LaptopMinimal, Plus, Upload, User, Wrench } from "lucide-react"
+import { Building2, Download, Eye, Layers3, LaptopMinimal, Plus, Upload, User, Wrench } from "lucide-react"
 const formatDate = (date: string) =>
   new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -17,6 +17,8 @@ type ButtonGroupType = {
     custodianName: string,
     setSheetOpen: (open: boolean) => void,
     setIsEditing: (open: boolean) => void
+    onRequestHistoryClick: () => void,
+    isRequestHistoryDisabled: boolean
 }
 
 const escapeCsvCell = (value: unknown) => {
@@ -32,7 +34,9 @@ export default function ButtonGroup({
     computers,
     custodianName,
     setSheetOpen,
-    setIsEditing
+    setIsEditing,
+    onRequestHistoryClick,
+    isRequestHistoryDisabled
 }: ButtonGroupType){
 
     const handleAddComputerClick = () => {
@@ -141,22 +145,33 @@ export default function ButtonGroup({
                     </div>
                 </div>
             </div>
-            <div className="mt-4 flex justify-end gap-2.5 border-t border-gray-100 pt-4">
-                <button
-                    onClick={exportComputers}
-                    type="button"
-                    className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color shadow-sm shadow-black/5 hover:cursor-pointer hover:bg-gray-50"
-                >
-                    <Download size={16}/>
-                    <span className={isMobile ? 'hidden' : ''} >Export</span>
-                </button>
+            <div className="mt-4 flex items-center justify-between gap-2.5 border-t border-gray-100 pt-4">
                 <button
                     type="button"
-                    className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color shadow-sm shadow-black/5 hover:bg-gray-50"
+                    onClick={onRequestHistoryClick}
+                    disabled={isRequestHistoryDisabled}
+                    className="flex h-9 items-center gap-1.5 rounded-xl border border-[#bf3419] bg-white px-3.5 text-sm font-semibold primary-text-color shadow-sm shadow-black/5 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                    <Upload size={16}/>
-                    <span className={isMobile ? 'hidden' : ''}>Import</span>
+                    <Eye size={16} />
+                    <span className={isMobile ? "hidden" : ""}>Request History</span>
                 </button>
+                <div className="flex items-center gap-2.5">
+                    <button
+                        onClick={exportComputers}
+                        type="button"
+                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color shadow-sm shadow-black/5 hover:cursor-pointer hover:bg-gray-50"
+                    >
+                        <Download size={16}/>
+                        <span className={isMobile ? 'hidden' : ''} >Export</span>
+                    </button>
+                    <button
+                        type="button"
+                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color shadow-sm shadow-black/5 hover:bg-gray-50"
+                    >
+                        <Upload size={16}/>
+                        <span className={isMobile ? 'hidden' : ''}>Import</span>
+                    </button>
+                </div>
             </div>
         </div>
             

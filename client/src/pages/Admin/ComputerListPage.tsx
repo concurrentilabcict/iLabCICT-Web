@@ -7,6 +7,8 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Header from "@/components/Header/Header";
 import MobileHeader from "@/components/Header/MobileHeader";
 import { useQueryClient } from "@tanstack/react-query";
+import RequestHistory from "@/components/RequestHistory/RequestHistory";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 import { useEffect, useMemo, useState } from "react";
 import ButtonGroup from "@/components/Admin/ComputerList/ButtonGroup";
@@ -33,6 +35,8 @@ export default function AdminComputerListPage(){
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
     const [sheetOpen, setSheetOpen] = useState(false);
+    const [requestHistoryOpen, setRequestHistoryOpen] = useState(false);
+    const [roomDatabaseId, setRoomDatabaseId] = useState<number | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedComputer, setSelectedComputer] = useState<ComputerCardType>({
         id: 0,
@@ -116,6 +120,8 @@ export default function AdminComputerListPage(){
                                     setSheetOpen={setSheetOpen}
                                     custodianName={custodian}
                                     setIsEditing={setIsEditing}
+                                    onRequestHistoryClick={() => setRequestHistoryOpen(true)}
+                                    isRequestHistoryDisabled={!roomDatabaseId}
                                 />
                                 <ComputerList
                                     setComputers={setComputers}
@@ -128,10 +134,22 @@ export default function AdminComputerListPage(){
                                     roomId={roomId}
                                     setRoomMeta={setRoomMeta}
                                     setRoomName={handleRoomNameChange}
+                                    setRequestHistoryRoomId={setRoomDatabaseId}
                                     statusFilter={statusFilter}
                                     searchQuery={searchQuery}
                                     setCustodian={setCustodian}
                                 />
+                                <Sheet
+                                    open={requestHistoryOpen}
+                                    onOpenChange={setRequestHistoryOpen}
+                                >
+                                    <SheetContent
+                                        side={isMobile ? "bottom" : "right"}
+                                        className={isMobile ? "h-[90vh] p-0" : "w-[520px]! p-0"}
+                                    >
+                                        <RequestHistory roomId={roomDatabaseId} />
+                                    </SheetContent>
+                                </Sheet>
                             </div>
                         </div>
                     </SidebarInset>

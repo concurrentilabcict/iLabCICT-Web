@@ -1,11 +1,10 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ComputerCard from "./ComputerCard";
 import type { Status, StatusFilter } from "@/utils/computer";
-import type { ComputerList, ComputerCardType } from "@/types/computer";
+import type { ApiComputerCard, ApiRoomComputers, ComputerCardType } from "@/types/computer";
 import { useQuery } from "@tanstack/react-query";
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import {
     Pagination,
     PaginationContent,
@@ -18,7 +17,8 @@ type ComputerListProps = {
     roomName: string,
     searchQuery: string,
     statusFilter: StatusFilter,
-    setCustodian: Function,
+    setCustodian: (custodian: string) => void,
+    setRoomDatabaseId: (roomId: number | null) => void,
 }
 
 const formatLabel = (text: string) => {
@@ -35,11 +35,10 @@ export default function ComputerList({
     searchQuery,
     statusFilter,
     setCustodian,
+    setRoomDatabaseId,
 }: ComputerListProps){
 
     const isMobile = useMediaQuery("(max-width: 767px)");
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [roomId, setRoomId] = useState<number | null>(null);
 
     const ITEMS_PER_PAGE = 10;
     const filterKey  = JSON.stringify([statusFilter, searchQuery]);
@@ -48,7 +47,7 @@ export default function ComputerList({
         filterKey
     });
 
-    const mapComputerCard = (computerCard: any): ComputerCardType => ({
+    const mapComputerCard = (computerCard: ApiComputerCard): ComputerCardType => ({
         id:computerCard.id,
         computerCode: computerCard.computer_code,
         room: computerCard.room,
@@ -72,16 +71,19 @@ export default function ComputerList({
     const { data: computers = [], isLoading } = useQuery<ComputerCardType[]>({
         queryKey: ["computers", roomName],
         queryFn: async ()=> {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/${roomName}/computers/`);
+            const res = await privateFetch(buildApiUrl(`/api/rooms/${encodeURIComponent(roomName)}/computers/`));
 
-            const data = await res.json();
-
-            const custodian = data.assigned_custodian.first_name + " " + data.assigned_custodian.last_name
-            setCustodian(custodian)
+            const data = await res.json() as ApiRoomComputers & { message?: string };
 
             if(!res.ok){
                 throw createApiError(res.status, data.message || 'Failed to fetch computers.');
             }
+
+            const custodian = data.assigned_custodian
+                ? `${data.assigned_custodian.first_name} ${data.assigned_custodian.last_name}`
+                : "No assigned custodian";
+            setCustodian(custodian);
+            setRoomDatabaseId(data.id);
 
             return data.computers.map(mapComputerCard)
          }
