@@ -138,7 +138,9 @@ export default function ComputerInformation({
             }
 
             const computer = mapComputer(computerData);
-            const historyRes = await privateFetch(buildApiUrl(`/api/maintenance-history/?computer-id=${computer.id}`));
+            const [historyRes] = await Promise.all([
+                privateFetch(buildApiUrl(`/api/maintenance-history/?computer-id=${computer.id}`)),
+            ]);
 
             const [historyData] = await Promise.all([
                 historyRes.json() as Promise<ApiMaintenanceHistory[] | { message?: string }>,
