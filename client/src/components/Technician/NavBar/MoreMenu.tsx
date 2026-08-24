@@ -8,10 +8,12 @@ import {
 import {
     CircleEllipsis,
     Bell,
-    FileText
+    FileText,
+    LogOut
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/auth/useAuth";
 
 type MoreMenuProps = {
     isActive?: boolean;
@@ -21,6 +23,7 @@ type MoreMenuProps = {
 export default function MoreMenu({ isActive, showWeeklyReport = true }: MoreMenuProps) {
 
     const navigate = useNavigate();
+    const { logout } = useAuth();
 
     return (
         <DropdownMenu>
@@ -51,6 +54,14 @@ export default function MoreMenu({ isActive, showWeeklyReport = true }: MoreMenu
                 <DropdownMenuItem onSelect={() => navigate("/notifications")}>
                     <Bell className="mr-2 h-4 w-4" />
                     Notifications
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                    onSelect={logout}
+                    className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
