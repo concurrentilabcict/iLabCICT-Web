@@ -10,9 +10,12 @@ export default function Footer() {
                 </div>
 
                 <div className="flex flex-col gap-2 text-sm font-semibold text-zinc-400 md:items-end">
-                    <span>Bulacan State University</span>
+                    <div className="flex w-full items-center justify-between gap-6 md:block md:w-auto">
+                        <span>Bulacan State University</span>
+                        <span className="text-zinc-500 md:hidden">2026</span>
+                    </div>
                     <span>Built by Team Concurrent</span>
-                    <span className="text-zinc-500">2026</span>
+                    <span className="hidden text-zinc-500 md:block">2026</span>
                 </div>
             </div>
         </footer>

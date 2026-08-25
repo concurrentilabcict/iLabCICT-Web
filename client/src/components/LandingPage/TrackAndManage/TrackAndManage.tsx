@@ -11,9 +11,11 @@ export default function TrackAndManage({
   return (
     <section className={`px-4 py-10 sm:px-6 lg:px-15 ${isDarkMode ? "bg-black text-white" : "bg-white text-zinc-950"}`}>
       <div className="mx-auto grid max-w-[1180px] gap-8 text-zinc-950 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-        <WorkflowAnimation variant="track" />
+        <div className="order-2 lg:order-1">
+          <WorkflowAnimation variant="track" />
+        </div>
 
-        <div className="flex flex-col justify-between gap-8">
+        <div className="order-1 flex flex-col justify-between gap-8 lg:order-2">
           <div>
             <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-[#bf3419] text-sm font-black text-white">02</span>
             <h2 className="mt-6 text-3xl font-black leading-tight sm:text-4xl">Track every ticket as it moves.</h2>
