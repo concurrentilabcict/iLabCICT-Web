@@ -1,10 +1,5 @@
-import { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-import Demo from "@/assets/videos/demo.mp4";
-
-gsap.registerPlugin(ScrollTrigger);
+import { AlertTriangle, ImagePlus, Monitor, Send } from "lucide-react";
+import WorkflowAnimation from "@/components/LandingPage/WorkflowAnimation/WorkflowAnimation";
 
 type SubmitRequestProps = {
     isDarkMode: boolean;
@@ -13,63 +8,40 @@ type SubmitRequestProps = {
 export default function SubmitRequest({
     isDarkMode,
 }: SubmitRequestProps) {
-    const titleRef = useRef<HTMLHeadingElement>(null);
-
-    useEffect(() => {
-        gsap.fromTo(
-            titleRef.current,
-            {
-                opacity: 0,
-                y: 60,
-            },
-            {
-                opacity: 1,
-                y: 0,
-                duration: 1.4,
-                ease: "expo.out",
-                scrollTrigger: {
-                    trigger: titleRef.current,
-                    start: "top 100%",
-                    toggleActions: "play none none none",
-                },
-            }
-        );
-    }, []);
-
     return (
-        <div className="mt-5 lg:mt-5 flex flex-col px-3 lg:px-5">
-            <div className="flex items-start gap-x-3">
-                <h3 className="mt-[clamp(6px,calc(-8.64px+4.07vw),33px)] lg:text-xl">
-                    01
-                </h3>
+        <section className={`px-4 py-10 sm:px-6 lg:px-15 ${isDarkMode ? "bg-black text-white" : "bg-white text-zinc-950"}`}>
+            <div className="mx-auto grid max-w-[1180px] gap-8 text-zinc-950 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+                <div className="flex flex-col justify-between gap-8">
+                    <div>
+                        <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-[#bf3419] text-sm font-black text-white">01</span>
+                        <h2 className="mt-6 text-3xl font-black leading-tight sm:text-4xl">Submit reports without friction.</h2>
+                        <p className="mt-4 max-w-[520px] text-sm font-medium leading-7 text-zinc-600 sm:text-base">
+                            Faculty can report PC issues with the right room, computer, description, and supporting image in one clean flow.
+                        </p>
+                    </div>
 
-                <h1
-                    ref={titleRef}
-                    className="text-[clamp(30px,calc(30px+70*((100vw-360px)/663)),100px)]
-          font-secondary font-extralight"
-                >
-                    SUBMIT A REQUEST
-                </h1>
+                    <div className="grid gap-3 text-sm font-bold text-zinc-700 sm:grid-cols-2">
+                        <div className="flex items-center gap-3 rounded-2xl bg-zinc-50 p-3">
+                            <Monitor size={18} className="text-[#bf3419]" />
+                            Computer context
+                        </div>
+                        <div className="flex items-center gap-3 rounded-2xl bg-zinc-50 p-3">
+                            <ImagePlus size={18} className="text-[#bf3419]" />
+                            Optional image
+                        </div>
+                        <div className="flex items-center gap-3 rounded-2xl bg-zinc-50 p-3">
+                            <AlertTriangle size={18} className="text-[#bf3419]" />
+                            Report details
+                        </div>
+                        <div className="flex items-center gap-3 rounded-2xl bg-zinc-50 p-3">
+                            <Send size={18} className="text-[#bf3419]" />
+                            Instant submit
+                        </div>
+                    </div>
+                </div>
+
+                <WorkflowAnimation variant="submit" />
             </div>
-
-            <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full mb-7"
-            >
-                <source src={Demo} type="video/mp4" />
-            </video>
-
-            <p className="text-base lg:text-xl mb-7">
-                FACULTY OR STAFF CAN EASILY SUBMIT TECHNICAL OR MAINTENANCE
-                REQUESTS.
-            </p>
-
-            <div
-                className={`h-px w-full ${isDarkMode ? "bg-white" : "bg-black"}`}
-            />
-        </div>
+        </section>
     );
 }

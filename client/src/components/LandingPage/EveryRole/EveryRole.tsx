@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ClipboardList, MonitorCog, ShieldCheck } from "lucide-react";
 
 type EveryRoleProps = {
     setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
@@ -12,12 +13,32 @@ export default function EveryRole({
     setIsDarkMode,
 }: EveryRoleProps) {
     const sectionRef = useRef<HTMLDivElement>(null);
+    const roleCards = [
+        {
+            icon: ClipboardList,
+            role: "Faculty",
+            title: "Report issues fast",
+            detail: "Create reports or requests with room and computer context already attached.",
+        },
+        {
+            icon: MonitorCog,
+            role: "Technician",
+            title: "Own the repair flow",
+            detail: "Receive assignments, update ticket status, and keep maintenance history accurate.",
+        },
+        {
+            icon: ShieldCheck,
+            role: "Admin",
+            title: "See the full operation",
+            detail: "Manage users, laboratories, audit logs, reports, and live operational data.",
+        },
+    ];
 
     useEffect(() => {
         const trigger = ScrollTrigger.create({
             trigger: sectionRef.current,
 
-            start: "top 70%",
+            start: "top 35%",
             end: "bottom 30%",
 
             invalidateOnRefresh: true,
@@ -47,48 +68,39 @@ export default function EveryRole({
     }, [setIsDarkMode]);
 
     return (
-        <div
+        <section
+            id="roles"
             ref={sectionRef}
-            className="relative flex items-center justify-center py-20"
+            className="relative px-4 py-20 sm:px-6 lg:px-15"
         >
-            <h1
-                className="font-secondary font-light text-center text-[clamp(40px,12.82px+7.55vw,90px)]
-                lg:text-[clamp(75px,calc(75px+(140-75)*((100vw-1024px)/(1920-1024))),140px)]"
-            >
-                LABORATORY <br />
-                OPERATIONS <br className="lg:hidden" />
-                SHOULD <br />
-                FEEL{" "}
-                <span className="relative inline-block">
-                    <span className="relative z-10">
-                        SEAMLESS
-                    </span>
+            <div className="mx-auto max-w-[1180px]">
+                <div className="max-w-[760px]">
+                    <p className="text-sm font-black uppercase text-[#bf3419]">Built for every role</p>
+                    <h2 className="mt-4 text-4xl font-black leading-tight text-white sm:text-5xl">
+                        One operating layer for the people who keep labs running.
+                    </h2>
+                    <p className="mt-5 text-sm font-medium leading-7 text-zinc-300 sm:text-base">
+                        Each role sees the workflow that matters to them, while the system keeps tickets, rooms, logs, and reports connected.
+                    </p>
+                </div>
 
-                    <svg
-                        className="absolute left-1/2 top-1/2 w-[115%] h-[160%] -translate-x-1/2 -translate-y-1/2"
-                        viewBox="0 0 100 40"
-                        preserveAspectRatio="none"
-                    >
-                        <ellipse
-                            cx="50"
-                            cy="20"
-                            rx="44"
-                            ry="13"
-                            fill="none"
-                            stroke="white"
-                            strokeWidth="0.2"
-                        />
-                    </svg>
-                </span>
-                , <br className="lg:hidden" />
-                <span className="font-primary font-semibold text-[#bf3419]">
-                    FAST
-                </span>{" "}
-                AND <br />
-                <span className="font-primary font-semibold text-[#f4aa29]">
-                    INTELLIGENT
-                </span>
-            </h1>
-        </div>
+                <div className="mt-10 grid gap-4 lg:grid-cols-3">
+                    {roleCards.map((card) => {
+                        const RoleIcon = card.icon;
+
+                        return (
+                            <div key={card.role} className="rounded-[24px] border border-white/10 bg-white/[0.06] p-5 text-white shadow-[0_18px_55px_rgba(0,0,0,0.18)]">
+                                <div className="flex size-12 items-center justify-center rounded-2xl bg-white/10 text-[#f4aa29]">
+                                    <RoleIcon size={22} />
+                                </div>
+                                <p className="mt-6 text-sm font-black uppercase text-white/50">{card.role}</p>
+                                <h3 className="mt-2 text-2xl font-black">{card.title}</h3>
+                                <p className="mt-3 text-sm font-medium leading-7 text-zinc-300">{card.detail}</p>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </section>
     );
 }

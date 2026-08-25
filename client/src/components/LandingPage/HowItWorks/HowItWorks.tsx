@@ -1,17 +1,20 @@
 
 
 export default function HowItWorks() {
-    return(
-        <>
-            <div className="flex flex-col items-end pr-5 gap-y-3
-            md:pr-25">
-                <div className="flex flex-col gap-y-1 text-xl lg:text-3xl text-right">
-                    <h1>SEE HOW</h1>
-                    <h1 className="font-secondary font-light">IT WORKS</h1>
+    return (
+        <section id="workflow" className="px-4 pt-20 pb-8 sm:px-6 lg:px-15">
+            <div className="mx-auto flex max-w-[1180px] flex-col gap-5 border-t border-zinc-200 pt-10 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <p className="text-sm font-black uppercase text-[#bf3419]">Workflow</p>
+                    <h2 className="mt-4 max-w-[760px] text-4xl font-black leading-tight text-zinc-950 sm:text-5xl">
+                        From report to resolution, every step stays connected.
+                    </h2>
                 </div>
 
-                <div className="w-px h-[100px] md:h-[150px] lg:h-[240px] bg-black" />
+                <p className="max-w-[420px] text-sm font-medium leading-7 text-zinc-600 sm:text-base">
+                    iLabCICT turns daily laboratory maintenance into a clear operational flow for faculty, technicians, and administrators.
+                </p>
             </div>
-        </>
+        </section>
     );
 }
