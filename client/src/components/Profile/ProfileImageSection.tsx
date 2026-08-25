@@ -4,7 +4,7 @@ import { Image } from "lucide-react";
 
 import placeholderPicture from "@/assets/profile-placeholder.png";
 import { useAuth } from "@/auth/useAuth";
-import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
 import RemoveImageDialog from "./RemoveImageDialog";
 
@@ -55,7 +55,7 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
 
             formData.append("profile_image", file);
 
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`, {
+            const res = await privateFetch(buildApiUrl(`/api/users/${userId}/`), {
                 method: "PATCH",
                 body: formData,
             });
@@ -89,7 +89,7 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
 
     const imageRemoveMutation = useMutation({
         mutationFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`, {
+            const res = await privateFetch(buildApiUrl(`/api/users/${userId}/`), {
                 method: "PATCH",
                 body: JSON.stringify({
                     profile_image: null,

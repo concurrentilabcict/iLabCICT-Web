@@ -10,7 +10,7 @@ import { Plus, Minus} from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import DropDownOptions from "./DropDownOptions";
@@ -105,9 +105,9 @@ export default function EditRoomForm({
         queryFn: async ()=>{
             
              const res = await privateFetch(room.assignedCustodianId ? 
-                `https://ilabcict-backend.onrender.com/api/users/available-custodian/?include=${room.assignedCustodianId}`
+                buildApiUrl(`/api/users/available-custodian/?include=${room.assignedCustodianId}`)
                 :
-                `https://ilabcict-backend.onrender.com/api/users/available-custodian/`
+                buildApiUrl("/api/users/available-custodian/")
             );
 
              const data = await res.json();
@@ -145,7 +145,7 @@ export default function EditRoomForm({
     const editComputerMutation = useMutation({
         mutationFn: async () => {
             const response = await privateFetch(
-                `https://ilabcict-backend.onrender.com/api/rooms/${room.id}/`,
+                buildApiUrl(`/api/rooms/${room.id}/`),
                 {
                     method: "PATCH",
                     body: JSON.stringify({

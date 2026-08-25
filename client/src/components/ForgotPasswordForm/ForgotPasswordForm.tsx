@@ -3,7 +3,7 @@ import Logo from "@/assets/logo.png";
 import { Mail, X } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useMutation } from "@tanstack/react-query";
-import { createApiError, publicFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, publicFetch, type ApiError } from "@/lib/api";
 
 const COOLDOWN_SECONDS = 30;
 
@@ -31,7 +31,7 @@ export default function ForgotPasswordForm() {
             }
 
             const res = await publicFetch(
-                "https://ilabcict-backend.onrender.com/api/users/forgot-password/send-email/",
+                buildApiUrl("/api/users/forgot-password/send-email/"),
                 {
                     method: "POST",
                     body: JSON.stringify({

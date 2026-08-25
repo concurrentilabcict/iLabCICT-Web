@@ -19,9 +19,8 @@ export default function NotificationCard({
         ? `${displayUser.firstName} ${displayUser.lastName}`.trim()
         : "Unassigned technician";
     const isUnread = notification.status.toLowerCase() === "unread";
-    const summary = notification.activitySummary?.actor
-        ? `${notification.activitySummary.actor} ${notification.eventType.replace(/_/g, " ")} ${notification.activitySummary.entityTitle}`
-        : `${displayName} updated ${notification.ticket.title}`;
+    const summaryName = notification.activitySummary?.actor ?? displayName;
+    const summaryTitle = notification.activitySummary?.entityTitle ?? notification.ticket.title;
 
     return (
         <button
@@ -40,8 +39,11 @@ export default function NotificationCard({
                 <h2 className="truncate text-base font-bold leading-snug text-zinc-950">
                     {notification.title}
                 </h2>
-                <p className="mt-1.5 line-clamp-1 text-sm font-medium leading-relaxed text-zinc-500">
-                    {summary}
+                <p className="mt-1.5 truncate text-sm font-medium leading-relaxed text-zinc-500">
+                    {summaryName}
+                </p>
+                <p className="truncate text-sm font-semibold leading-relaxed text-zinc-700">
+                    {summaryTitle}
                 </p>
                 <p className="mt-3 text-sm font-semibold text-zinc-400">
                     {formatDateTime(notification.createdAt)}

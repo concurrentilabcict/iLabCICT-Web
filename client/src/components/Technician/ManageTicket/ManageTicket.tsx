@@ -3,6 +3,7 @@ import ManageTicketCard from "./ManageTicketCard";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
     buildWebSocketUrl,
+    buildApiUrl,
     createApiError,
     getFreshAccessToken,
     privateFetch,
@@ -263,9 +264,12 @@ export default function ManageTicket({
                 throw createApiError(400, "Unable to identify the logged-in technician.");
             }
 
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/${ticketId}/`, {
+            const res = await privateFetch(buildApiUrl(`/api/tickets/${ticketId}/`), {
                 method: "PATCH",
-                body: JSON.stringify({ assigned_to: technicianId }),
+                body: JSON.stringify({
+                    assigned_to: technicianId,
+                    status: "ongoing",
+                }),
             });
 
             const data = await res.json();
@@ -288,7 +292,7 @@ export default function ManageTicket({
 
     const resolveRequestMutation = useMutation({
         mutationFn: async (ticketId: number) => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/${ticketId}/`, {
+            const res = await privateFetch(buildApiUrl(`/api/tickets/${ticketId}/`), {
                 method: "PATCH",
                 body: JSON.stringify({ status: "resolved" }),
             });

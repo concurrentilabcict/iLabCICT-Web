@@ -63,13 +63,15 @@ export default function DropDownOptions({
               <button
                 type="button"
                 disabled={isSubmitting}
-                className="primary-border-color flex h-10 w-full cursor-pointer items-center justify-between gap-x-5 rounded-xl border bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                className="primary-border-color flex h-10 w-full min-w-0 cursor-pointer items-center justify-between gap-x-3 rounded-xl border bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span>{selectedItem?.label || "no custodian"}</span>
+                <span className="min-w-0 flex-1 truncate text-left">
+                  {selectedItem?.label || "no custodian"}
+                </span>
 
                 <ChevronDown
                   size={14}
-                  className={`transition-transform ${
+                  className={`shrink-0 transition-transform ${
                     itemOpen ? "rotate-180" : ""
                   }`}
                 />
@@ -99,7 +101,7 @@ export default function DropDownOptions({
                         }`}
                       >
                         <Checkbox checked={form[fieldType] === item.value} />
-                        <span>{item?.label}</span>
+                        <span className="min-w-0 flex-1 truncate">{item?.label}</span>
                       </CommandItem>
                     ))}
                   </CommandGroup>

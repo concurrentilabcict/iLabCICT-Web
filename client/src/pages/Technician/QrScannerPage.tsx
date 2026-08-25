@@ -5,9 +5,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-import { privateFetch } from "@/lib/api";
-
-const API_URL = "https://ilabcict-backend.onrender.com/api";
+import { buildApiUrl, privateFetch } from "@/lib/api";
 
 type ScannedComputer = {
     computer_code?: string;
@@ -73,7 +71,7 @@ export default function QrScannerPage() {
 
                     try {
                         const response = await privateFetch(
-                            `${API_URL}/computers/${encodeURIComponent(routeOrCode)}/`
+                            buildApiUrl(`/api/computers/${encodeURIComponent(routeOrCode)}/`)
                         );
                         const data = (await response.json()) as ScannedComputer;
 

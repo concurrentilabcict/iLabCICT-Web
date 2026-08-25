@@ -2,7 +2,7 @@ import Logo from '@/assets/logo.png';
 import { User, LockKeyhole, Eye, EyeOff, X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createApiError, publicFetch, type ApiError } from '@/lib/api';
+import { buildApiUrl, createApiError, publicFetch, type ApiError } from '@/lib/api';
 import { useAuth } from '@/auth/useAuth';
 import { useMutation } from '@tanstack/react-query';
 import { Spinner } from "@/components/ui/spinner"
@@ -32,7 +32,7 @@ export default function LoginForm() {
 
             }
 
-            const res = await publicFetch("https://ilabcict-backend.onrender.com/api/auth/login/", {
+            const res = await publicFetch(buildApiUrl("/api/auth/login/"), {
                 method: "POST",
                 body: JSON.stringify({ username: email.toLowerCase(), password }),
             });
@@ -135,10 +135,15 @@ export default function LoginForm() {
                         </button>
                     </div>
 
-                    <button 
-                        onClick={()=>navigate("/forgot-password")}
-                        type="button" 
-                        className='w-full text-end primary-text-color font-semibold mb-5 cursor-pointer max-w-sm'>Forgot Password?</button>
+                    <div className="flex w-full max-w-sm justify-end">
+                        <button
+                            onClick={() => navigate("/forgot-password")}
+                            type="button"
+                            className="primary-text-color mb-5 cursor-pointer font-semibold"
+                        >
+                            Forgot Password?
+                        </button>
+                    </div>
 
                     <button className=' primary-button rounded-full! w-full max-w-sm'
                         type="submit"

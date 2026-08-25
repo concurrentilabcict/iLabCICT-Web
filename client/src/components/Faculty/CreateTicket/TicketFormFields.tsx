@@ -78,7 +78,7 @@ export function LaboratoryDropdown({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" sideOffset={8} className="w-[var(--radix-dropdown-menu-trigger-width)] rounded-xl border-none p-2 shadow-[0_4px_14px_rgba(15,23,42,0.08)]">
           {rooms.map((room) => (
-            <DropdownMenuItem key={room.id} className={`cursor-pointer ${roomId === String(room.id) ? "font-medium" : ""}`} onSelect={() => onSelectRoom(String(room.id))}>
+            <DropdownMenuItem key={room.id} className={`cursor-pointer rounded-none border-b border-zinc-100 py-2.5 last:border-b-0 ${roomId === String(room.id) ? "font-medium" : ""}`} onSelect={() => onSelectRoom(String(room.id))}>
               {room.building_name} - {room.room_name}
             </DropdownMenuItem>
           ))}
@@ -118,11 +118,11 @@ export function ComputerDropdown({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" sideOffset={8} className="w-[var(--radix-dropdown-menu-trigger-width)] rounded-xl border-none p-2 shadow-[0_4px_14px_rgba(15,23,42,0.08)]">
           {computers.length > 0 ? computers.map((computer) => (
-            <DropdownMenuItem key={computer.id} className={`cursor-pointer ${selectedComputerCode === computer.computer_code ? "font-medium" : ""}`} onSelect={() => onSelectComputer(computer.computer_code)}>
+            <DropdownMenuItem key={computer.id} className={`cursor-pointer rounded-none border-b border-zinc-100 py-2.5 last:border-b-0 ${selectedComputerCode === computer.computer_code ? "font-medium" : ""}`} onSelect={() => onSelectComputer(computer.computer_code)}>
               {computer.computer_code}
             </DropdownMenuItem>
           )) : (
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem disabled className="py-2.5">
               {isLoadingComputers ? "Loading computers..." : "No computers available"}
             </DropdownMenuItem>
           )}

@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
 import type { ApiComputer, ApiRoom, ScannerState, TicketType } from "@/types/createTicket";
 import {
@@ -31,8 +31,6 @@ import {
   LaboratoryLocationCard,
   PeripheralStatusCard,
 } from "./TicketInfoCards";
-
-const API_URL = "https://ilabcict-backend.onrender.com/api";
 
 function normalizeApiList<T>(data: unknown): T[] {
   if (Array.isArray(data)) return data as T[];
@@ -65,7 +63,7 @@ export default function CreateTicketForm() {
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery<ApiRoom[]>({
     queryKey: ["rooms", "ticket-form"],
     queryFn: async () => {
-      const response = await privateFetch(`${API_URL}/rooms/`);
+      const response = await privateFetch(buildApiUrl("/api/rooms/"));
       const data = await response.json();
       if (!response.ok) throw createApiError(response.status, data.message || "Failed to load laboratories.");
       return normalizeApiList<ApiRoom>(data);
@@ -75,11 +73,10 @@ export default function CreateTicketForm() {
   const selectedRoom = rooms.find((room) => String(room.id) === roomId);
 
   const { data: roomComputers = [], isLoading: isLoadingComputers } = useQuery<ApiComputer[]>({
-    queryKey: ["computers", "ticket-form", selectedRoom?.room_name],
+    queryKey: ["computers", "ticket-form", selectedRoom?.id],
     enabled: Boolean(selectedRoom) && type === "report" && !computerCode,
     queryFn: async () => {
-      const roomName = selectedRoom!.room_name;
-      const response = await privateFetch(`${API_URL}/rooms/${encodeURIComponent(roomName)}/computers/`);
+      const response = await privateFetch(buildApiUrl(`/api/rooms/${selectedRoom!.id}/computers/`));
       const data = await response.json();
       if (!response.ok) throw createApiError(response.status, data.message || "Failed to load computers.");
       return normalizeApiList<ApiComputer>(data);
@@ -92,7 +89,7 @@ export default function CreateTicketForm() {
     queryKey: ["computer", activeComputerCode],
     enabled: type === "report" && activeComputerCode.length > 0,
     queryFn: async () => {
-      const response = await privateFetch(`${API_URL}/computers/${encodeURIComponent(activeComputerCode)}/`);
+      const response = await privateFetch(buildApiUrl(`/api/computers/${encodeURIComponent(activeComputerCode)}/`));
       const data = await response.json();
       if (!response.ok) throw createApiError(response.status, data.message || "Failed to load computer details.");
       return data as ApiComputer;
@@ -147,7 +144,7 @@ export default function CreateTicketForm() {
         computer: type === "report" ? selectedComputerId : null,
       };
 
-      const response = await privateFetch(`${API_URL}/tickets/`, {
+      const response = await privateFetch(buildApiUrl("/api/tickets/"), {
         method: "POST",
         body: JSON.stringify(payload),
       });
@@ -237,7 +234,7 @@ export default function CreateTicketForm() {
             placeholder={descriptionPlaceholder}
             className="min-h-36 w-full resize-y rounded-xl bg-white p-4 text-sm font-medium text-zinc-950 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none placeholder:text-zinc-300 focus:ring-2 focus:ring-primary/30"
           />
-          <span className="mt-1 block text-right text-xs font-medium text-zinc-400">{description.length}</span>
+          <span className="mt-1 block text-right text-xs font-medium text-zinc-400">{description.length}/500</span>
         </Field>
       </div>
 

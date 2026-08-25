@@ -2,7 +2,7 @@ import { BarChart3, ClipboardList, FileText, Flag } from "lucide-react";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 
 const mapTicket = (ticket: ApiTicket): Ticket => ({
@@ -59,7 +59,7 @@ export default function ProfileTicketStats() {
     queryKey: ["profile-ticket-stats", technicianId],
     enabled: Number.isInteger(technicianId) && technicianId > 0,
     queryFn: async () => {
-      const res = await privateFetch("https://ilabcict-backend.onrender.com/api/tickets/");
+      const res = await privateFetch(buildApiUrl("/api/tickets/"));
       const data = await res.json();
 
       if (!res.ok) {

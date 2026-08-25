@@ -31,7 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import type { User } from "@/types/manageUser";
 import { getPaginationWindow } from "@/utils/pagination";
 
@@ -108,7 +108,7 @@ export default function ManageUser() {
     queryKey: ["admin-users"],
     queryFn: async () => {
       const response = await privateFetch(
-        "https://ilabcict-backend.onrender.com/api/users/"
+        buildApiUrl("/api/users/")
       );
       const data = await response.json();
 

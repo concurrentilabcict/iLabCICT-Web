@@ -11,7 +11,7 @@ import { Plus, Minus} from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import PheripheralStatus from "./PheripheralStatus";
 import ComputerStatus from "./ComputerStatus";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -113,7 +113,7 @@ computer
     const editComputerMutation = useMutation({
         mutationFn: async() => {
             const response = await privateFetch(
-                `https://ilabcict-backend.onrender.com/api/computers/${form.id}/`,
+                buildApiUrl(`/api/computers/${form.id}/`),
                 {
                     method: "PATCH",
                     body:JSON.stringify({

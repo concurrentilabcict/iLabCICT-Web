@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import { useAuth } from "@/auth/useAuth";
-import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import SaveProfileDialog from "./SaveProfileDialog";
 import toast from "react-hot-toast";
 
@@ -82,7 +82,7 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
 
     const profileSaveMutation = useMutation({
         mutationFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/${userId}/`, {
+            const res = await privateFetch(buildApiUrl(`/api/users/${userId}/`), {
                 method: "PATCH",
                 body: JSON.stringify({
                     first_name: firstName.trim(),

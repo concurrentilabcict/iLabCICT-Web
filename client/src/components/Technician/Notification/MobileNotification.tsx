@@ -3,7 +3,7 @@ import NotificationCard from "./NotificationCard";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { privateFetch } from "@/lib/api";
+import { buildApiUrl, privateFetch } from "@/lib/api";
 import { NOTIFICATIONS_QUERY_KEY } from "./useNotifications";
 
 type MobileNotificationProps = {
@@ -36,7 +36,7 @@ export default function MobileNotification({ notifications }: MobileNotification
 
     const changeStatusMutation = useMutation({
         mutationFn: async (id: string) => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/notifications/${id}/`, {
+            const res = await privateFetch(buildApiUrl(`/api/notifications/${id}/`), {
                 method: "PATCH",
                 body: JSON.stringify({ status: "read" }),
             });

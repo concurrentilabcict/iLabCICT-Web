@@ -91,7 +91,7 @@ const getNextUrl = (data: ApiRequestHistoryResponse) => {
 
 const resolveRequestHistoryUrl = (url: string) => {
   if (!url.startsWith("http")) {
-    return url;
+    return buildApiUrl(url);
   }
 
   const parsedUrl = new URL(url);

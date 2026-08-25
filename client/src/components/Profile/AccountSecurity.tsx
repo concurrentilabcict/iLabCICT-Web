@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import SavePasswordDialog from "./SavePasswordDialog";
 import toast from "react-hot-toast";
 
@@ -54,7 +54,7 @@ export default function AccountSecurity() {
 
     const changePasswordMutation = useMutation({
         mutationFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/users/reset-password/${userId}/`, {
+            const res = await privateFetch(buildApiUrl(`/api/users/reset-password/${userId}/`), {
                 method: "PATCH",
                 body: JSON.stringify({
                     old_password: currentPassword,

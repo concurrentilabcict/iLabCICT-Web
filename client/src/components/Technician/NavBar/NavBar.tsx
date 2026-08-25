@@ -3,6 +3,7 @@ import {
     Monitor,
     ClipboardList,
     ScanQrCode,
+    CircleHelp,
 } from 'lucide-react';
 
 import MoreMenu from "./MoreMenu";
@@ -49,8 +50,6 @@ export default function NavBar() {
         "fixed inset-x-0 bottom-0 z-10 bg-white border-t border-t-[#e5e5e5] pb-[env(safe-area-inset-bottom)]";
     const navContentClass =
         "relative mx-auto grid h-20 max-w-[430px] grid-cols-5 items-end overflow-visible bg-white px-2 pb-3";
-    const facultyNavContentClass =
-        "relative mx-auto grid h-20 max-w-[430px] grid-cols-4 items-end overflow-visible bg-white px-2 pb-3";
     const navButtonClass =
         "relative z-10 flex h-16 min-w-0 cursor-pointer flex-col items-center justify-end gap-y-1 rounded-2xl px-1 text-center transition";
     const inactiveNavClass = "secondary-text-color hover:text-gray-700";
@@ -61,7 +60,7 @@ export default function NavBar() {
     if (isFaculty) {
         return (
             <nav className={navBarClass}>
-                <div className={facultyNavContentClass}>
+                <div className={navContentClass}>
                 <button
                     onClick={() => navigate("/manage-ticket")}
                     type="button"
@@ -95,6 +94,19 @@ export default function NavBar() {
                     aria-label="QR Code"
                 >
                     <ScanQrCode size={30} />
+                </button>
+
+                <button
+                    onClick={() => navigate("/faq")}
+                    type="button"
+                    className={`${navButtonClass}
+                    ${pathname === "/faq"
+                        ? activeNavClass
+                        : inactiveNavClass
+                    }`}
+                >
+                    <CircleHelp size={23} />
+                    <span className='text-sm'>FAQ</span>
                 </button>
 
                 <MoreMenu

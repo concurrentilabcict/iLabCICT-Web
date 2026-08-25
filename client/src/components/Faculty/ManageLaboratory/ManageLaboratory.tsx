@@ -1,5 +1,5 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { privateFetch, createApiError } from "@/lib/api";
+import { buildApiUrl, privateFetch, createApiError } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import type { Room } from "@/types/room";
 import RoomCard from "./RoomCard";
@@ -77,7 +77,7 @@ export default function Laboratory({
     const { data: rooms = [], isLoading } = useQuery<Room[]>({
         queryKey: ["rooms"],
         queryFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/rooms/`)
+            const res = await privateFetch(buildApiUrl("/api/rooms/"))
 
             const data = await res.json();
             if(!res.ok){

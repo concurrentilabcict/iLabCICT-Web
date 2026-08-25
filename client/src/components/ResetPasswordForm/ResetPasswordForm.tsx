@@ -2,7 +2,7 @@ import Logo from '@/assets/logo.png';
 import { User, LockKeyhole, Eye, EyeOff, X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { createApiError, publicFetch, type ApiError } from '@/lib/api';
+import { buildApiUrl, createApiError, publicFetch, type ApiError } from '@/lib/api';
 import { useAuth } from '@/auth/useAuth';
 import { useMutation } from '@tanstack/react-query';
 import { Spinner } from "@/components/ui/spinner"
@@ -35,7 +35,7 @@ export default function ResetPasswordForm(){
                 throw new Error("Passwords must match.");
             }
 
-            const res = await publicFetch("https://ilabcict-backend.onrender.com/api/users/forgot-password/reset-password/", {
+            const res = await publicFetch(buildApiUrl("/api/users/forgot-password/reset-password/"), {
                 method: "POST",
                 body: JSON.stringify({ 
                     token: token || null,

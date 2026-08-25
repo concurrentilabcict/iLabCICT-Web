@@ -32,7 +32,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 
 type UserFormProps = {
   closeSheet: () => void;
@@ -74,7 +74,7 @@ export default function UserForm({ closeSheet }: UserFormProps) {
   const addUserMutation = useMutation({
     mutationFn: async () => {
       const response = await privateFetch(
-        "https://ilabcict-backend.onrender.com/api/users/",
+        buildApiUrl("/api/users/"),
         {
           method: "POST",
           body: JSON.stringify({

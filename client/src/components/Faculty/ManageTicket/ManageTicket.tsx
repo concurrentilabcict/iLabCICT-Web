@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 import type { Status, StatusFilter, TicketType, TicketTypeFilter } from "@/utils/ticket";
@@ -68,7 +68,7 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
   const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
     queryKey: ["tickets"],
     queryFn: async () => {
-      const res = await privateFetch("https://ilabcict-backend.onrender.com/api/tickets/");
+      const res = await privateFetch(buildApiUrl("/api/tickets/"));
       const data = await res.json();
 
       if (!res.ok) {

@@ -28,7 +28,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 import { capitalize, formatDateTime } from "@/utils/string";
 import {
@@ -102,7 +102,7 @@ export default function ProcessTicket() {
     } = useQuery<Ticket>({
         queryKey: ["ticket", id],
         queryFn: async () => {
-            const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/${id}/`);
+            const res = await privateFetch(buildApiUrl(`/api/tickets/${id}/`));
             const data = await res.json();
 
             if (!res.ok) {
@@ -130,7 +130,7 @@ export default function ProcessTicket() {
                 throw createApiError(400, "Please add technician notes before resolving the ticket.");
             }
 
-            const createResponse = await privateFetch("https://ilabcict-backend.onrender.com/api/repair-logs/", {
+            const createResponse = await privateFetch(buildApiUrl("/api/repair-logs/"), {
                 method: "POST",
                 body: JSON.stringify({
                     maintenance_type: maintenanceType,

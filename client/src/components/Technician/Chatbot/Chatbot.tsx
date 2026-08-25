@@ -1,5 +1,5 @@
 import { useAuth } from "@/auth/useAuth";
-import { createApiError, privateFetch } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import ChatbotActive from "./ChatbotActive";
@@ -18,7 +18,7 @@ export default function Chatbot() {
 
     const chatMutation = useMutation({
         mutationFn: async (message: string) => {
-            const res = await privateFetch("https://ilabcict-backend.onrender.com/api/chat/", {
+            const res = await privateFetch(buildApiUrl("/api/chat/"), {
                 method: "POST",
                 credentials: "include",
                 body: JSON.stringify({

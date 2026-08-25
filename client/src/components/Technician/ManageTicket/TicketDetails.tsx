@@ -12,7 +12,7 @@ import { Building2, Monitor, Layers2, User, CalendarDays, ImageOff, UserCheck } 
 import { statusConfig, type Status } from "@/utils/ticket";
 import { capitalize, formatDateTime } from "@/utils/string";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import toast from "react-hot-toast";
 import { Spinner } from "@/components/ui/spinner"
 
@@ -38,7 +38,7 @@ export default function TicketDetails({
 
   const ticketMutation = useMutation({
     mutationFn: async () => {
-      const res = await privateFetch(`https://ilabcict-backend.onrender.com/api/tickets/${ticket.id}/`, {
+      const res = await privateFetch(buildApiUrl(`/api/tickets/${ticket.id}/`), {
         method: "PATCH",
         body: JSON.stringify({ status: "ongoing" }),
       });
