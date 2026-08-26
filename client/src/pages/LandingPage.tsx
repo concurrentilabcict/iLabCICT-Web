@@ -1,7 +1,6 @@
 import "@/styles/landing.css"
 
 import { useEffect, useState } from "react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AnimatePresence, motion } from "framer-motion";
 
 import NavBar from "../components/LandingPage/NavBar/NavBar";
@@ -15,7 +14,6 @@ import EveryRole from "@/components/LandingPage/EveryRole/EveryRole";
 import Footer from "@/components/LandingPage/Footer/Footer";
 
 export default function LandingPage() {
-    const [isDarkMode, setIsDarkMode] = useState(false);
     const [showTransition, setShowTransition] = useState(true);
 
     useEffect(() => {
@@ -27,14 +25,6 @@ export default function LandingPage() {
 
         return () => clearTimeout(timer);
     }, []);
-
-    useEffect(() => {
-        const timeout = setTimeout(() => {
-            ScrollTrigger.refresh();
-        }, 500);
-
-        return () => clearTimeout(timeout);
-    }, [isDarkMode]);
 
     return (
         <>
@@ -63,16 +53,7 @@ export default function LandingPage() {
                 )}
             </AnimatePresence>
 
-            <main
-                className={`
-                    flex flex-col
-                    transition-colors duration-500
-                    ${isDarkMode
-                        ? "bg-black text-white"
-                        : "bg-white text-black"
-                    }
-                `}
-            >
+            <main className="flex flex-col bg-white text-black">
                 <NavBar />
 
                 <div className="pt-20">
@@ -81,15 +62,15 @@ export default function LandingPage() {
 
                 <HowItWorks />
 
-                <SubmitRequest isDarkMode={isDarkMode} />
+                <SubmitRequest />
 
-                <TrackAndManage isDarkMode={isDarkMode} />
+                <TrackAndManage />
 
-                <ResolveEfficiently isDarkMode={isDarkMode} />
+                <ResolveEfficiently />
 
-                <GenerateReports isDarkMode={isDarkMode} />
+                <GenerateReports />
 
-                <EveryRole setIsDarkMode={setIsDarkMode} />
+                <EveryRole />
 
                 <Footer />
             </main>

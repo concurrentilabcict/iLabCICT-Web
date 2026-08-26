@@ -1,15 +1,9 @@
 import { AlertTriangle, ImagePlus, Monitor, Send } from "lucide-react";
 import WorkflowAnimation from "@/components/LandingPage/WorkflowAnimation/WorkflowAnimation";
 
-type SubmitRequestProps = {
-    isDarkMode: boolean;
-};
-
-export default function SubmitRequest({
-    isDarkMode,
-}: SubmitRequestProps) {
+export default function SubmitRequest() {
     return (
-        <section className={`px-4 py-10 sm:px-6 lg:px-15 ${isDarkMode ? "bg-black text-white" : "bg-white text-zinc-950"}`}>
+        <section className="bg-white px-4 py-10 text-zinc-950 sm:px-6 lg:px-15">
             <div className="mx-auto grid max-w-[1180px] gap-8 text-zinc-950 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
                 <div className="flex flex-col justify-between gap-8">
                     <div>

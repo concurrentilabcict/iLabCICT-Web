@@ -1,15 +1,9 @@
 import { Clock3, Radio, SlidersHorizontal, UserCheck } from "lucide-react";
 import WorkflowAnimation from "@/components/LandingPage/WorkflowAnimation/WorkflowAnimation";
 
-type TrackAndManageProps = {
-  isDarkMode: boolean;
-};
-
-export default function TrackAndManage({
-  isDarkMode,
-}: TrackAndManageProps) {
+export default function TrackAndManage() {
   return (
-    <section className={`px-4 py-10 sm:px-6 lg:px-15 ${isDarkMode ? "bg-black text-white" : "bg-white text-zinc-950"}`}>
+    <section className="bg-white px-4 py-10 text-zinc-950 sm:px-6 lg:px-15">
       <div className="mx-auto grid max-w-[1180px] gap-8 text-zinc-950 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
         <div className="order-2 lg:order-1">
           <WorkflowAnimation variant="track" />
