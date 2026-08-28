@@ -28,7 +28,24 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { ApiTicket, Ticket } from "@/types/ticket";
+
+type FacultyTicketsPerDay = {
+  day: string;
+  count: number;
+  date: string;
+};
+
+type FacultyProfileStatsResponse = {
+  id: number;
+  stats: {
+    tickets_per_day: FacultyTicketsPerDay[];
+    tickets_submitted_today: {
+      request_tickets: number;
+      report_tickets: number;
+    };
+    total_tickets_today: number;
+  };
+};
 
 const splitFullName = (fullName: string) => {
   const parts = fullName.trim().split(" ").filter(Boolean);
@@ -45,53 +62,6 @@ const hasUploadedProfilePicture = (picture: string | null) => {
   const normalizedPicture = picture.trim().toLowerCase();
   return normalizedPicture !== "null" && normalizedPicture !== "undefined";
 };
-
-const mapTicket = (ticket: ApiTicket): Ticket => ({
-  id: ticket.id,
-  ticketCode: ticket.ticket_code,
-  reportedBy: {
-    id: ticket.reported_by.id,
-    firstName: ticket.reported_by.first_name,
-    lastName: ticket.reported_by.last_name,
-  },
-  assignedTo: ticket.assigned_to
-    ? {
-        id: ticket.assigned_to.id,
-        firstName: ticket.assigned_to.first_name,
-        lastName: ticket.assigned_to.last_name,
-      }
-    : { id: 0, firstName: "Unassigned", lastName: "" },
-  room: {
-    id: ticket.room.id,
-    roomName: ticket.room.room_name,
-    buildingName: ticket.room.building_name,
-    floorNumber: ticket.room.floor_number,
-  },
-  computer: ticket.computer
-    ? {
-        id: ticket.computer.id,
-        computerCode: ticket.computer.computer_code,
-      }
-    : null,
-  type: ticket.type,
-  title: ticket.title,
-  complaintDescription: ticket.complaint_description,
-  issueImage: ticket.issue_image,
-  status: ticket.status,
-  createdAt: ticket.created_at,
-  updatedAt: ticket.updated_at,
-});
-
-const isSameDay = (date: Date, compareDate: Date) =>
-  date.getFullYear() === compareDate.getFullYear() &&
-  date.getMonth() === compareDate.getMonth() &&
-  date.getDate() === compareDate.getDate();
-
-const getDayLabel = (date: Date) =>
-  new Intl.DateTimeFormat("en-US", { weekday: "short" })
-    .format(date)
-    .slice(0, 2)
-    .toUpperCase();
 
 export default function FacultyProfile() {
   const navigate = useNavigate();
@@ -115,42 +85,38 @@ export default function FacultyProfile() {
   const [profileError, setProfileError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
-  const { data: tickets = [], isError } = useQuery<Ticket[]>({
+  const { data: profileStats, isError } = useQuery<FacultyProfileStatsResponse>({
     queryKey: ["faculty-profile-ticket-stats", facultyId],
     enabled: Number.isInteger(facultyId) && facultyId > 0,
     queryFn: async () => {
-      const response = await privateFetch(buildApiUrl("/api/tickets/"));
-      const data = await response.json();
+      const response = await privateFetch(buildApiUrl(`/api/users/${facultyId}/?include=faculty-stats`));
+      const data: FacultyProfileStatsResponse & { message?: string } = await response.json();
 
       if (!response.ok) {
         throw createApiError(response.status, data.message || "Failed to load ticket stats.");
       }
 
-      return (data as ApiTicket[]).map(mapTicket);
+      return data;
     },
   });
 
   const stats = useMemo(() => {
-    const submittedTickets = tickets.filter((ticket) => ticket.reportedBy.id === facultyId);
-    const today = new Date();
-    const weekDays = Array.from({ length: 7 }, (_, index) => {
-      const date = new Date(today);
-      date.setDate(today.getDate() - (6 - index));
-      return date;
-    });
-    const createdByDay = weekDays.map((date) => ({
-      label: getDayLabel(date),
-      count: submittedTickets.filter((ticket) => isSameDay(new Date(ticket.createdAt), date)).length,
+    const fallbackDays = ["M", "T", "W", "TH", "F", "SA", "SU"].map((label) => ({
+      label,
+      count: 0,
     }));
-    const todayTickets = submittedTickets.filter((ticket) => isSameDay(new Date(ticket.createdAt), today));
+    const apiStats = profileStats?.stats;
 
     return {
-      createdByDay,
-      todayTotal: todayTickets.length,
-      reportsToday: todayTickets.filter((ticket) => ticket.type === "report").length,
-      requestsToday: todayTickets.filter((ticket) => ticket.type === "request").length,
+      createdByDay: apiStats?.tickets_per_day.map((day) => ({
+        label: day.day,
+        count: day.count,
+      })) ?? fallbackDays,
+      todayTotal: apiStats?.total_tickets_today ?? 0,
+      reportsToday: apiStats?.tickets_submitted_today.report_tickets ?? 0,
+      requestsToday: apiStats?.tickets_submitted_today.request_tickets ?? 0,
     };
-  }, [facultyId, tickets]);
+  }, [profileStats]);
 
   const syncProfilePicture = (profileImage: string | null) => {
     setProfilePicture(profileImage);

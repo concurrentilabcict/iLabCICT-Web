@@ -3,96 +3,62 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
-import type { ApiTicket, Ticket } from "@/types/ticket";
 
-const mapTicket = (ticket: ApiTicket): Ticket => ({
-  id: ticket.id,
-  ticketCode: ticket.ticket_code,
-  reportedBy: {
-    id: ticket.reported_by.id,
-    firstName: ticket.reported_by.first_name,
-    lastName: ticket.reported_by.last_name,
-  },
-  assignedTo: ticket.assigned_to
-    ? {
-        id: ticket.assigned_to.id,
-        firstName: ticket.assigned_to.first_name,
-        lastName: ticket.assigned_to.last_name,
-      }
-    : { id: 0, firstName: "Unassigned", lastName: "" },
-  room: {
-    id: ticket.room.id,
-    roomName: ticket.room.room_name,
-    buildingName: ticket.room.building_name,
-    floorNumber: ticket.room.floor_number,
-  },
-  computer: ticket.computer
-    ? {
-        id: ticket.computer.id,
-        computerCode: ticket.computer.computer_code,
-      }
-    : null,
-  type: ticket.type,
-  title: ticket.title,
-  complaintDescription: ticket.complaint_description,
-  issueImage: ticket.issue_image,
-  status: ticket.status,
-  createdAt: ticket.created_at,
-  updatedAt: ticket.updated_at,
-});
+type TechnicianResolvedPerDay = {
+  day: string;
+  count: number;
+  date: string;
+};
 
-const isSameDay = (date: Date, compareDate: Date) =>
-  date.getFullYear() === compareDate.getFullYear() &&
-  date.getMonth() === compareDate.getMonth() &&
-  date.getDate() === compareDate.getDate();
-
-const getDayLabel = (date: Date) =>
-  new Intl.DateTimeFormat("en-US", { weekday: "short" })
-    .format(date)
-    .slice(0, 2)
-    .toUpperCase();
+type TechnicianProfileStatsResponse = {
+  id: number;
+  stats: {
+    total_tickets_assigned: {
+      report_tickets: number;
+      request_tickets: number;
+      total: number;
+    };
+    total_tickets_assigned_today: {
+      report_tickets: number;
+      request_tickets: number;
+      total: number;
+    };
+    resolved_tickets_per_day: TechnicianResolvedPerDay[];
+    assigned_ticket_status_today: {
+      open: number;
+      ongoing: number;
+      resolved: number;
+    };
+  };
+};
 
 export default function ProfileTicketStats() {
   const technicianId = Number(localStorage.getItem("id"));
 
-  const { data: tickets = [], isLoading, isError } = useQuery<Ticket[]>({
+  const { data: profileStats, isLoading, isError } = useQuery<TechnicianProfileStatsResponse>({
     queryKey: ["profile-ticket-stats", technicianId],
     enabled: Number.isInteger(technicianId) && technicianId > 0,
     queryFn: async () => {
-      const res = await privateFetch(buildApiUrl("/api/tickets/"));
-      const data = await res.json();
+      const res = await privateFetch(buildApiUrl(`/api/users/${technicianId}/?include=technician-stats`));
+      const data: TechnicianProfileStatsResponse & { message?: string } = await res.json();
 
       if (!res.ok) {
         throw createApiError(res.status, data.message || "Failed to load ticket stats.");
       }
 
-      return (data as ApiTicket[]).map(mapTicket);
+      return data;
     },
   });
 
   const stats = useMemo(() => {
-    const assignedTickets = tickets.filter((ticket) => ticket.assignedTo?.id === technicianId);
-    const today = new Date();
-    const weekDays = Array.from({ length: 7 }, (_, index) => {
-      const date = new Date(today);
-      date.setDate(today.getDate() - (6 - index));
-
-      return date;
-    });
-    const resolvedByDay = weekDays.map((date) => ({
-      label: getDayLabel(date),
-      count: assignedTickets.filter((ticket) => {
-        const updatedAt = new Date(ticket.updatedAt);
-
-        return ticket.status === "resolved" && isSameDay(updatedAt, date);
-      }).length,
+    const fallbackDays = ["M", "T", "W", "TH", "F", "SA", "SU"].map((label) => ({
+      label,
+      count: 0,
     }));
-    const todayTickets = assignedTickets.filter((ticket) =>
-      isSameDay(new Date(ticket.createdAt), today)
-    );
-    const reports = assignedTickets.filter((ticket) => ticket.type === "report").length;
-    const requests = assignedTickets.filter((ticket) => ticket.type === "request").length;
-    const total = assignedTickets.length;
+    const apiStats = profileStats?.stats;
+    const reports = apiStats?.total_tickets_assigned.report_tickets ?? 0;
+    const requests = apiStats?.total_tickets_assigned.request_tickets ?? 0;
+    const total = apiStats?.total_tickets_assigned.total ?? 0;
     const reportPercentage = total > 0 ? Math.round((reports / total) * 100) : 0;
     const requestPercentage = total > 0 ? 100 - reportPercentage : 0;
 
@@ -102,13 +68,16 @@ export default function ProfileTicketStats() {
       requests,
       reportPercentage,
       requestPercentage,
-      todayTotal: todayTickets.length,
-      todayOpen: todayTickets.filter((ticket) => ticket.status === "open").length,
-      todayOngoing: todayTickets.filter((ticket) => ticket.status === "ongoing").length,
-      todayResolved: todayTickets.filter((ticket) => ticket.status === "resolved").length,
-      resolvedByDay,
+      todayTotal: apiStats?.total_tickets_assigned_today.total ?? 0,
+      todayOpen: apiStats?.assigned_ticket_status_today.open ?? 0,
+      todayOngoing: apiStats?.assigned_ticket_status_today.ongoing ?? 0,
+      todayResolved: apiStats?.assigned_ticket_status_today.resolved ?? 0,
+      resolvedByDay: apiStats?.resolved_tickets_per_day.map((day) => ({
+        label: day.day,
+        count: day.count,
+      })) ?? fallbackDays,
     };
-  }, [technicianId, tickets]);
+  }, [profileStats]);
 
   if (isLoading) {
     return <p className="px-3 text-sm secondary-text-color">Loading ticket stats...</p>;

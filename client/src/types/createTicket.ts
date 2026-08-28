@@ -25,8 +25,14 @@ export type ApiComputer = {
   mouse_status: string;
   keyboard_status: string;
   ups_status: string;
+  assigned_tickets?: ApiRelatedTicket[];
   created_at?: string;
   updated_at?: string;
+  pending_tickets?: ApiRelatedTicket[];
+  related_tickets?: ApiRelatedTicket[];
+  tickets?: ApiRelatedTicket[];
+  pending_tickets_count?: number;
+  related_tickets_count?: number;
 };
 
 export type ScannerState = { computerCode?: string } | null;
@@ -38,4 +44,21 @@ export type PeripheralStatus = {
   status: string;
   tone: PeripheralTone;
   icon: LucideIcon;
+};
+
+export type ApiRelatedTicketUser = {
+  id: number;
+  first_name: string;
+  last_name: string;
+};
+
+export type ApiRelatedTicket = {
+  id: number;
+  ticket_code?: string;
+  title: string;
+  complaint_description: string;
+  status: string;
+  reported_by?: ApiRelatedTicketUser | null;
+  assigned_to?: ApiRelatedTicketUser | null;
+  created_at?: string;
 };

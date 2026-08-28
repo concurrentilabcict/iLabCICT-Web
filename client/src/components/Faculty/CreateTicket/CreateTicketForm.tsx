@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
-import type { ApiComputer, ApiRoom, ScannerState, TicketType } from "@/types/createTicket";
+import type { ApiComputer, ApiRelatedTicket, ApiRoom, ScannerState, TicketType } from "@/types/createTicket";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +30,7 @@ import {
   getPeripheralStatuses,
   LaboratoryLocationCard,
   PeripheralStatusCard,
+  RelatedTicketsCard,
 } from "./TicketInfoCards";
 
 function normalizeApiList<T>(data: unknown): T[] {
@@ -41,6 +42,19 @@ function normalizeApiList<T>(data: unknown): T[] {
     if (Array.isArray(record.computers)) return record.computers as T[];
   }
   return [];
+}
+
+function getRelatedTickets(computer?: ApiComputer): ApiRelatedTicket[] {
+  if (!computer) return [];
+
+  const tickets =
+    computer.assigned_tickets ??
+    computer.pending_tickets ??
+    computer.related_tickets ??
+    computer.tickets ??
+    [];
+
+  return tickets.filter((ticket) => ticket.status !== "resolved");
 }
 
 export default function CreateTicketForm() {
@@ -59,6 +73,7 @@ export default function CreateTicketForm() {
   const [image, setImage] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isRelatedTicketsOpen, setIsRelatedTicketsOpen] = useState(false);
 
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery<ApiRoom[]>({
     queryKey: ["rooms", "ticket-form"],
@@ -97,6 +112,12 @@ export default function CreateTicketForm() {
   });
 
   const selectedPeripheralStatus = selectedComputerDetails ? getPeripheralStatuses(selectedComputerDetails) : [];
+  const relatedTickets = getRelatedTickets(selectedComputerDetails);
+  const relatedTicketsCount =
+    selectedComputerDetails?.assigned_tickets?.filter((ticket) => ticket.status !== "resolved").length ??
+    selectedComputerDetails?.pending_tickets_count ??
+    selectedComputerDetails?.related_tickets_count ??
+    relatedTickets.length;
   const selectedComputerFromList = roomComputers.find((computer) => computer.computer_code === activeComputerCode);
   const selectedComputerId = selectedComputerDetails?.id ?? selectedComputerFromList?.id ?? null;
   const displayRoom = selectedComputerDetails?.room ?? selectedRoom;
@@ -115,6 +136,10 @@ export default function CreateTicketForm() {
       setRoomId(String(selectedComputerDetails.room.id));
     }
   }, [computerCode, selectedComputerDetails]);
+
+  useEffect(() => {
+    setIsRelatedTicketsOpen(false);
+  }, [activeComputerCode]);
 
   const handleSelectRoom = (nextRoomId: string) => {
     setRoomId(nextRoomId);
@@ -169,6 +194,14 @@ export default function CreateTicketForm() {
 
   const computerInformation = isReport && (selectedComputerDetails || isLoadingComputerDetails) && (
     <>
+      {selectedComputerDetails && (
+        <RelatedTicketsCard
+          tickets={relatedTickets}
+          count={relatedTicketsCount}
+          isOpen={isRelatedTicketsOpen}
+          onToggle={() => setIsRelatedTicketsOpen((currentValue) => !currentValue)}
+        />
+      )}
       <ComputerInfoCard computer={selectedComputerDetails} isLoading={isLoadingComputerDetails} />
       {selectedPeripheralStatus.length > 0 && <PeripheralStatusCard items={selectedPeripheralStatus} />}
       {displayRoom && <LaboratoryLocationCard room={displayRoom} />}

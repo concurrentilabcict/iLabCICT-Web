@@ -1,20 +1,25 @@
 import {
+  CalendarDays,
   Building2,
   Braces,
+  ChevronDown,
   Cpu,
   DoorOpen,
   HardDrive,
+  Info,
   Keyboard,
   Layers3,
   MemoryStick,
   Microchip,
   Monitor,
   Mouse,
+  User,
+  Wrench,
   Plug,
   type LucideIcon,
 } from "lucide-react";
 
-import type { ApiComputer, ApiRoom, PeripheralStatus, PeripheralTone } from "@/types/createTicket";
+import type { ApiComputer, ApiRelatedTicket, ApiRoom, PeripheralStatus, PeripheralTone } from "@/types/createTicket";
 
 const statusToneClass: Record<PeripheralTone, string> = {
   green: "bg-green-100 text-green-700",
@@ -24,7 +29,7 @@ const statusToneClass: Record<PeripheralTone, string> = {
 };
 
 const iconBoxClass =
-  "flex size-9 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 primary-text-color";
+  "flex size-9 shrink-0 items-center justify-center rounded-xl border border-[#f0c9c0] bg-[#fbf2f0] text-[#bf3419]";
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -55,6 +60,22 @@ function formatRam(value?: number) {
   return typeof value === "number" ? `${value} GB` : "Not set";
 }
 
+function formatPerson(person?: { first_name: string; last_name: string } | null) {
+  return person ? `${person.first_name} ${person.last_name}` : "Unassigned";
+}
+
+function formatDate(value?: string) {
+  if (!value) return "No date";
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
 export function getPeripheralStatuses(computer: ApiComputer): PeripheralStatus[] {
   return [
     { label: "Mouse", status: formatStatus(computer.mouse_status), tone: getStatusTone(computer.mouse_status), icon: Mouse },
@@ -62,6 +83,71 @@ export function getPeripheralStatuses(computer: ApiComputer): PeripheralStatus[]
     { label: "Monitor", status: formatStatus(computer.monitor_status), tone: getStatusTone(computer.monitor_status), icon: Monitor },
     { label: "UPS", status: formatStatus(computer.ups_status), tone: getStatusTone(computer.ups_status), icon: Plug },
   ];
+}
+
+export function RelatedTicketsCard({
+  tickets,
+  count,
+  isOpen,
+  onToggle,
+}: {
+  tickets: ApiRelatedTicket[];
+  count: number;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <section className="space-y-3">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="flex w-full cursor-pointer items-center justify-between gap-4 rounded-xl bg-white p-4 text-left shadow-[0_4px_14px_rgba(15,23,42,0.08)]"
+      >
+        <span className="min-w-0">
+          <span className="block text-base font-bold text-zinc-950">Related tickets</span>
+          <span className="block text-xs font-medium text-zinc-500">Tickets currently assigned to this computer</span>
+        </span>
+        <span className="flex shrink-0 items-center gap-2">
+          <span className="flex size-7 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white">{count}</span>
+          <ChevronDown size={18} className={`shrink-0 text-zinc-500 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        </span>
+      </button>
+
+      {count > 0 && (
+        <div className="flex gap-3 rounded-xl border border-yellow-300 bg-yellow-50 p-4 text-yellow-900">
+          <Info className="mt-0.5 size-5 shrink-0 text-yellow-600" />
+          <p className="text-sm font-semibold leading-6">
+            {count} related {count === 1 ? "ticket" : "tickets"} found for this computer. Please review {count === 1 ? "it" : "them"} first and avoid creating a duplicate ticket if your concern is already covered.
+          </p>
+        </div>
+      )}
+
+      {isOpen && tickets.length > 0 && (
+        <div className="space-y-3 rounded-2xl border border-[#efc8c0] bg-[#fff8f6] p-3">
+          {tickets.map((ticket) => (
+            <article key={ticket.id} className="rounded-xl bg-white p-4 shadow-[0_4px_14px_rgba(15,23,42,0.14)]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-bold uppercase tracking-wide text-zinc-400">{ticket.ticket_code ?? `TK${ticket.id}`}</p>
+                  <h3 className="mt-1 text-base font-bold leading-tight text-zinc-950">{ticket.title}</h3>
+                </div>
+                <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${ticket.status === "open" ? "bg-sky-100 text-sky-700" : "bg-yellow-100 text-yellow-700"}`}>
+                  {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+                </span>
+              </div>
+              <p className="mt-2 text-sm font-medium leading-6 text-zinc-500">{ticket.complaint_description}</p>
+              <div className="mt-4 border-t border-zinc-100 pt-3">
+                <RelatedTicketMeta icon={User} label="Reported by" value={formatPerson(ticket.reported_by)} />
+                <RelatedTicketMeta icon={Wrench} label="Assigned to" value={formatPerson(ticket.assigned_to)} />
+                <RelatedTicketMeta icon={CalendarDays} label="Created" value={formatDate(ticket.created_at)} />
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
 }
 
 export function ComputerInfoCard({ computer, isLoading }: { computer?: ApiComputer; isLoading: boolean }) {
@@ -89,6 +175,26 @@ export function ComputerInfoCard({ computer, isLoading }: { computer?: ApiComput
         ) : null}
       </div>
     </section>
+  );
+}
+
+function RelatedTicketMeta({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-1 text-sm">
+      <span className="flex items-center gap-2 font-semibold text-zinc-400">
+        <Icon size={15} />
+        {label}
+      </span>
+      <span className="min-w-0 truncate text-right font-bold text-zinc-950">{value}</span>
+    </div>
   );
 }
 

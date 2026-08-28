@@ -134,10 +134,12 @@ export function ComputerDropdown({
 
 export function ImageUploadField({ image, onImageChange }: { image: File | null; onImageChange: (image: File | null) => void }) {
   return (
-    <Field label="Supporting Image">
-      <span className="-mt-7 mb-2 ml-32 block text-xs font-medium text-zinc-400">Optional</span>
-      <label className="flex min-h-44 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/25 bg-primary/5 px-5 text-center transition hover:border-primary/45">
-        <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 primary-text-color">
+    <div className="block">
+      <span className="mb-2 block text-sm font-semibold text-zinc-700">
+        Supporting Image <span className="ml-1 text-xs font-medium text-zinc-400">(optional)</span>
+      </span>
+      <label className="flex min-h-52 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[#efc8c0] bg-[#fff8f6] px-5 py-8 text-center transition hover:border-[#dc8f80]">
+        <span className="flex size-12 items-center justify-center rounded-xl border border-[#f0c9c0] bg-[#fbf2f0] text-[#bf3419]">
           <ImagePlus className="size-6 shrink-0" />
         </span>
         <span className="text-base font-semibold text-zinc-950">{image ? image.name : "Add a supporting image"}</span>
@@ -153,6 +155,6 @@ export function ImageUploadField({ image, onImageChange }: { image: File | null;
           <X size={13} /> Remove image
         </button>
       )}
-    </Field>
+    </div>
   );
 }
