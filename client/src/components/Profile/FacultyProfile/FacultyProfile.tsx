@@ -350,22 +350,11 @@ export default function FacultyProfile() {
         <button
           type="button"
           onClick={() => setIsPasswordOpen(true)}
-          className="secondary-button h-12 w-full cursor-pointer justify-center text-sm font-semibold shadow-[0_4px_14px_rgba(15,23,42,0.08)]"
+          className="h-12 w-full cursor-pointer rounded-xl border border-[#efc8c0] bg-[#fff8f6] text-sm font-semibold text-[#bf3419] transition-colors hover:bg-[#fbf2f0]"
         >
           Change password
         </button>
       </section>
-
-      <button
-        type="button"
-        onClick={() => setIsLogoutOpen(true)}
-        className="h-11 w-fit cursor-pointer rounded-xl bg-red-600 px-5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(15,23,42,0.12)] md:self-end"
-      >
-        <span className="inline-flex items-center gap-2">
-          <LogOut size={16} />
-          Log Out
-        </span>
-      </button>
 
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
 
@@ -493,6 +482,8 @@ function SectionHeading({ title, description }: { title: string; description: st
 }
 
 function ActivityCard({ createdByDay }: { createdByDay: Array<{ label: string; count: number }> }) {
+  const highestCount = Math.max(1, ...createdByDay.map((day) => day.count));
+
   return (
     <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
       <div className="flex items-start justify-between gap-3">
@@ -502,14 +493,23 @@ function ActivityCard({ createdByDay }: { createdByDay: Array<{ label: string; c
         </div>
         <div className="rounded-xl bg-gray-100 px-3 py-1 text-xs font-semibold text-zinc-500">Tickets</div>
       </div>
-      <div className="mt-5 grid grid-cols-7 items-end gap-2">
-        {createdByDay.map((day) => (
-          <div key={day.label} className="flex flex-col items-center gap-1">
-            <span className="text-xs font-semibold text-zinc-500">{day.count}</span>
-            <div className={`w-full rounded-full ${day.count > 0 ? "primary-bg-color" : "bg-gray-200"}`} style={{ height: `${Math.max(5, day.count * 12)}px` }} />
-            <span className="text-xs font-semibold text-zinc-400">{day.label}</span>
-          </div>
-        ))}
+      <div className="mt-5 grid h-24 grid-cols-7 items-end gap-2">
+        {createdByDay.map((day) => {
+          const barHeight = day.count > 0 ? Math.max(12, Math.round((day.count / highestCount) * 48)) : 4;
+
+          return (
+            <div key={day.label} className="flex h-full flex-col items-center justify-end gap-1">
+              <span className="text-xs font-semibold text-zinc-500">{day.count}</span>
+              <div className="flex h-12 w-full items-end justify-center">
+                <div
+                  className={`w-7 rounded-full ${day.count > 0 ? "primary-bg-color" : "bg-gray-200"}`}
+                  style={{ height: `${barHeight}px` }}
+                />
+              </div>
+              <span className="text-xs font-semibold text-zinc-400">{day.label}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

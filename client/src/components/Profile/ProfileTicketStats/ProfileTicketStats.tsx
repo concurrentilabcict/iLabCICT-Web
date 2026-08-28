@@ -87,6 +87,8 @@ export default function ProfileTicketStats() {
     return <p className="px-3 text-sm text-red-600">Failed to load ticket stats.</p>;
   }
 
+  const highestResolvedCount = Math.max(1, ...stats.resolvedByDay.map((day) => day.count));
+
   return (
     <section className="flex flex-col gap-4 px-3">
       <div>
@@ -110,17 +112,23 @@ export default function ProfileTicketStats() {
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-7 items-end gap-2">
-            {stats.resolvedByDay.map((day) => (
-              <div key={day.label} className="flex flex-col items-center gap-1">
-                <span className="text-xs font-semibold text-zinc-500">{day.count}</span>
-                <div
-                  className={`w-full rounded-full ${day.count > 0 ? "primary-bg-color" : "bg-gray-200"}`}
-                  style={{ height: `${Math.max(6, day.count * 14)}px` }}
-                />
-                <span className="text-xs font-semibold text-zinc-400">{day.label}</span>
-              </div>
-            ))}
+          <div className="mt-5 grid h-24 grid-cols-7 items-end gap-2">
+            {stats.resolvedByDay.map((day) => {
+              const barHeight = day.count > 0 ? Math.max(12, Math.round((day.count / highestResolvedCount) * 48)) : 4;
+
+              return (
+                <div key={day.label} className="flex h-full flex-col items-center justify-end gap-1">
+                  <span className="text-xs font-semibold text-zinc-500">{day.count}</span>
+                  <div className="flex h-12 w-full items-end justify-center">
+                    <div
+                      className={`w-7 rounded-full ${day.count > 0 ? "primary-bg-color" : "bg-gray-200"}`}
+                      style={{ height: `${barHeight}px` }}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-zinc-400">{day.label}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
