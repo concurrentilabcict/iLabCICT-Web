@@ -11,7 +11,15 @@ export default function Profile() {
     const { role } = useAuth();
 
     if (role.toLowerCase() === "faculty") {
-        return <FacultyProfile />;
+        return(
+            <>
+                <div className={`flex flex-col gap-5 py-3 ${isMobile ? "mb-23" : "mb-10"}`}>
+                    <ProfileForm />
+                    <FacultyProfile />
+                    <AccountSecurity />
+                </div>
+            </>
+        );
     }
 
     return(
