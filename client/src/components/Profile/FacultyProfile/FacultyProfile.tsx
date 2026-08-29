@@ -1,15 +1,15 @@
 import {
   Camera,
-  Check,
   CheckCircle2,
   ClipboardList,
   Eye,
   FileText,
   Image,
   Info,
+  IdCard,
+  KeyRound,
   LogOut,
   PenLine,
-  UserRound,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -21,6 +21,8 @@ import toast from "react-hot-toast";
 import placeholderPicture from "@/assets/profile-placeholder.png";
 import { useAuth } from "@/auth/useAuth";
 import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
@@ -28,6 +30,25 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetClose,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 type FacultyTicketsPerDay = {
   day: string;
@@ -358,101 +379,145 @@ export default function FacultyProfile() {
 
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
 
-      <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-        <DialogContent className="max-w-[520px] rounded-3xl p-0">
-          <DialogTitle className="sr-only">Update profile information</DialogTitle>
-          <DialogDescription className="sr-only">Manage your personal details.</DialogDescription>
-          <ModalHeader icon={UserRound} eyebrow="Account Profile" title="Update Info" description="Manage your personal details" />
-          <div className="space-y-4 p-6">
-            <div className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-xl bg-primary/10 primary-text-color">
-                <PenLine size={18} />
-              </span>
-              <h3 className="text-base font-bold text-zinc-950">Personal Information</h3>
-            </div>
-            <TextInput label="First Name" value={firstName} onChange={setFirstName} />
-            <TextInput label="Last Name" value={lastName} onChange={setLastName} />
-            {profileError && <p className="text-sm text-red-600">{profileError}</p>}
-            <ModalActions
-              cancelLabel="Cancel"
-              submitLabel="Save Changes"
-              isPending={profileSaveMutation.isPending}
-              onCancel={() => setIsProfileOpen(false)}
-              onSubmit={handleProfileSave}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      <Sheet open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+        <SheetContent className="w-full sm:max-w-[520px]">
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleProfileSave();
+            }}
+            className="flex h-full flex-col"
+          >
+          <SheetHeader>
+            <SheetTitle className="mb-2 text-lg font-semibold">Update Info</SheetTitle>
+            <SheetDescription>Manage your personal details.</SheetDescription>
+          </SheetHeader>
 
-      <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
-        <DialogContent className="max-w-[560px] rounded-3xl p-0">
-          <DialogTitle className="sr-only">Change password</DialogTitle>
-          <DialogDescription className="sr-only">Keep your account secure.</DialogDescription>
-          <ModalHeader icon={UserRound} eyebrow="Security Settings" title="Change Password" description="Keep your account secure" />
-          <div className="space-y-4 p-6">
-            <div className="rounded-2xl border border-orange-100 bg-orange-50 p-4 text-[#bf3419]">
-              <div className="flex gap-3">
-                <Info size={18} className="mt-0.5 shrink-0" />
-                <div>
-                  <h3 className="text-sm font-bold">Password Requirements</h3>
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm font-medium">
-                    <li>Must be between 8 and 64 characters.</li>
-                    <li>Include uppercase, lowercase, number, and special character.</li>
-                  </ul>
+            <div className="flex flex-1 flex-col gap-4 px-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <TextInput label="First Name" value={firstName} onChange={setFirstName} icon={IdCard} />
+                <TextInput label="Last Name" value={lastName} onChange={setLastName} icon={IdCard} />
+              </div>
+              {profileError && <p className="text-sm text-red-600">{profileError}</p>}
+            </div>
+
+            <SheetFooter>
+              <Button
+                type="submit"
+                disabled={profileSaveMutation.isPending}
+              >
+                {profileSaveMutation.isPending && <Spinner />}
+                Save changes
+              </Button>
+              <SheetClose asChild>
+                <Button type="button" variant="outline" disabled={profileSaveMutation.isPending}>
+                  Cancel
+                </Button>
+              </SheetClose>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
+        <SheetContent className="w-full sm:max-w-[520px]">
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              handlePasswordSave();
+            }}
+            className="flex h-full flex-col"
+          >
+          <SheetHeader>
+            <SheetTitle className="mb-2 text-lg font-semibold">Change Password</SheetTitle>
+            <SheetDescription>Update your password and keep your account secure.</SheetDescription>
+          </SheetHeader>
+
+            <div className="flex flex-1 flex-col gap-4 px-4">
+              <div className="rounded-xl border border-orange-100 bg-orange-50 p-4 text-[#bf3419]">
+                <div className="flex gap-2.5">
+                  <Info size={16} className="mt-0.5 shrink-0" />
+                  <div>
+                    <h4 className="text-sm font-bold">Password Requirements</h4>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-xs font-medium leading-5">
+                      <li>Must be between 8 and 64 characters.</li>
+                      <li>Include uppercase, lowercase, number, and special character.</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
-            <PasswordInput label="Old Password" value={currentPassword} onChange={setCurrentPassword} />
-            <PasswordInput label="New Password" value={newPassword} onChange={setNewPassword} />
-            {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
-            <ModalActions
-              cancelLabel="Cancel"
-              submitLabel="Change Password"
-              isPending={changePasswordMutation.isPending}
-              onCancel={() => setIsPasswordOpen(false)}
-              onSubmit={handlePasswordSave}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
 
-      <Dialog open={isLogoutOpen} onOpenChange={setIsLogoutOpen}>
-        <DialogContent className="max-w-[420px] rounded-3xl p-6">
-          <DialogTitle className="text-xl font-bold">Log Out</DialogTitle>
-          <DialogDescription className="text-base font-semibold text-zinc-950">
-            Are you sure you want to log out?
-          </DialogDescription>
-          <div className="mt-4 flex justify-end gap-3">
-            <button type="button" onClick={() => setIsLogoutOpen(false)} className="secondary-button cursor-pointer text-sm font-semibold">
-              <X size={16} />
+              <PasswordInput label="Old Password" value={currentPassword} onChange={setCurrentPassword} />
+              <PasswordInput label="New Password" value={newPassword} onChange={setNewPassword} />
+              {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
+            </div>
+
+            <SheetFooter>
+              <Button
+                type="submit"
+                disabled={changePasswordMutation.isPending || !currentPassword || !newPassword}
+              >
+                {changePasswordMutation.isPending && <Spinner />}
+                Change password
+              </Button>
+              <SheetClose asChild>
+                <Button type="button" variant="outline" disabled={changePasswordMutation.isPending}>
+                  Cancel
+                </Button>
+              </SheetClose>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
+
+      <AlertDialog open={isLogoutOpen} onOpenChange={setIsLogoutOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Log Out?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to log out?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel className="cursor-pointer" disabled={false}>
               Cancel
-            </button>
-            <button type="button" onClick={handleLogout} className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white">
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="cursor-pointer bg-red-600 text-white hover:bg-red-700"
+            >
               <LogOut size={16} />
               Log Out
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      <Dialog open={isPhotoMenuOpen} onOpenChange={setIsPhotoMenuOpen}>
-        <DialogContent className="max-w-[520px] overflow-hidden rounded-3xl p-0">
-          <div className="primary-bg-color p-6 text-white">
-            <DialogTitle className="text-xl font-bold">Change Profile Photo</DialogTitle>
-            <DialogDescription className="mt-1 text-sm font-medium text-white/80">
+      <Sheet open={isPhotoMenuOpen} onOpenChange={setIsPhotoMenuOpen}>
+        <SheetContent className="w-full sm:max-w-[520px]">
+          <SheetHeader>
+            <SheetTitle className="mb-2 text-lg font-semibold">Change Profile Photo</SheetTitle>
+            <SheetDescription>
               Choose how you would like to update your profile picture.
-            </DialogDescription>
-          </div>
-          <div className="space-y-3 p-6">
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="flex flex-1 flex-col gap-3 px-4">
             <PhotoAction icon={Camera} title="Take Photo" description="Use your camera to capture a new profile picture." onClick={() => fileInputRef.current?.click()} />
             <PhotoAction icon={Image} title="Choose from Gallery" description="Select an existing photo from your device." onClick={() => fileInputRef.current?.click()} />
-            <button type="button" onClick={() => setIsPhotoMenuOpen(false)} className="secondary-button w-full justify-center text-sm font-semibold">
+          </div>
+
+          <SheetFooter>
+            <SheetClose asChild>
+            <Button type="button" variant="outline">
               <X size={16} />
               Cancel
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+            </Button>
+            </SheetClose>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={isPhotoPreviewOpen} onOpenChange={setIsPhotoPreviewOpen}>
         <DialogContent className="max-w-[760px] border-none bg-transparent p-0 shadow-none">
@@ -561,57 +626,33 @@ function InfoField({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ModalHeader({ icon: Icon, eyebrow, title, description }: { icon: LucideIcon; eyebrow: string; title: string; description: string }) {
+function TextInput({ label, value, onChange, icon: Icon }: { label: string; value: string; onChange: (value: string) => void; icon: LucideIcon }) {
   return (
-    <div className="flex items-center gap-5 bg-zinc-50 p-6">
-      <span className="grid size-20 shrink-0 place-items-center rounded-3xl primary-bg-color text-white">
-        <Icon size={38} />
+    <label className="flex flex-col gap-2 text-sm font-medium">
+      <span className="secondary-text-color flex items-center gap-x-1.5">
+        <Icon size={14} />
+        {label}
       </span>
-      <div>
-        <p className="text-xs font-bold uppercase tracking-[0.3em] text-zinc-400">{eyebrow}</p>
-        <h2 className="mt-1 text-xl font-bold text-zinc-950">{title}</h2>
-        <p className="mt-1 text-sm font-medium text-zinc-500">{description}</p>
-      </div>
-    </div>
-  );
-}
-
-function TextInput({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-sm font-semibold text-zinc-600">{label}</span>
-      <input value={value} onChange={(event) => onChange(event.target.value)} className="h-12 w-full rounded-xl bg-white px-4 text-sm font-medium shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none focus:ring-2 focus:ring-primary/30" />
+      <Input value={value} onChange={(event) => onChange(event.target.value)} className="h-10" />
     </label>
   );
 }
 
 function PasswordInput({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
   return (
-    <label className="block">
-      <span className="mb-1.5 flex justify-between text-sm font-semibold text-zinc-600">
-        {label}
+    <label className="flex flex-col gap-2 text-sm font-medium">
+      <span className="secondary-text-color flex items-center justify-between gap-x-3">
+        <span className="flex items-center gap-x-1.5">
+          <KeyRound size={14} />
+          {label}
+        </span>
         <span className="text-zinc-400">{value.length}/64</span>
       </span>
       <div className="relative">
-        <input type="password" maxLength={64} value={value} onChange={(event) => onChange(event.target.value)} className="h-12 w-full rounded-xl bg-white px-4 pr-11 text-sm font-medium shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none focus:ring-2 focus:ring-primary/30" />
+        <Input type="password" maxLength={64} value={value} onChange={(event) => onChange(event.target.value)} className="h-10 pr-11" />
         <Eye size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400" />
       </div>
     </label>
-  );
-}
-
-function ModalActions({ cancelLabel, submitLabel, isPending, onCancel, onSubmit }: { cancelLabel: string; submitLabel: string; isPending: boolean; onCancel: () => void; onSubmit: () => void }) {
-  return (
-    <div className="flex justify-end gap-3 border-t border-zinc-100 pt-4">
-      <button type="button" onClick={onCancel} className="secondary-button cursor-pointer text-sm font-semibold" disabled={isPending}>
-        <X size={16} />
-        {cancelLabel}
-      </button>
-      <button type="button" onClick={onSubmit} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:bg-emerald-200" disabled={isPending}>
-        {isPending ? <Spinner className="size-4" /> : <Check size={16} />}
-        {submitLabel}
-      </button>
-    </div>
   );
 }
 

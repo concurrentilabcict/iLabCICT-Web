@@ -365,7 +365,10 @@ export default function ManageUser() {
           className={isMobile ? "h-[90vh]" : "w-[420px]!"}
         >
           {sheetMode === "add" ? (
-            <UserForm closeSheet={() => setSheetOpen(false)} />
+            <UserForm
+              closeSheet={() => setSheetOpen(false)}
+              existingUsers={users}
+            />
           ) : (
             selectedUser && <UserDetails user={selectedUser} />
           )}

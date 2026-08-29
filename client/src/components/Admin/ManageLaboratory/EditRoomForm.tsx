@@ -6,11 +6,15 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus} from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
+import {
+    buildApiUrl,
+    createApiError,
+    privateFetch,
+    type ApiError
+} from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import DropDownOptions from "./DropDownOptions";
@@ -26,6 +30,12 @@ type Custodian = {
     id: number,
     firstName: string,
     lastName:string
+}
+
+type ApiAvailableUser = {
+    id: number,
+    first_name: string,
+    last_name: string
 }
 
 const floorNumberOptions: Array<{
@@ -94,10 +104,10 @@ export default function EditRoomForm({
     room
 }: AddRoomProps){
 
-    const mapCustodian = (custodian: any): Custodian => ({
-        id: custodian.id,
-        firstName: custodian.first_name,
-        lastName: custodian.last_name
+    const mapAvailableUser = (user: ApiAvailableUser): Custodian => ({
+        id: user.id,
+        firstName: user.first_name,
+        lastName: user.last_name
     })
 
     const {data: custodians = [], isLoading } = useQuery<Custodian[]>({
@@ -115,7 +125,28 @@ export default function EditRoomForm({
              if(!res.ok){
                 throw createApiError(res.status, data.message || 'Failed to fetch users.');
             }
-            return data.map(mapCustodian);
+            return (data as ApiAvailableUser[]).map(mapAvailableUser);
+        }
+    })
+
+    const {
+        data: technicians = [],
+        isLoading: techniciansAreLoading
+    } = useQuery<Custodian[]>({
+        queryKey: ["available-technician", room.assignedTechnicianId],
+        queryFn: async () => {
+            const res = await privateFetch(room.assignedTechnicianId ?
+                buildApiUrl(`/api/users/available-technician/?include=${room.assignedTechnicianId}`)
+                :
+                buildApiUrl("/api/users/available-technician/")
+            );
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw createApiError(res.status, data.message || "Failed to fetch technicians.");
+            }
+
+            return (data as ApiAvailableUser[]).map(mapAvailableUser);
         }
     })
 
@@ -130,13 +161,25 @@ export default function EditRoomForm({
     })),
     ];
 
+    const roomTechnicianOptions = [
+    {
+        label: "No technician",
+        value: null,
+    },
+    ...technicians.map(user => ({
+        label: `${user.firstName} ${user.lastName}`,
+        value: user.id,
+    })),
+    ];
+
     const initialForm: EditRoomFormType = {
         id: room.id,
         roomName: room.roomName,
         floorNumber: room.floorNumber,
         buildingName: room.buildingName,
         roomStatus: room.roomStatus,
-        assignedCustodianId:  room.assignedCustodianId || null
+        assignedCustodianId:  room.assignedCustodianId || null,
+        assignedTechnicianId: room.assignedTechnicianId || null
     }
 
     const [form, setForm] = useState<EditRoomFormType>(initialForm);
@@ -153,7 +196,8 @@ export default function EditRoomForm({
                         floor_number: form.floorNumber,
                         building_name: form.buildingName,
                         room_status: form.roomStatus,
-                        assigned_custodian: form.assignedCustodianId
+                        assigned_custodian: form.assignedCustodianId,
+                        assigned_technician: form.assignedTechnicianId
                     }),
                 }
             );
@@ -216,6 +260,9 @@ export default function EditRoomForm({
    
     const selectedCustodian = 
         custodianOptions.find((custodian) => custodian.value === form.assignedCustodianId) ?? null;
+
+    const selectedRoomTechnician =
+        roomTechnicianOptions.find((technician) => technician.value === form.assignedTechnicianId) ?? null;
 
     return(
         <form onSubmit={handleSubmit} className="flex flex-col h-full">   
@@ -305,6 +352,28 @@ export default function EditRoomForm({
 
                         {isLoading && (<div className="w-full flex items-center justify-between">
                             <h3 className="font-medium secondary-text-color">Room Custodian</h3>
+                            <div className="">
+                                Loading...
+                            </div>
+                        </div>)}
+
+                        {!techniciansAreLoading && (<div className="w-full flex items-center justify-between">
+                            <h3 className="font-medium secondary-text-color">Room Technician</h3>
+                            <div className="w-38">
+                                <DropDownOptions
+                                    fieldLabel="technician"
+                                    fieldType="assignedTechnicianId"
+                                    selectedItem={selectedRoomTechnician}
+                                    isSubmitting={isSubmitting}
+                                    form={form}
+                                    updateField={updateField}
+                                    itemOptions={roomTechnicianOptions}
+                                />
+                            </div>
+                        </div>)}
+
+                        {techniciansAreLoading && (<div className="w-full flex items-center justify-between">
+                            <h3 className="font-medium secondary-text-color">Room Technician</h3>
                             <div className="">
                                 Loading...
                             </div>

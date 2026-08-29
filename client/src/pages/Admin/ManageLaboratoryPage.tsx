@@ -10,7 +10,7 @@ import Laboratory from "@/components/Admin/ManageLaboratory/Laboratory";
 import type{ StatusFilter, FloorFilter } from "@/utils/room";
 import { useEffect, useState } from "react";
 import ButtonGroup from "@/components/Admin/ManageLaboratory/ButtonGroup";
-import type { Room, EditRoomFormType, RoomForm } from "@/types/room";
+import type { Room, EditRoomFormType } from "@/types/room";
 
 export default function AdminManageLaboratoryPage(){
 
@@ -25,7 +25,8 @@ export default function AdminManageLaboratoryPage(){
         floorNumber: 1,
         buildingName: "pimentel",
         roomStatus: "operational",
-        assignedCustodianId: null
+        assignedCustodianId: null,
+        assignedTechnicianId: null
     });
     const [rooms, setRooms] = useState<Room[]>([]);
 

@@ -30,6 +30,7 @@ export default function AuditLogsTable({
             <TableHead className="bg-muted">Action</TableHead>
             <TableHead className="bg-muted">Summary</TableHead>
             <TableHead className="bg-muted">IP Address</TableHead>
+            <TableHead className="bg-muted">User Agent</TableHead>
             <TableHead className="bg-muted">Created</TableHead>
           </TableRow>
         </TableHeader>
@@ -38,7 +39,7 @@ export default function AuditLogsTable({
           {isLoading && (
             <TableRow>
               <TableCell
-                colSpan={6}
+                colSpan={7}
                 className="h-24 text-center secondary-text-color"
               >
                 Loading audit logs...
@@ -48,7 +49,7 @@ export default function AuditLogsTable({
 
           {!isLoading && isError && (
             <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center text-red-500">
+              <TableCell colSpan={7} className="h-24 text-center text-red-500">
                 Failed to load audit logs.
               </TableCell>
             </TableRow>
@@ -57,7 +58,7 @@ export default function AuditLogsTable({
           {!isLoading && !isError && auditLogs.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={6}
+                colSpan={7}
                 className="h-24 text-center secondary-text-color"
               >
                 No audit logs found.
@@ -78,6 +79,11 @@ export default function AuditLogsTable({
                   </p>
                 </TableCell>
                 <TableCell>{auditLog.ipAddress}</TableCell>
+                <TableCell>
+                  <p className="max-w-[280px] truncate" title={auditLog.userAgent}>
+                    {auditLog.userAgent}
+                  </p>
+                </TableCell>
                 <TableCell>{formatDateTime(auditLog.createdAt)}</TableCell>
               </TableRow>
             ))}

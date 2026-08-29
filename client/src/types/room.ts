@@ -74,4 +74,5 @@ export type EditRoomFormType = {
     buildingName: BuildingNames,
     roomStatus: RoomStatus,
     assignedCustodianId: number | null,
+    assignedTechnicianId: number | null,
 }

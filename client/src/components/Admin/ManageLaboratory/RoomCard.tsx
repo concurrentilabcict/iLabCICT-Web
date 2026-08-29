@@ -30,7 +30,8 @@ export default function RoomCard({
                     floorNumber: room.floorNumber as FloorNumber,
                     buildingName: room.buildingName as BuildingNames,
                     roomStatus: room.status as RoomStatus,
-                    assignedCustodianId:  room.assignedCustodian?.id || null
+                    assignedCustodianId:  room.assignedCustodian?.id || null,
+                    assignedTechnicianId: room.assignedTechnician?.id || null
                 })
                 setIsEditing(true)
                 setSheetOpen(true)

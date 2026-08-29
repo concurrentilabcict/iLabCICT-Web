@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import {
@@ -32,10 +32,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
+import {
+  buildApiUrl,
+  createApiError,
+  privateFetch,
+  type ApiError,
+} from "@/lib/api";
+import type { User } from "@/types/manageUser";
 
 type UserFormProps = {
   closeSheet: () => void;
+  existingUsers: User[];
 };
 
 type AddUserForm = {
@@ -66,10 +73,20 @@ const roleOptions: Array<{
   },
 ];
 
-export default function UserForm({ closeSheet }: UserFormProps) {
+export default function UserForm({ closeSheet, existingUsers }: UserFormProps) {
   const [form, setForm] = useState<AddUserForm>(initialForm);
   const [roleOpen, setRoleOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  const normalizedEmail = form.email.trim().toLowerCase();
+  const emailAlreadyExists = useMemo(
+    () =>
+      normalizedEmail !== "" &&
+      existingUsers.some(
+        (user) => user.email.trim().toLowerCase() === normalizedEmail
+      ),
+    [existingUsers, normalizedEmail]
+  );
 
   const addUserMutation = useMutation({
     mutationFn: async () => {
@@ -127,6 +144,12 @@ export default function UserForm({ closeSheet }: UserFormProps) {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (emailAlreadyExists) {
+      toast.error("Email already exists.");
+      return;
+    }
+
     addUserMutation.mutate();
   };
 
@@ -185,8 +208,14 @@ export default function UserForm({ closeSheet }: UserFormProps) {
             onChange={(event) => updateField("email", event.target.value)}
             required
             disabled={isSubmitting}
+            aria-invalid={emailAlreadyExists}
             className="h-10"
           />
+          {emailAlreadyExists && (
+            <span className="text-xs font-medium text-red-500">
+              This email is already registered.
+            </span>
+          )}
         </label>
 
         <div className="flex flex-col gap-2 text-sm font-medium">
@@ -254,7 +283,7 @@ export default function UserForm({ closeSheet }: UserFormProps) {
       </div>
 
       <SheetFooter>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || emailAlreadyExists}>
           {isSubmitting && <Spinner />}
           Add User
         </Button>

@@ -39,6 +39,7 @@ export default function ButtonGroup({
             buildingName: "pimentel",
             roomStatus: "operational",
             assignedCustodianId: null,
+            assignedTechnicianId: null,
         });
         setIsEditing(false)
         setSheetOpen(true)
