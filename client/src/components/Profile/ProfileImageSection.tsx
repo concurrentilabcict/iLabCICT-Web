@@ -8,7 +8,7 @@ import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/
 import { Spinner } from "@/components/ui/spinner";
 import RemoveImageDialog from "./RemoveImageDialog";
 
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 
 type ProfileImageSectionProps = {
     isMobile: boolean;
@@ -74,16 +74,16 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
 
         onSuccess: (data) => {
             syncProfilePicture(data.profile_image);
-            toast.success("Profile image updated successfully.");
+            appToast.success("Profile photo updated successfully.");
         },
 
         onError: (error: ApiError) => {
             if (error.status === 500) {
-                toast.error("Server error. Please try again later.");
+                appToast.error("Something went wrong on our end. Please try again shortly.");
                 return;
             }
 
-            toast.error("Failed to change profile.");
+            appToast.error("We couldn't update your profile photo. Please try again.");
         }
     });
 
@@ -110,16 +110,16 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
 
         onSuccess: (data) => {
             syncProfilePicture(data.profile_image);
-            toast.success("Profile image removed successfully.");
+            appToast.success("Profile photo removed successfully.");
         },
 
         onError: (error: ApiError) => {
             if (error.status === 500) {
-                toast.error("Server error. Please try again later.");
+                appToast.error("Something went wrong on our end. Please try again shortly.");
                 return;
             }
 
-            toast.error("Failed to remove profile.");
+            appToast.error("We couldn't remove your profile photo. Please try again.");
         }
     });
 

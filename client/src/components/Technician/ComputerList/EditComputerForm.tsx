@@ -15,7 +15,7 @@ import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/
 import PheripheralStatus from "./PheripheralStatus";
 import ComputerStatus from "./ComputerStatus";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 
 type EditComputerProps = {
     closeSheet: () => void;
@@ -149,16 +149,16 @@ computer
                 queryKey: ["technician-computers"]
             });
 
-            toast.success("Computer updated successfully.");
+            appToast.success("Computer details updated successfully.");
             closeSheet();
         },
         onError: (error: ApiError) => {
             if(error.status === 400){
-                toast.error(error.message || "Please check computer details.");
+                appToast.warning("Please review the computer details and try again.");
                 return;
             }
 
-            toast.error("Faild to updated computer.");
+            appToast.error("We couldn't update the computer. Please try again.");
         }
     })
 

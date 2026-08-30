@@ -18,6 +18,7 @@ import {
 } from "@/lib/api";
 import AuditLogsTable from "./AuditLogsTable";
 import AuditLogsToolbar from "./AuditLogsToolbar";
+import AuditLogDetailsDrawer from "./AuditLogDetailsDrawer/AuditLogDetailsDrawer";
 import {
   formatDateTime,
   isAuditLogWebSocketMessage,
@@ -70,6 +71,9 @@ export default function AuditLogs() {
   const [nextUrl, setNextUrl] = useState<string | null>(null);
   const [isLoadingNext, setIsLoadingNext] = useState(false);
   const [nextPageError, setNextPageError] = useState(false);
+  const [selectedAuditLogId, setSelectedAuditLogId] = useState<number | null>(
+    null
+  );
 
   const {
     data: auditLogs = [],
@@ -221,6 +225,8 @@ export default function AuditLogs() {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+  const selectedAuditLog =
+    auditLogs.find((auditLog) => auditLog.id === selectedAuditLogId) ?? null;
 
   const goToPage = async (nextPage: number) => {
     if (nextPage > maxPage && nextUrl) {
@@ -253,6 +259,7 @@ export default function AuditLogs() {
         auditLogs={paginatedAuditLogs}
         isLoading={isLoading || isLoadingNext}
         isError={isError || nextPageError}
+        onSelectAuditLog={(auditLog) => setSelectedAuditLogId(auditLog.id)}
       />
 
       {shouldShowPagination && (
@@ -279,6 +286,15 @@ export default function AuditLogs() {
           </PaginationContent>
         </Pagination>
       )}
+
+      <AuditLogDetailsDrawer
+        auditLog={selectedAuditLog}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedAuditLogId(null);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { CalendarIcon, Clock2Icon } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 
 type ApiReportScheduler = {
   id: number;
@@ -102,11 +102,11 @@ export default function WeeklyReportSchedule() {
       await queryClient.invalidateQueries({
         queryKey: REPORT_SCHEDULER_QUERY_KEY,
       });
-      toast.success("Report schedule updated.");
+      appToast.success("Report schedule updated successfully.");
       setPopoverOpen(false);
     },
-    onError: (error: ApiError) => {
-      toast.error(error.message || "Failed to update report schedule.");
+    onError: () => {
+      appToast.error("We couldn't update the report schedule. Please try again.");
     },
   });
 

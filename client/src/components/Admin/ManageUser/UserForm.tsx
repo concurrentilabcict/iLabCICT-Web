@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 import {
   AtSign,
   ChevronDown,
@@ -119,16 +119,16 @@ export default function UserForm({ closeSheet, existingUsers }: UserFormProps) {
         queryKey: ["admin-users"],
       });
 
-      toast.success("User added successfully.");
+      appToast.success("User added successfully.");
       closeSheet();
     },
     onError: (error: ApiError) => {
       if (error.status === 400) {
-        toast.error(error.message || "Please check the user details.");
+        appToast.warning("Please review the user details and try again.");
         return;
       }
 
-      toast.error("Failed to add user.");
+      appToast.error("We couldn't add the user. Please try again.");
     },
   });
 
@@ -146,7 +146,7 @@ export default function UserForm({ closeSheet, existingUsers }: UserFormProps) {
     event.preventDefault();
 
     if (emailAlreadyExists) {
-      toast.error("Email already exists.");
+      appToast.warning("This email is already registered.");
       return;
     }
 

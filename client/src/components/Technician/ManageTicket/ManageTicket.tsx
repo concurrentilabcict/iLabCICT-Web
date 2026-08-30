@@ -7,7 +7,6 @@ import {
     createApiError,
     getFreshAccessToken,
     privateFetch,
-    type ApiError,
 } from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 
@@ -35,7 +34,7 @@ import type {
 } from "@/utils/ticket";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 
 type ManageTicketProps = {
     statusFilter: StatusFilter;
@@ -283,10 +282,10 @@ export default function ManageTicket({
                 queryKey: TICKETS_QUERY_KEY,
             });
 
-            toast.success("Ticket assigned to you.");
+            appToast.success("You're now assigned to this ticket.");
         },
-        onError: (error: ApiError) => {
-            toast.error(error.message || "Failed to assign ticket.");
+        onError: () => {
+            appToast.error("We couldn't assign the ticket. Please try again.");
         },
     });
 
@@ -308,10 +307,10 @@ export default function ManageTicket({
                 queryKey: TICKETS_QUERY_KEY,
             });
 
-            toast.success("Ticket resolved successfully.");
+            appToast.success("Ticket resolved successfully.");
         },
-        onError: (error: ApiError) => {
-            toast.error(error.message || "Failed to resolve ticket.");
+        onError: () => {
+            appToast.error("We couldn't resolve the ticket. Please try again.");
         },
     });
 

@@ -4,12 +4,22 @@ export type ApiAuditLogUser = {
   last_name: string;
 };
 
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
+export type JsonObject = { [key: string]: JsonValue };
+
 export type ApiAuditLog = {
   id: number;
   performed_by: ApiAuditLogUser | null;
   action_title: string;
   action_summary: string;
-  metadata: Record<string, unknown>;
+  metadata?: JsonObject | null;
   created_at: string;
 };
 
@@ -18,7 +28,7 @@ export type AuditLog = {
   performedBy: string;
   actionTitle: string;
   actionSummary: string;
-  metadata: Record<string, unknown>;
+  metadata: JsonObject | null;
   ipAddress: string;
   userAgent: string;
   createdAt: string;

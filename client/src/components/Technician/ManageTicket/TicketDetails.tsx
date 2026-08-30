@@ -13,7 +13,7 @@ import { statusConfig, type Status } from "@/utils/ticket";
 import { capitalize, formatDateTime } from "@/utils/string";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 import { Spinner } from "@/components/ui/spinner"
 
 type TicketDetailsProps = {
@@ -55,18 +55,18 @@ export default function TicketDetails({
         queryKey: ["tickets"],
       });
 
-      toast.success("Repair started successfully.");
+      appToast.success("Repair started successfully.");
 
       closeSheet();
     },
 
     onError: (error: ApiError) => {
       if (error.status === 500) {
-        toast.error("Server error. Please try again later.");
+        appToast.error("Something went wrong on our end. Please try again shortly.");
         return;
       }
 
-      toast.error("Failed to start repair.");
+      appToast.error("We couldn't start the repair. Please try again.");
     }
   });
 

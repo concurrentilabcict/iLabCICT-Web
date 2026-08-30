@@ -13,12 +13,14 @@ type AuditLogsTableProps = {
   auditLogs: AuditLog[];
   isLoading: boolean;
   isError: boolean;
+  onSelectAuditLog: (auditLog: AuditLog) => void;
 };
 
 export default function AuditLogsTable({
   auditLogs,
   isLoading,
   isError,
+  onSelectAuditLog,
 }: AuditLogsTableProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-primary-color bg-white">
@@ -69,7 +71,19 @@ export default function AuditLogsTable({
           {!isLoading &&
             !isError &&
             auditLogs.map((auditLog) => (
-              <TableRow key={auditLog.id}>
+              <TableRow
+                key={auditLog.id}
+                tabIndex={0}
+                aria-label={`View details for audit log ${auditLog.id}`}
+                onClick={() => onSelectAuditLog(auditLog)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelectAuditLog(auditLog);
+                  }
+                }}
+                className="cursor-pointer transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#bf3419]"
+              >
                 <TableCell className="font-medium">#{auditLog.id}</TableCell>
                 <TableCell>{auditLog.performedBy}</TableCell>
                 <TableCell>{auditLog.actionTitle}</TableCell>

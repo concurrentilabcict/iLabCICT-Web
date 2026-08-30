@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import SavePasswordDialog from "./SavePasswordDialog";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 
 export default function AccountSecurity() {
 
@@ -71,21 +71,21 @@ export default function AccountSecurity() {
         },
 
         onSuccess: () => {
-            toast.success("Password updated successfully.");
+            appToast.success("Password updated successfully.");
         },
 
         onError: (error: ApiError) => {
             if (error.status === 400) {
-                toast.error("Incorrect current password.");
+                appToast.warning("Your current password is incorrect.");
                 return;
             }
 
             if (error.status === 500) {
-                toast.error("Server error. Please try again later.");
+                appToast.error("Something went wrong on our end. Please try again shortly.");
                 return;
             }
 
-            toast.error("Failed to change the password.");
+            appToast.error("We couldn't update your password. Please try again.");
         }
     });
 

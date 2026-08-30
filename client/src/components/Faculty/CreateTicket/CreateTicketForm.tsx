@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
@@ -150,7 +150,7 @@ export default function CreateTicketForm() {
   const handleSubmitRequest = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!roomId || !title.trim() || !description.trim()) {
-      toast.error("Please complete all required fields.");
+      appToast.warning("Please complete all required fields.");
       return;
     }
 
@@ -177,10 +177,10 @@ export default function CreateTicketForm() {
       if (!response.ok) throw createApiError(response.status, data.message || "Failed to submit ticket.");
       await queryClient.invalidateQueries({ queryKey: ["tickets"] });
       setIsConfirmOpen(false);
-      toast.success("Ticket submitted successfully.");
+      appToast.success("Ticket submitted successfully.");
       navigate("/manage-ticket", { replace: true });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to submit ticket.");
+    } catch {
+      appToast.error("We couldn't submit the ticket. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

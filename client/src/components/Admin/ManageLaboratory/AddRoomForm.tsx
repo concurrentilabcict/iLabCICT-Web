@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 import DropDownOptions from "./DropDownOptions";
 import type { RoomForm, BuildingNames, RoomStatus, FloorNumber } from "@/types/room";
 
@@ -203,16 +203,16 @@ export default function AddRoomForm({
                 queryKey: ["add-rooms"]
             });
 
-            toast.success("room added successfully.");
+            appToast.success("Room added successfully.");
             closeSheet();
         },
         onError: (error: ApiError) => {
             if(error.status === 400){
-                toast.error(error.message || "Please check room details.");
+                appToast.warning("Please review the room details and try again.");
                 return;
             }
 
-            toast.error("Faild to add room.");
+            appToast.error("We couldn't add the room. Please try again.");
         }
     });
 

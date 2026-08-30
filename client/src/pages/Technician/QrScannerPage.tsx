@@ -3,7 +3,7 @@ import MobileHeader from "@/components/Header/MobileHeader";
 import { QrScanner } from "@/components/Technician/QrScanner/QrScanner";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 
 import { buildApiUrl, privateFetch } from "@/lib/api";
 
@@ -58,7 +58,7 @@ export default function QrScannerPage() {
                     const routeOrCode = getScannedRoute(value);
 
                     if (!routeOrCode) {
-                        toast.error("Invalid computer QR code.");
+                        appToast.warning("That QR code isn't valid.");
                         return false;
                     }
 
@@ -76,7 +76,7 @@ export default function QrScannerPage() {
                         const data = (await response.json()) as ScannedComputer;
 
                         if (!response.ok || !data.room?.room_name) {
-                            toast.error("Computer QR code not found.");
+                            appToast.warning("We couldn't find a computer for that QR code.");
                             return false;
                         }
 
@@ -85,7 +85,7 @@ export default function QrScannerPage() {
                         );
                         return true;
                     } catch {
-                        toast.error("Unable to open scanned computer.");
+                        appToast.error("We couldn't open that computer. Please try again.");
                         return false;
                     } finally {
                         setIsResolvingScan(false);

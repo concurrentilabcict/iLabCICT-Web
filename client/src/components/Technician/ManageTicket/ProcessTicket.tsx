@@ -11,7 +11,7 @@ import {
     Wrench,
 } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 
 import Header from "@/components/Header/Header";
 import MobileHeader from "@/components/Header/MobileHeader";
@@ -156,12 +156,12 @@ export default function ProcessTicket() {
                 queryClient.invalidateQueries({ queryKey: ["admin-repair-logs"] }),
             ]);
 
-            toast.success("Ticket resolved successfully.");
+            appToast.success("Ticket resolved successfully.");
             navigate("/repair-logs", { replace: true });
         },
         onError: (error: ApiError) => {
             console.error("Failed to resolve ticket:", error);
-            toast.error(error.message || "Failed to resolve ticket.");
+            appToast.error("We couldn't resolve the ticket. Please try again.");
         },
     });
 

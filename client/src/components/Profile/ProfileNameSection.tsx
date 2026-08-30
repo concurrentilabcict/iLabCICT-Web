@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/auth/useAuth";
 import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import SaveProfileDialog from "./SaveProfileDialog";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 
 type ProfileNameSectionProps = {
     isMobile: boolean;
@@ -118,16 +118,16 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
             setProfileError("");
             setIsEditing(false);
 
-            toast.success("Profile updated successfully.");
+            appToast.success("Profile updated successfully.");
         },
 
         onError: (error: ApiError) => {
             if (error.status === 500) {
-                toast.error("Server error. Please try again later.");
+                appToast.error("Something went wrong on our end. Please try again shortly.");
                 return;
             }
 
-            toast.error("Failed to update profile.");
+            appToast.error("We couldn't update your profile. Please try again.");
         }
     });
 

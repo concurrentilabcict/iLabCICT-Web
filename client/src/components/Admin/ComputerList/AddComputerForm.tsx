@@ -14,7 +14,7 @@ import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/
 import PheripheralStatus from "./PheripheralStatus";
 import ComputerStatus from "./ComputerStatus";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 
 type AddComputerProps = { 
     closeSheet: () => void;
@@ -146,16 +146,16 @@ export default function AddComputerForm({
                 queryKey: ["technician-computers"]
             });
 
-            toast.success("Computer added successfully.");
+            appToast.success("Computer added successfully.");
             closeSheet();
         },
         onError: (error: ApiError) => {
             if(error.status === 400){
-                toast.error(error.message || "Please check computer details.");
+                appToast.warning("Please review the computer details and try again.");
                 return;
             }
 
-            toast.error("Faild to add computer.");
+            appToast.error("We couldn't add the computer. Please try again.");
         }
     });
 

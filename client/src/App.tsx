@@ -50,7 +50,7 @@ function App() {
 
   return (
     <>
-      <Toaster position="top-center" toastOptions={{ duration: 3000, }} />
+      <Toaster position="top-center" gutter={10} />
       <Routes>
         <Route path="/" element={<PublicRoute><SmoothScrolling>
           <LandingPage /></SmoothScrolling></PublicRoute>} />

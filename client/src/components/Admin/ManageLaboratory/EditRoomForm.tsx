@@ -16,7 +16,7 @@ import {
     type ApiError
 } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { appToast } from "@/utils/appToast";
 import DropDownOptions from "./DropDownOptions";
 import type { RoomForm, BuildingNames, RoomStatus, FloorNumber } from "@/types/room";
 import type { EditRoomFormType } from "@/types/room";
@@ -217,16 +217,16 @@ export default function EditRoomForm({
                 queryKey: ["edit-rooms"]
             });
 
-            toast.success("room updated successfully.");
+            appToast.success("Room details updated successfully.");
             closeSheet();
         },
         onError: (error: ApiError) => {
             if(error.status === 400){
-                toast.error(error.message || "Please check room details.");
+                appToast.warning("Please review the room details and try again.");
                 return;
             }
 
-            toast.error("Faild to update room.");
+            appToast.error("We couldn't update the room. Please try again.");
         }
     });
 
