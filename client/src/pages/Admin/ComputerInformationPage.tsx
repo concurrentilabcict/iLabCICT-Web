@@ -23,7 +23,7 @@ export default function AdminComputerInformationPage(){
 
     useEffect(()=>{
         document.title = `${pcCode} | iLabCICT`
-    },[[pcCode]])
+    },[pcCode])
 
     return(
         <>
@@ -31,7 +31,7 @@ export default function AdminComputerInformationPage(){
                 {isMobile ? <NavBar/> : <Sidebar/>}
                     <SidebarInset>
                          <div className="min-h-screen bg-[#fbfbfb]">
-	                            {isMobile ? <Header title={pcCode}/> : <MobileHeader title={pcCode}/>}
+	                            {isMobile ? <MobileHeader title={pcCode}/> : <Header title={pcCode}/>}
 	                            <div className="mx-auto max-w-[1000px]">
 	                                <ComputerInformation
 	                                    setSheetOpen={setSheetOpen}

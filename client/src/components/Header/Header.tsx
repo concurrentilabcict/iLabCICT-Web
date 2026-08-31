@@ -5,6 +5,7 @@ import PlaceHolder from "@/assets/profile-placeholder.png"
 import { useLocation, useNavigate } from "react-router-dom";
 import DesktopNotification from "@/components/Technician/Notification/DesktopNotification";
 import { getAppNavIcon } from "@/components/Technician/navigation";
+import { createElement } from "react";
 
 type HeaderProps = {
     title: string;
@@ -16,7 +17,6 @@ export default function Header({ title }: HeaderProps) {
     const { profilePicture } = useAuth();
     const navigate = useNavigate();
     const { pathname } = useLocation();
-    const HeaderIcon = getAppNavIcon(pathname);
 
     return (
         <div className="sticky top-0 z-20 flex items-center justify-between border-b border-white/50 bg-white/70 p-5 shadow-sm shadow-black/5 backdrop-blur-xl supports-backdrop-filter:bg-white/55">
@@ -26,7 +26,10 @@ export default function Header({ title }: HeaderProps) {
                 </button>
 
                 <div className="primary-bg-color rounded-sm p-2">
-                    <HeaderIcon size={18} className="text-white" />
+                    {createElement(getAppNavIcon(pathname), {
+                        size: 18,
+                        className: "text-white",
+                    })}
                 </div>
                 <h1 className="text-lg font-medium">{title}</h1>
             </div>

@@ -38,7 +38,7 @@ export default function DesktopNotification() {
                 </Button>
             </SheetTrigger>
 
-            <SheetContent side="right" className="w-[420px]! gap-0 p-0 sm:max-w-none">
+            <SheetContent side="right" className="w-full! gap-0 p-0 sm:w-[420px]! sm:max-w-none">
                 <SheetHeader className="border-b border-b-[#e5e5e5] px-4 py-4">
                     <SheetTitle>Notifications</SheetTitle>
                     <SheetDescription className="sr-only">
