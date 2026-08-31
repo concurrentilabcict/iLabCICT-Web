@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 
 import {
@@ -18,6 +18,7 @@ import type {
   WeeklyReport as WeeklyReportType,
 } from "@/types/weeklyReport";
 import { getPaginationWindow } from "@/utils/pagination";
+import { appToast } from "@/utils/appToast";
 import WeeklyReportDetails from "./WeeklyReportDetails";
 import WeeklyReportSchedule from "./WeeklyReportSchedule";
 import WeeklyReportTable from "./WeeklyReportTable";
@@ -31,9 +32,11 @@ import {
 } from "./weeklyReportUtils";
 
 const ITEMS_PER_PAGE = 10;
+const WEEKLY_REPORTS_QUERY_KEY = ["admin-weekly-reports"] as const;
 
 export default function WeeklyReport() {
   const isMobile = useMediaQuery("(max-width: 767px)");
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReport, setSelectedReport] = useState<WeeklyReportType | null>(
@@ -47,7 +50,7 @@ export default function WeeklyReport() {
     isLoading,
     isError,
   } = useQuery<WeeklyReportType[]>({
-    queryKey: ["admin-weekly-reports"],
+    queryKey: WEEKLY_REPORTS_QUERY_KEY,
     queryFn: async () => {
       const response = await privateFetch(buildApiUrl("/api/reports/"));
       const data = await response.json();
@@ -60,6 +63,52 @@ export default function WeeklyReport() {
       }
 
       return (data as ApiWeeklyReport[]).map(mapWeeklyReport);
+    },
+  });
+
+  const markReportAsReadMutation = useMutation({
+    mutationFn: async (reportId: number) => {
+      const response = await privateFetch(buildApiUrl(`/api/reports/${reportId}/`), {
+        method: "PATCH",
+        body: JSON.stringify({ status: "read" }),
+      });
+      const data = await response.json().catch(() => null) as {
+        message?: string;
+        detail?: string;
+      } | null;
+
+      if (!response.ok) {
+        throw createApiError(
+          response.status,
+          data?.message || data?.detail || "Failed to mark the report as read."
+        );
+      }
+    },
+    onMutate: async (reportId) => {
+      await queryClient.cancelQueries({ queryKey: WEEKLY_REPORTS_QUERY_KEY });
+      const previousReports = queryClient.getQueryData<WeeklyReportType[]>(
+        WEEKLY_REPORTS_QUERY_KEY
+      );
+
+      queryClient.setQueryData<WeeklyReportType[]>(
+        WEEKLY_REPORTS_QUERY_KEY,
+        (currentReports = []) =>
+          currentReports.map((report) =>
+            report.id === reportId ? { ...report, status: "read" } : report
+          )
+      );
+
+      return { previousReports };
+    },
+    onError: (_error, _reportId, context) => {
+      if (context?.previousReports) {
+        queryClient.setQueryData(
+          WEEKLY_REPORTS_QUERY_KEY,
+          context.previousReports
+        );
+      }
+
+      appToast.error("We couldn't mark this report as read. Please try again.");
     },
   });
 
@@ -109,6 +158,10 @@ export default function WeeklyReport() {
   const handleReportClick = (report: WeeklyReportType) => {
     setSelectedReport(report);
     setSheetOpen(true);
+
+    if (report.status.toLowerCase() === "unread") {
+      markReportAsReadMutation.mutate(report.id);
+    }
   };
 
   const handleSheetOpenChange = (open: boolean) => {
@@ -188,7 +241,7 @@ export default function WeeklyReport() {
                   key={report.id}
                   type="button"
                   onClick={() => handleReportClick(report)}
-                  className="rounded-xl border border-primary-color bg-white p-4 text-left"
+                  className="cursor-pointer rounded-xl border border-primary-color bg-white p-4 text-left"
                 >
                   <div className="mb-3 flex items-start justify-between gap-3">
                     <div>

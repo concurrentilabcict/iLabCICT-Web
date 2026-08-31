@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText, Search, X } from "lucide-react";
 
 import {
@@ -12,7 +12,14 @@ import {
 } from "@/components/ui/pagination";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
+import {
+    buildApiUrl,
+    buildWebSocketUrl,
+    createApiError,
+    getFreshAccessToken,
+    privateFetch,
+} from "@/lib/api";
+import { appToast } from "@/utils/appToast";
 import type {
     ApiWeeklyReport,
     WeeklyReport as WeeklyReportType,
@@ -120,6 +127,52 @@ export default function WeeklyReport() {
         gcTime: Infinity,
     });
     const isLoading = isPending || (canLoadReports && !hasInitialReports);
+
+    const markReportAsReadMutation = useMutation({
+        mutationFn: async (reportId: number) => {
+            const response = await privateFetch(
+                buildApiUrl(`/api/reports/${reportId}/`),
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({ status: "read" }),
+                }
+            );
+            const data = await response.json().catch(() => null) as {
+                message?: string;
+                detail?: string;
+            } | null;
+
+            if (!response.ok) {
+                throw createApiError(
+                    response.status,
+                    data?.message || data?.detail || "Failed to mark the report as read."
+                );
+            }
+        },
+        onMutate: async (reportId) => {
+            await queryClient.cancelQueries({ queryKey: reportsQueryKey });
+            const previousReports = queryClient.getQueryData<WeeklyReportType[]>(
+                reportsQueryKey
+            );
+
+            queryClient.setQueryData<WeeklyReportType[]>(
+                reportsQueryKey,
+                (currentReports = []) =>
+                    currentReports.map((report) =>
+                        report.id === reportId ? { ...report, status: "read" } : report
+                    )
+            );
+
+            return { previousReports };
+        },
+        onError: (_error, _reportId, context) => {
+            if (context?.previousReports) {
+                queryClient.setQueryData(reportsQueryKey, context.previousReports);
+            }
+
+            appToast.error("We couldn't mark this report as read. Please try again.");
+        },
+    });
 
     useEffect(() => {
         let socket: WebSocket | null = null;
@@ -241,6 +294,10 @@ export default function WeeklyReport() {
     const openReport = (report: WeeklyReportType) => {
         setSelectedReportId(report.id);
         setSheetOpen(true);
+
+        if (report.status.toLowerCase() === "unread") {
+            markReportAsReadMutation.mutate(report.id);
+        }
     };
 
     const handleSheetOpenChange = (open: boolean) => {

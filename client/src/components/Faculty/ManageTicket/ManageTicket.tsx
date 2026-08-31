@@ -44,6 +44,22 @@ const formatLabel = (text: string) => text
   .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
   .join(" ");
 
+const ticketStatusOrder: Record<string, number> = {
+  open: 0,
+  ongoing: 1,
+  resolved: 2,
+};
+
+const sortTickets = (firstTicket: Ticket, secondTicket: Ticket) => {
+  const statusDifference =
+    (ticketStatusOrder[firstTicket.status.toLowerCase()] ?? 3) -
+    (ticketStatusOrder[secondTicket.status.toLowerCase()] ?? 3);
+
+  return statusDifference !== 0
+    ? statusDifference
+    : Date.parse(secondTicket.createdAt) - Date.parse(firstTicket.createdAt);
+};
+
 const mapTicket = (ticket: ApiTicket): Ticket => ({
   id: ticket.id,
   ticketCode: ticket.ticket_code,
@@ -193,7 +209,7 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
     return [...tickets]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort(sortTickets)
       .filter((ticket) => {
         const status = formatLabel(ticket.status) as Status;
         const type = formatLabel(ticket.type) as TicketType;

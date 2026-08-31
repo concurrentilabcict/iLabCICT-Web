@@ -144,23 +144,25 @@ export default function ForgotPasswordForm() {
                     />
                 </div>
 
-                <button
-                    type="button"
-                    onClick={handleResend}
-                    disabled={isCooldown || isPending}
-                    className="w-full text-end primary-text-color font-semibold mb-5 cursor-pointer max-w-sm disabled:opacity-50"
-                >
-                    {isPending ? (
-                        <span className="flex justify-end items-center gap-2">
-                            <Spinner className="size-5" />
-                            Sending...
-                        </span>
-                    ) : isCooldown ? (
-                        `Retry in ${secondsLeft}s`
-                    ) : (
-                        "Resend Link"
-                    )}
-                </button>
+                <div className="mb-5 flex w-full max-w-sm justify-end">
+                    <button
+                        type="button"
+                        onClick={handleResend}
+                        disabled={isCooldown || isPending}
+                        className="inline-flex items-center gap-2 font-semibold primary-text-color cursor-pointer disabled:opacity-50"
+                    >
+                        {isPending ? (
+                            <>
+                                <Spinner className="size-5" />
+                                Sending...
+                            </>
+                        ) : isCooldown ? (
+                            `Retry in ${secondsLeft}s`
+                        ) : (
+                            "Resend Link"
+                        )}
+                    </button>
+                </div>
 
                 <button
                     type="submit"

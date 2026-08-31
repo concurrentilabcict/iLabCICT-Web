@@ -5,11 +5,6 @@ import { appToast } from "@/utils/appToast";
 
 import { Button } from "@/components/ui/button";
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -31,6 +26,19 @@ const REPORT_SCHEDULER_QUERY_KEY = ["report-scheduler", 6] as const;
 const REPORT_SCHEDULER_ENDPOINT = "/api/scheduler/6/";
 
 const getTimeValue = (time: string) => time.slice(0, 8);
+
+const formatTimeLabel = (time: string) => {
+  const [hourValue = "0", minutes = "00", seconds = "00"] = time.split(":");
+  const hour = Number(hourValue);
+  const displayHour = String(hour % 12 || 12).padStart(2, "0");
+  const period = hour >= 12 ? "PM" : "AM";
+
+  return `${displayHour}:${minutes}:${seconds} ${period}`;
+};
+
+const hourOptions = Array.from({ length: 24 }, (_, hour) =>
+  String(hour).padStart(2, "0")
+);
 
 const weekdayOptions = [
   { label: "Su", value: 6, name: "Sunday" },
@@ -115,7 +123,7 @@ export default function WeeklyReportSchedule() {
     (weekdayOption) => weekdayOption.value === weekday
   );
   const scheduleLabel = selectedWeekday
-    ? `${selectedWeekday.name} at ${startTime}`
+    ? `${selectedWeekday.name} at ${formatTimeLabel(startTime)}`
     : "Schedule report";
 
   return (
@@ -159,20 +167,24 @@ export default function WeeklyReportSchedule() {
           >
             Start Time
           </label>
-          <InputGroup className="h-10">
-            <InputGroupInput
+          <div className="relative">
+            <select
               id="report-scheduler-start-time"
-              type="time"
-              step="1"
-              value={startTime}
-              onChange={(event) => setStartTime(event.target.value)}
+              value={startTime.slice(0, 2)}
+              onChange={(event) =>
+                setStartTime(`${event.target.value}:${startTime.slice(3, 8)}`)
+              }
               disabled={isSubmitting}
-              className="appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-            />
-            <InputGroupAddon align="inline-end">
-              <Clock2Icon className="text-muted-foreground" />
-            </InputGroupAddon>
-          </InputGroup>
+              className="h-10 w-full appearance-none rounded-lg border border-input bg-transparent px-3 pr-10 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {hourOptions.map((hour) => (
+                <option key={hour} value={hour}>
+                  {formatTimeLabel(`${hour}:${startTime.slice(3, 8)}`)}
+                </option>
+              ))}
+            </select>
+            <Clock2Icon className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          </div>
 
           <Button
             type="button"

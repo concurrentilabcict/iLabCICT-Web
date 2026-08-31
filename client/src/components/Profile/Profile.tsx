@@ -26,7 +26,7 @@ export default function Profile() {
         <>
             <div className={`flex flex-col gap-5 py-3 ${isMobile ? "mb-23" : "mb-10"}`}>
                 <ProfileForm />
-                <ProfileTicketStats />
+                {role.toLowerCase() === "technician" && <ProfileTicketStats />}
                 <AccountSecurity />
             </div>
         </>

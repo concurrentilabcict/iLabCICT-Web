@@ -300,8 +300,8 @@ export default function RepairLog({
         return [...repairLogs]
             .sort(
                 (a, b) =>
-                    new Date(a.createdAt).getTime() -
-                    new Date(b.createdAt).getTime()
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime()
             )
             .filter((repairLog) => {
                 const type = formatLabel(repairLog.ticket.type);

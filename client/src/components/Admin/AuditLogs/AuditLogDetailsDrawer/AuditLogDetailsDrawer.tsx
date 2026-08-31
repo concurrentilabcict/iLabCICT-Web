@@ -25,6 +25,37 @@ type AuditLogDetailsDrawerProps = {
   onOpenChange: (open: boolean) => void;
 };
 
+const normalizeFieldKey = (key: string) =>
+  key.replace(/[^a-z0-9]/gi, "").toLowerCase();
+
+const metadataHasField = (
+  metadata: AuditLog["metadata"],
+  fieldNames: string[]
+) => {
+  if (!metadata) {
+    return false;
+  }
+
+  const normalizedFieldNames = new Set(fieldNames.map(normalizeFieldKey));
+  const containsField = (value: unknown): boolean => {
+    if (Array.isArray(value)) {
+      return value.some(containsField);
+    }
+
+    if (typeof value !== "object" || value === null) {
+      return false;
+    }
+
+    return Object.entries(value).some(
+      ([key, nestedValue]) =>
+        normalizedFieldNames.has(normalizeFieldKey(key)) ||
+        containsField(nestedValue)
+    );
+  };
+
+  return containsField(metadata);
+};
+
 type DetailRowProps = {
   icon: LucideIcon;
   label: string;
@@ -71,6 +102,18 @@ export default function AuditLogDetailsDrawer({
 }: AuditLogDetailsDrawerProps) {
   const isMobile = useMediaQuery("(max-width: 767px)");
 
+  const metadataFields = auditLog
+    ? {
+        logId: metadataHasField(auditLog.metadata, ["log_id", "audit_log_id"]),
+        performedBy: metadataHasField(auditLog.metadata, ["performed_by"]),
+        action: metadataHasField(auditLog.metadata, ["action"]),
+        summary: metadataHasField(auditLog.metadata, ["summary", "action_summary"]),
+        ipAddress: metadataHasField(auditLog.metadata, ["ip_address"]),
+        userAgent: metadataHasField(auditLog.metadata, ["user_agent"]),
+        created: metadataHasField(auditLog.metadata, ["created", "created_at"]),
+      }
+    : null;
+
   return (
     <Sheet open={auditLog !== null} onOpenChange={onOpenChange}>
       <SheetContent
@@ -89,43 +132,41 @@ export default function AuditLogDetailsDrawer({
             <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 pb-6">
               <section aria-label="Audit information">
                 <div className="flex min-w-0 flex-col gap-5">
-                  <DetailRow
-                    icon={Hash}
-                    label="Log ID"
-                    value={`#${auditLog.id}`}
-                  />
-                  <DetailRow
-                    icon={User}
-                    label="Performed By"
-                    value={auditLog.performedBy}
-                  />
-                  <DetailRow
-                    icon={Activity}
-                    label="Action"
-                    value={auditLog.actionTitle}
-                  />
-                  <DetailRow
-                    icon={FileText}
-                    label="Summary"
-                    value={auditLog.actionSummary}
-                    stacked
-                  />
-                  <DetailRow
-                    icon={Globe2}
-                    label="IP Address"
-                    value={auditLog.ipAddress}
-                  />
-                  <DetailRow
-                    icon={MonitorSmartphone}
-                    label="User Agent"
-                    value={auditLog.userAgent}
-                    stacked
-                  />
-                  <DetailRow
-                    icon={CalendarDays}
-                    label="Created"
-                    value={formatDateTime(auditLog.createdAt)}
-                  />
+                  {!metadataFields?.logId && (
+                    <DetailRow icon={Hash} label="Log ID" value={`#${auditLog.id}`} />
+                  )}
+                  {!metadataFields?.performedBy && (
+                    <DetailRow icon={User} label="Performed By" value={auditLog.performedBy} />
+                  )}
+                  {!metadataFields?.action && (
+                    <DetailRow icon={Activity} label="Action" value={auditLog.actionTitle} />
+                  )}
+                  {!metadataFields?.summary && (
+                    <DetailRow
+                      icon={FileText}
+                      label="Summary"
+                      value={auditLog.actionSummary}
+                      stacked
+                    />
+                  )}
+                  {!metadataFields?.ipAddress && (
+                    <DetailRow icon={Globe2} label="IP Address" value={auditLog.ipAddress} />
+                  )}
+                  {!metadataFields?.userAgent && (
+                    <DetailRow
+                      icon={MonitorSmartphone}
+                      label="User Agent"
+                      value={auditLog.userAgent}
+                      stacked
+                    />
+                  )}
+                  {!metadataFields?.created && (
+                    <DetailRow
+                      icon={CalendarDays}
+                      label="Created"
+                      value={formatDateTime(auditLog.createdAt)}
+                    />
+                  )}
                 </div>
               </section>
 

@@ -66,6 +66,12 @@ const TICKETS_QUERY_KEY = ["technician-tickets"] as const;
 const TICKETS_READY_QUERY_KEY = ["technician-tickets-ready"] as const;
 const TICKETS_WS_ENDPOINT = "/ws/tickets/";
 
+const ticketStatusOrder: Record<string, number> = {
+    open: 0,
+    ongoing: 1,
+    resolved: 2,
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null;
 
@@ -122,6 +128,16 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
     createdAt: ticket.created_at,
     updatedAt: ticket.updated_at,
 });
+
+const sortTickets = (firstTicket: Ticket, secondTicket: Ticket) => {
+    const statusDifference =
+        (ticketStatusOrder[firstTicket.status.toLowerCase()] ?? 3) -
+        (ticketStatusOrder[secondTicket.status.toLowerCase()] ?? 3);
+
+    return statusDifference !== 0
+        ? statusDifference
+        : Date.parse(secondTicket.createdAt) - Date.parse(firstTicket.createdAt);
+};
 
 const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
     const ticket = mapTicket(apiTicket);
@@ -363,11 +379,7 @@ export default function ManageTicket({
         const normalizedQuery = searchQuery.trim().toLowerCase();
 
         return [...tickets]
-            .sort(
-                (a, b) =>
-                    new Date(a.createdAt).getTime() -
-                    new Date(b.createdAt).getTime()
-            )
+            .sort(sortTickets)
             .filter((ticket) => {
                 const status = formatLabel(ticket.status) as Status;
                 const type = formatLabel(ticket.type) as TicketType;

@@ -13,6 +13,35 @@ type ChatbotActiveProps = {
     isSending: boolean;
 };
 
+type MarkdownNode = {
+    type: string;
+    value?: string;
+    children?: MarkdownNode[];
+};
+
+const remarkHtmlBreaks = () => (tree: MarkdownNode) => {
+    const replaceBreakTags = (node: MarkdownNode) => {
+        if (!node.children) {
+            return;
+        }
+
+        node.children = node.children.map((child) => {
+            if (
+                child.type === "html" &&
+                child.value &&
+                /^<br\s*\/?\s*>$/i.test(child.value.trim())
+            ) {
+                return { type: "break" };
+            }
+
+            replaceBreakTags(child);
+            return child;
+        });
+    };
+
+    replaceBreakTags(tree);
+};
+
 export default function ChatbotActive({
     message,
     messages,
@@ -58,7 +87,10 @@ export default function ChatbotActive({
                                             : "[&_p]:m-0"
                                     }`}
                                 >
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm, remarkHtmlBreaks]}
+                                        skipHtml
+                                    >
                                         {chatMessage.content}
                                     </ReactMarkdown>
                                 </div>
