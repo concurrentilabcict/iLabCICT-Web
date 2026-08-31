@@ -78,6 +78,18 @@ const upsertNotification = (
 export const useMarkNotificationAsRead = () => {
     const queryClient = useQueryClient();
 
+    const setNotificationAsRead = (notificationId: number) => {
+        queryClient.setQueryData<Notification[]>(
+            NOTIFICATIONS_QUERY_KEY,
+            (currentNotifications = []) =>
+                currentNotifications.map((notification) =>
+                    notification.id === notificationId
+                        ? { ...notification, status: "read" }
+                        : notification
+                )
+        );
+    };
+
     return useMutation({
         mutationFn: async (notificationId: number) => {
             const response = await privateFetch(
@@ -98,17 +110,12 @@ export const useMarkNotificationAsRead = () => {
             const previousNotifications =
                 queryClient.getQueryData<Notification[]>(NOTIFICATIONS_QUERY_KEY);
 
-            queryClient.setQueryData<Notification[]>(
-                NOTIFICATIONS_QUERY_KEY,
-                (currentNotifications = []) =>
-                    currentNotifications.map((notification) =>
-                        notification.id === notificationId
-                            ? { ...notification, status: "read" }
-                            : notification
-                    )
-            );
+            setNotificationAsRead(notificationId);
 
             return { previousNotifications };
+        },
+        onSuccess: (_data, notificationId) => {
+            setNotificationAsRead(notificationId);
         },
         onError: (_error, _notificationId, context) => {
             if (context?.previousNotifications) {

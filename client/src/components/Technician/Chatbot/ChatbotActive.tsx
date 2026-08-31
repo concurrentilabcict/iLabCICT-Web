@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { Send } from "lucide-react";
 import type { ChatMessage } from "./Chatbot";
 import ReactMarkdown from "react-markdown";
+import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 type ChatbotActiveProps = {
@@ -42,6 +43,16 @@ const remarkHtmlBreaks = () => (tree: MarkdownNode) => {
     replaceBreakTags(tree);
 };
 
+const markdownComponents: Components = {
+    table: ({ children }) => (
+        <div className="my-4 w-full overflow-x-auto rounded-xl border border-zinc-200">
+            <table className="w-full min-w-[720px] border-collapse text-sm leading-6">
+                {children}
+            </table>
+        </div>
+    ),
+};
+
 export default function ChatbotActive({
     message,
     messages,
@@ -68,7 +79,7 @@ export default function ChatbotActive({
     return (
         <div className="flex h-[calc(100vh-86px)] min-h-[520px] flex-col bg-white px-3 md:h-[calc(100vh-96px)] md:px-0">
             <div className="scrollbar-hide flex-1 overflow-y-auto py-6 md:py-10">
-                <div className="mx-auto flex w-full max-w-[760px] flex-col gap-8">
+                <div className="mx-auto flex w-full max-w-[960px] flex-col gap-8">
                     {messages.map((chatMessage) => (
                         <div
                             key={chatMessage.id}
@@ -83,11 +94,12 @@ export default function ChatbotActive({
                             >
                                 <div
                                     className={`${chatMessage.role === "assistant"
-                                            ? "[&_a]:text-[#bf3419] [&_code]:rounded-md [&_code]:bg-[#f4f4f4] [&_code]:px-1.5 [&_code]:py-0.5 [&_li]:my-1 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-4 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6"
+                                            ? "[&_a]:font-medium [&_a]:text-[#bf3419] [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:my-4 [&_blockquote]:border-l-4 [&_blockquote]:border-zinc-300 [&_blockquote]:bg-zinc-50 [&_blockquote]:px-4 [&_blockquote]:py-3 [&_code]:rounded-md [&_code]:bg-[#f4f4f4] [&_code]:px-1.5 [&_code]:py-0.5 [&_h1]:mb-3 [&_h1]:mt-6 [&_h1]:text-xl [&_h1]:font-bold [&_h2]:mb-3 [&_h2]:mt-6 [&_h2]:text-lg [&_h2]:font-bold [&_h3]:mb-2 [&_h3]:mt-5 [&_h3]:text-base [&_h3]:font-bold [&_hr]:my-6 [&_hr]:border-zinc-200 [&_li]:my-1.5 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-6 [&_p]:mb-3 [&_p]:leading-7 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_tbody_tr:nth-child(even)]:bg-zinc-50/70 [&_td]:border-b [&_td]:border-r [&_td]:border-zinc-200 [&_td]:p-3 [&_td]:align-top [&_td:last-child]:border-r-0 [&_th]:border-b [&_th]:border-r [&_th]:border-zinc-200 [&_th]:bg-zinc-100 [&_th]:p-3 [&_th]:text-left [&_th]:font-semibold [&_th]:align-top [&_th:last-child]:border-r-0 [&_tr:last-child_td]:border-b-0 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-6"
                                             : "[&_p]:m-0"
                                     }`}
                                 >
                                     <ReactMarkdown
+                                        components={markdownComponents}
                                         remarkPlugins={[remarkGfm, remarkHtmlBreaks]}
                                         skipHtml
                                     >
