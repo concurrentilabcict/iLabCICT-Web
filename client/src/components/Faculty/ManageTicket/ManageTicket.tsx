@@ -1,6 +1,12 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  buildApiUrl,
+  buildWebSocketUrl,
+  createApiError,
+  getFreshAccessToken,
+  privateFetch,
+} from "@/lib/api";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 import type { Status, StatusFilter, TicketType, TicketTypeFilter } from "@/utils/ticket";
@@ -17,6 +23,19 @@ type ManageTicketProps = {
 };
 
 const ITEMS_PER_PAGE = 10;
+const FACULTY_TICKETS_QUERY_KEY = ["tickets"] as const;
+const TICKETS_WS_ENDPOINT = "/ws/tickets/";
+
+type TicketWebSocketMessage =
+  | {
+    event: "initial_tickets";
+    ticket: ApiTicket[];
+    next?: string | null;
+  }
+  | {
+    event: "ticket_created" | "ticket_updated" | "ticket_reassigned";
+    ticket: ApiTicket;
+  };
 
 const formatLabel = (text: string) => text
   .replace(/_/g, " ")
@@ -57,7 +76,45 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
   updatedAt: ticket.updated_at,
 });
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isTicketWebSocketMessage = (
+  value: unknown
+): value is TicketWebSocketMessage => {
+  if (!isRecord(value) || typeof value.event !== "string") {
+    return false;
+  }
+
+  if (value.event === "initial_tickets") {
+    return Array.isArray(value.ticket);
+  }
+
+  return (
+    ["ticket_created", "ticket_updated", "ticket_reassigned"].includes(
+      value.event
+    ) && isRecord(value.ticket)
+  );
+};
+
+const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
+  const ticket = mapTicket(apiTicket);
+  const ticketExists = tickets.some(
+    (currentTicket) => currentTicket.id === ticket.id
+  );
+
+  if (!ticketExists) {
+    return [ticket, ...tickets];
+  }
+
+  return tickets.map((currentTicket) =>
+    currentTicket.id === ticket.id ? ticket : currentTicket
+  );
+};
+
 export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: ManageTicketProps) {
+  const queryClient = useQueryClient();
+  const ticketSocketRef = useRef<WebSocket | null>(null);
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -66,7 +123,7 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
   const notificationTicketId = searchParams.get("ticket");
 
   const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
-    queryKey: ["tickets"],
+    queryKey: FACULTY_TICKETS_QUERY_KEY,
     queryFn: async () => {
       const res = await privateFetch(buildApiUrl("/api/tickets/"));
       const data = await res.json();
@@ -78,6 +135,59 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
       return (data as ApiTicket[]).map(mapTicket);
     },
   });
+
+  useEffect(() => {
+    let socket: WebSocket | null = null;
+    const connectSocket = window.setTimeout(async () => {
+      const accessToken = await getFreshAccessToken();
+
+      if (!accessToken) {
+        return;
+      }
+
+      socket = new WebSocket(
+        buildWebSocketUrl(TICKETS_WS_ENDPOINT, { token: accessToken })
+      );
+      ticketSocketRef.current = socket;
+
+      socket.addEventListener("message", (event: MessageEvent<string>) => {
+        let parsedMessage: unknown;
+
+        try {
+          parsedMessage = JSON.parse(event.data);
+        } catch {
+          return;
+        }
+
+        if (!isTicketWebSocketMessage(parsedMessage)) {
+          return;
+        }
+
+        if (parsedMessage.event === "initial_tickets") {
+          queryClient.setQueryData<Ticket[]>(
+            FACULTY_TICKETS_QUERY_KEY,
+            parsedMessage.ticket.map(mapTicket)
+          );
+          return;
+        }
+
+        queryClient.setQueryData<Ticket[]>(
+          FACULTY_TICKETS_QUERY_KEY,
+          (currentTickets = []) =>
+            upsertTicket(currentTickets, parsedMessage.ticket)
+        );
+      });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(connectSocket);
+      socket?.close();
+
+      if (ticketSocketRef.current === socket) {
+        ticketSocketRef.current = null;
+      }
+    };
+  }, [queryClient]);
 
   const filteredTickets = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
