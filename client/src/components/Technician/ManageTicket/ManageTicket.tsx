@@ -1,5 +1,6 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ManageTicketCard from "./ManageTicketCard";
+import ManageTicketSkeleton from "@/components/ManageTicketSkeleton/ManageTicketSkeleton";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
     buildWebSocketUrl,
@@ -457,9 +458,7 @@ export default function ManageTicket({
             <div className={`flex items-center w-full flex-col gap-3 px-3 py-3
             sm:grid sm:grid-cols-2 mb-3`}>
                 {isLoading && (
-                    <p className="col-span-full py-8 text-center secondary-text-color">
-                        Loading tickets...
-                    </p>
+                    <ManageTicketSkeleton />
                 )}
 
                 {!isLoading && paginatedTickets.length === 0 && (

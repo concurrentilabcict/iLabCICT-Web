@@ -29,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
@@ -375,14 +376,7 @@ export default function ManageTicket() {
 
           <TableBody>
             {isLoading && (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="h-24 text-center secondary-text-color"
-                >
-                  Loading tickets...
-                </TableCell>
-              </TableRow>
+              <TableSkeleton columns={7} />
             )}
 
             {!isLoading && isError && (

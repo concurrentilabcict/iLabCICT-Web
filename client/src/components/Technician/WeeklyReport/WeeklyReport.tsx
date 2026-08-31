@@ -31,6 +31,7 @@ import {
     sortByNewest,
 } from "@/components/Admin/WeeklyReport/weeklyReportUtils";
 import WeeklyReportCard from "./WeeklyReportCard";
+import WeeklyReportSkeleton from "@/components/WeeklyReportSkeleton/WeeklyReportSkeleton";
 import WeeklyReportDetails from "./WeeklyReportDetails";
 
 const ITEMS_PER_PAGE = 8;
@@ -378,9 +379,7 @@ export default function WeeklyReport() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                     {isLoading && (
-                        <p className="col-span-full py-8 text-center secondary-text-color">
-                            Loading weekly reports...
-                        </p>
+                        <WeeklyReportSkeleton />
                     )}
 
                     {!isLoading && isError && (

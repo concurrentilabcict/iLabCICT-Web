@@ -446,7 +446,11 @@ export default function Dashboard() {
         <div className="space-y-3 py-3">
             <div className="grid grid-cols-4 gap-3">
                 {summaryCards.map((card) => (
-                    <SummaryCard key={card.title} {...card} />
+                    <SummaryCard
+                        key={card.title}
+                        {...card}
+                        isLoading={isDashboardLoading}
+                    />
                 ))}
             </div>
 

@@ -11,6 +11,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 import type { Status, StatusFilter, TicketType, TicketTypeFilter } from "@/utils/ticket";
 import ManageTicketCard from "./ManageTicketCard";
+import ManageTicketSkeleton from "@/components/ManageTicketSkeleton/ManageTicketSkeleton";
 import TicketDetails from "./TicketDetails";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
@@ -258,7 +259,7 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
   return (
     <>
       <div className="flex w-full flex-col gap-3 px-3 pt-3 pb-10 sm:grid sm:grid-cols-2">
-        {isLoading && <p className="col-span-full py-8 text-center secondary-text-color">Loading tickets...</p>}
+        {isLoading && <ManageTicketSkeleton />}
         {!isLoading && paginatedTickets.length === 0 && <p className="col-span-full py-8 text-center secondary-text-color">No tickets found.</p>}
         {!isLoading && paginatedTickets.map((ticket) => {
           const status = formatLabel(ticket.status) as Status;

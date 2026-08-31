@@ -14,6 +14,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { appToast } from "@/utils/appToast";
 
 import Header from "@/components/Header/Header";
+import ProcessTicketSkeleton from "@/components/ProcessTicketSkeleton/ProcessTicketSkeleton";
 import MobileHeader from "@/components/Header/MobileHeader";
 import NavBar from "@/components/Technician/NavBar/NavBar";
 import Sidebar from "@/components/Sidebar/Sidebar";
@@ -168,7 +169,7 @@ export default function ProcessTicket() {
     if (isLoading) {
         return (
             <ProcessTicketShell isMobile={isMobile}>
-                <p className="py-10 text-center secondary-text-color">Loading ticket...</p>
+                <ProcessTicketSkeleton />
             </ProcessTicketShell>
         );
     }

@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   Pagination,
@@ -217,9 +218,25 @@ export default function WeeklyReport() {
         {isMobile ? (
           <div className="flex flex-col gap-3">
             {isLoading && (
-              <p className="py-8 text-center secondary-text-color">
-                Loading weekly reports...
-              </p>
+              <div className="space-y-3">
+                {Array.from({ length: 5 }, (_, index) => (
+                  <div
+                    key={index}
+                    className="space-y-3 rounded-xl border border-primary-color bg-white p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="h-5 w-2/3" />
+                      </div>
+                      <Skeleton className="h-7 w-20 rounded-full" />
+                    </div>
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-4/5" />
+                    <Skeleton className="h-4 w-28" />
+                  </div>
+                ))}
+              </div>
             )}
 
             {isError && (

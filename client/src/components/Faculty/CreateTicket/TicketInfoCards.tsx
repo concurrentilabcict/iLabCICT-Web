@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import type { ApiComputer, ApiRelatedTicket, ApiRoom, PeripheralStatus, PeripheralTone } from "@/types/createTicket";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const statusToneClass: Record<PeripheralTone, string> = {
   green: "bg-green-100 text-green-700",
@@ -156,7 +157,24 @@ export function ComputerInfoCard({ computer, isLoading }: { computer?: ApiComput
       <SectionHeader title="Computer Information" subtitle="Hardware and system specifications" />
       <div className="rounded-xl bg-white p-4 shadow-[0_4px_14px_rgba(15,23,42,0.08)]">
         {isLoading ? (
-          <p className="text-sm font-semibold text-zinc-500">Loading computer information...</p>
+          <div className="grid grid-cols-2 gap-x-5">
+            {Array.from({ length: 2 }, (_, columnIndex) => (
+              <div
+                key={columnIndex}
+                className={`space-y-4 ${columnIndex === 0 ? "border-r border-zinc-100 pr-4" : "pl-4"}`}
+              >
+                {Array.from({ length: 4 }, (_, rowIndex) => (
+                  <div key={rowIndex} className="flex items-center gap-3">
+                    <Skeleton className="size-9 shrink-0 rounded-lg" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         ) : computer ? (
           <div className="grid grid-cols-2 gap-x-5">
             <div className="space-y-4 border-r border-zinc-100 pr-4">

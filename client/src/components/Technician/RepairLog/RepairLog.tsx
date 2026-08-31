@@ -1,4 +1,5 @@
 import RepairLogCard from "./RepairLogCard";
+import RepairLogSkeleton from "@/components/RepairLogSkeleton/RepairLogSkeleton";
 import {
     Sheet,
     SheetContent,
@@ -351,9 +352,7 @@ export default function RepairLog({
             <div className={`flex items-center w-full flex-col gap-3 px-3 py-3
             sm:grid sm:grid-cols-2 mb-3`}>
                 {isLoading && (
-                    <p className="col-span-full py-8 text-center secondary-text-color">
-                        Loading repair logs...
-                    </p>
+                    <RepairLogSkeleton />
                 )}
 
                 {!isLoading && paginatedRepairLogs.length === 0 && (

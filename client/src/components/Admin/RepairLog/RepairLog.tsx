@@ -4,6 +4,7 @@ import { MoreHorizontal } from "lucide-react";
 
 import RepairLogDetails from "./RepairLogDetails";
 import LogToolbar from "./LogToolbar";
+import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import type { TechnicianFilter } from "./LogToolbar";
 import { Button } from "@/components/ui/button";
 import {
@@ -354,20 +355,13 @@ export default function RepairLog() {
 
           <TableBody>
             {isLoading && (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-24 text-center secondary-text-color"
-                >
-                  Loading repair logs...
-                </TableCell>
-              </TableRow>
+              <TableSkeleton columns={5} />
             )}
 
             {!isLoading && isError && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={5}
                   className="h-24 text-center text-red-500"
                 >
                   Failed to load repair logs.
@@ -378,7 +372,7 @@ export default function RepairLog() {
             {!isLoading && !isError && paginatedRepairLogs.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={5}
                   className="h-24 text-center secondary-text-color"
                 >
                   No repair logs found.

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import type { Room } from "@/types/room";
 import type { Ticket } from "@/types/ticket";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type LaboratoryAvailability = Room & {
     workingCount: number;
@@ -68,9 +69,7 @@ export default function LaboratoryStatus({
                     Laboratory Status
                 </h2>
                 <p className="mt-1 text-xs text-zinc-500">
-                    {isLoading
-                        ? "Loading laboratories..."
-                        : isError
+                    {isError
                             ? "Unable to load laboratory status"
                             : `${laboratories.length.toLocaleString()} laboratories tracked`}
                 </p>
@@ -111,9 +110,20 @@ export default function LaboratoryStatus({
                 ))}
 
                 {isLoading && (
-                    <p className="text-sm text-zinc-500">
-                        Loading laboratory availability...
-                    </p>
+                    <div className="space-y-5">
+                        {Array.from({ length: 5 }, (_, index) => (
+                            <div key={index} className="space-y-2">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="space-y-1.5">
+                                        <Skeleton className="h-4 w-28" />
+                                        <Skeleton className="h-3 w-20" />
+                                    </div>
+                                    <Skeleton className="h-4 w-10" />
+                                </div>
+                                <Skeleton className="h-2 w-full rounded-full" />
+                            </div>
+                        ))}
+                    </div>
                 )}
 
                 {!isLoading && !isError && laboratories.length === 0 && (

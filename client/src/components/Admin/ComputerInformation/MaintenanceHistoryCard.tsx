@@ -6,6 +6,7 @@ import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { maintenanceTypeConfig, type MaintenanceTypes } from "@/utils/maintenanceHistory";
 import { formatDateTime } from "@/utils/string";
 import { Fragment, useMemo } from "react";
+import MaintenanceHistorySkeleton from "@/components/MaintenanceHistorySkeleton/MaintenanceHistorySkeleton";
 
 type MaintenanceHistoryCardType = {
     computerId: number,
@@ -109,9 +110,7 @@ export default function MaintenanceHistoryCard({
 
 
                     {isHistoryLoading && (
-                    <p className="col-span-full py-8 text-center secondary-text-color">
-                        Loading maintenance history...
-                    </p>
+                    <MaintenanceHistorySkeleton />
                     )}
 
                     {!isHistoryLoading && filterMaintenanceHistory.length === 0 &&(

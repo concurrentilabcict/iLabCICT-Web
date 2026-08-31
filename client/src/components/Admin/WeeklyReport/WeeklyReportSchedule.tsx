@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { appToast } from "@/utils/appToast";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Popover,
   PopoverContent,
@@ -135,7 +136,11 @@ export default function WeeklyReportSchedule() {
           disabled={isLoading}
           className="h-[42px] w-[200px] justify-between rounded-xl bg-white px-3 text-base font-normal"
         >
-          <span className="truncate">{isLoading ? "Loading schedule..." : scheduleLabel}</span>
+          {isLoading ? (
+            <Skeleton className="h-4 w-32" />
+          ) : (
+            <span className="truncate">{scheduleLabel}</span>
+          )}
           <CalendarIcon className="h-4 w-4 opacity-70" />
         </Button>
       </PopoverTrigger>

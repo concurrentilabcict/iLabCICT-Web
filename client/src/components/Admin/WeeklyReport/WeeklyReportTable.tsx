@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/table";
 import type { WeeklyReport as WeeklyReportType } from "@/types/weeklyReport";
 import WeeklyReportActions from "./WeeklyReportActions";
+import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import {
   formatDate,
   formatLabel,
@@ -47,14 +48,7 @@ export default function WeeklyReportTable({
 
         <TableBody>
           {isLoading && (
-            <TableRow>
-              <TableCell
-                colSpan={7}
-                className="h-24 text-center secondary-text-color"
-              >
-                Loading weekly reports...
-              </TableCell>
-            </TableRow>
+            <TableSkeleton columns={7} />
           )}
 
           {isError && (

@@ -8,6 +8,7 @@ import {
   useNotifications,
 } from "@/components/Technician/Notification/useNotifications";
 import { formatDateTime } from "@/utils/string";
+import NotificationSkeleton from "@/components/NotificationSkeleton/NotificationSkeleton";
 
 type NotificationFilter = "All" | "Read" | "Unread";
 
@@ -40,7 +41,11 @@ export default function Notification() {
   };
 
   if (isLoading) {
-    return <NotificationMessage message="Loading notifications..." />;
+    return (
+      <div className="mx-auto w-full max-w-[900px] md:px-3">
+        <NotificationSkeleton />
+      </div>
+    );
   }
 
   if (isError) {

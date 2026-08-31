@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import MobileNotification from "./MobileNotification";
 import { useNotifications } from "./useNotifications";
+import NotificationSkeleton from "@/components/NotificationSkeleton/NotificationSkeleton";
 
 export default function DesktopNotification() {
     const { notifications, isLoading, isError } = useNotifications();
@@ -48,9 +49,7 @@ export default function DesktopNotification() {
 
                 <div className="min-h-0 flex-1 overflow-y-auto">
                     {isLoading && (
-                        <p className="px-3 py-4 text-sm secondary-text-color">
-                            Loading notifications...
-                        </p>
+                        <NotificationSkeleton count={4} />
                     )}
 
                     {isError && (

@@ -5,6 +5,7 @@ import { MoreHorizontal } from "lucide-react";
 import UserDetails from "./UserDetails";
 import UserForm from "./UserForm";
 import UserToolbar, { type RoleFilter } from "./UserToolbar";
+import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import placeholderPicture from "@/assets/profile-placeholder.png";
 import { Button } from "@/components/ui/button";
 import {
@@ -224,14 +225,7 @@ export default function ManageUser() {
 
           <TableBody>
             {isLoading && (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-24 text-center secondary-text-color"
-                >
-                  Loading users...
-                </TableCell>
-              </TableRow>
+              <TableSkeleton columns={6} />
             )}
 
             {isError && (

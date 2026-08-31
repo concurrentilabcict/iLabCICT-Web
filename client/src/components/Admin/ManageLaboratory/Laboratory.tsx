@@ -3,6 +3,7 @@ import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ApiRoom, EditRoomFormType, Room } from "@/types/room";
 import RoomCard from "./RoomCard";
+import LaboratorySkeleton from "@/components/LaboratorySkeleton/LaboratorySkeleton";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Status, StatusFilter, Floor, FloorFilter } from "@/utils/room";
 import { getPaginationWindow } from "@/utils/pagination";
@@ -320,9 +321,7 @@ export default function Laboratory({
             sm:grid sm:grid-cols-2 mb-3`}>
                 
                 {isLoading && (
-                    <p className="col-span-full py-8 text-center secondary-text-color">
-                        Loading rooms...
-                    </p>
+                    <LaboratorySkeleton />
                 )}
 
                 {!isLoading && paginatedRooms.length === 0 &&(

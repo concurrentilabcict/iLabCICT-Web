@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     buildApiUrl,
     createApiError,
@@ -407,9 +408,7 @@ export default function EditRoomForm({
 
                         {isLoading && (<div className="w-full flex items-center justify-between">
                             <h3 className="font-medium secondary-text-color">Room Custodian</h3>
-                            <div className="">
-                                Loading...
-                            </div>
+                            <Skeleton className="h-9 w-38 rounded-md" />
                         </div>)}
 
                         {!techniciansAreLoading && (<div className="w-full flex items-center justify-between">
@@ -429,9 +428,7 @@ export default function EditRoomForm({
 
                         {techniciansAreLoading && (<div className="w-full flex items-center justify-between">
                             <h3 className="font-medium secondary-text-color">Room Technician</h3>
-                            <div className="">
-                                Loading...
-                            </div>
+                            <Skeleton className="h-9 w-38 rounded-md" />
                         </div>)}
                         
                         

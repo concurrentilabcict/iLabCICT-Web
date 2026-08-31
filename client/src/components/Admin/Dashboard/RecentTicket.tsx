@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { ChevronDown, MoreHorizontal, Search, X } from "lucide-react";
 
 import TicketDetails from "./TicketDetails";
+import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import placeholderPicture from "@/assets/profile-placeholder.png";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -228,14 +229,7 @@ export default function RecentTicket({
 
             <TableBody>
               {isLoading && (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="h-24 text-center secondary-text-color"
-                  >
-                    Loading tickets...
-                  </TableCell>
-                </TableRow>
+                <TableSkeleton columns={5} rows={5} />
               )}
 
               {isError && (

@@ -3,6 +3,7 @@ import { ChevronDown, MoreHorizontal, Search, X } from "lucide-react";
 
 import UserDetails from "../ManageUser/UserDetails";
 import placeholderPicture from "@/assets/profile-placeholder.png";
+import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -205,14 +206,7 @@ export default function RecentUser({
 
             <TableBody>
               {isLoading && (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="h-24 text-center secondary-text-color"
-                  >
-                    Loading users...
-                  </TableCell>
-                </TableRow>
+                <TableSkeleton columns={4} rows={5} />
               )}
 
               {isError && (

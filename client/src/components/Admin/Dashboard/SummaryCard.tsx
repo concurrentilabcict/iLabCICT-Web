@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type SummaryCardProps = {
   title: string;
@@ -8,6 +9,7 @@ type SummaryCardProps = {
   changeStatus: "good" | "bad" | "neutral";
   caption?: string;
   icon: LucideIcon;
+  isLoading?: boolean;
 };
 
 const COUNT_ANIMATION_DURATION = 900;
@@ -33,6 +35,7 @@ export default function SummaryCard({
   changeStatus,
   caption = "from last month",
   icon: Icon,
+  isLoading = false,
 }: SummaryCardProps) {
   const [animationProgress, setAnimationProgress] = useState(1);
   const shouldAnimateValue = useMemo(() => hasNumber(value), [value]);
@@ -111,12 +114,16 @@ export default function SummaryCard({
             {title}
           </h3>
 
-          <p className="mt-2 text-xs text-zinc-500 sm:text-sm">
-            <span className={`font-medium ${changeColor}`}>
-              {change}
-            </span>{" "}
-            {caption}
-          </p>
+          {isLoading ? (
+            <Skeleton className="mt-2 h-4 w-32" />
+          ) : (
+            <p className="mt-2 text-xs text-zinc-500 sm:text-sm">
+              <span className={`font-medium ${changeColor}`}>
+                {change}
+              </span>{" "}
+              {caption}
+            </p>
+          )}
         </div>
 
         <Icon
@@ -126,12 +133,16 @@ export default function SummaryCard({
         />
       </div>
 
-      <h2
-        aria-label={value}
-        className="wrap-break-word text-2xl font-medium tracking-tight text-zinc-800 sm:text-3xl"
-      >
-        {displayValue}
-      </h2>
+      {isLoading ? (
+        <Skeleton className="h-9 w-20" />
+      ) : (
+        <h2
+          aria-label={value}
+          className="wrap-break-word text-2xl font-medium tracking-tight text-zinc-800 sm:text-3xl"
+        >
+          {displayValue}
+        </h2>
+      )}
     </div>
   );
 }

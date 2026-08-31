@@ -10,6 +10,7 @@ import { Plus, Minus} from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { appToast } from "@/utils/appToast";
@@ -336,9 +337,7 @@ export default function AddRoomForm({
 
                         {isLoading && (<div className="w-full flex items-center justify-between">
                             <h3 className="font-medium secondary-text-color">Room Custodian</h3>
-                            <div className="">
-                                Loading...
-                            </div>
+                            <Skeleton className="h-9 w-38 rounded-md" />
                         </div>)}
 
                         {!techniciansAreLoading && (<div className="w-full flex items-center justify-between">
@@ -358,9 +357,7 @@ export default function AddRoomForm({
 
                         {techniciansAreLoading && (<div className="w-full flex items-center justify-between">
                             <h3 className="font-medium secondary-text-color">Room Technician</h3>
-                            <div className="">
-                                Loading...
-                            </div>
+                            <Skeleton className="h-9 w-38 rounded-md" />
                         </div>)}
                         
                         

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/chart";
 import type { ChartConfig } from "@/components/ui/chart";
 import type { Ticket } from "@/types/ticket";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Range = "90d" | "30d" | "7d";
 
@@ -148,6 +149,21 @@ export default function TicketChart({
         [filteredData]
     );
 
+    if (isLoading) {
+        return (
+            <section className="rounded-2xl border border-gray-200 bg-white px-5 py-5">
+                <div className="flex items-start justify-between gap-6">
+                    <div className="space-y-2">
+                        <Skeleton className="h-6 w-40" />
+                        <Skeleton className="h-4 w-64 max-w-full" />
+                    </div>
+                    <Skeleton className="h-10 w-52 rounded-xl" />
+                </div>
+                <Skeleton className="mt-6 h-[300px] w-full rounded-xl" />
+            </section>
+        );
+    }
+
     return (
         <section className="rounded-2xl border border-gray-200 bg-white px-5 py-5">
             <div className="flex items-start justify-between gap-6">
@@ -156,11 +172,9 @@ export default function TicketChart({
                         Ticket Overview
                     </h2>
                     <p className="mt-1 text-sm text-zinc-500">
-                        {isLoading
-                            ? "Loading ticket activity..."
-                            : isError
-                                ? "Unable to load ticket activity"
-                                : `${totalActivity.toLocaleString()} ticket activities in the ${selectedRange.label.toLowerCase()}`}
+                        {isError
+                            ? "Unable to load ticket activity"
+                            : `${totalActivity.toLocaleString()} ticket activities in the ${selectedRange.label.toLowerCase()}`}
                     </p>
                 </div>
 

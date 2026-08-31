@@ -1,5 +1,6 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import SystemDetailsCard from "./SystemDetailsCard";
+import ComputerInformationSkeleton from "@/components/ComputerInformationSkeleton/ComputerInformationSkeleton";
 import PeripheralDetailCard from "./PeripheralDetailCard";
 import MaintenanceHistoryCard from "./MaintenanceHistoryCard";
 import ComputerAssetCard from "@/components/ComputerInformation/ComputerAssetCard/ComputerAssetCard";
@@ -172,9 +173,7 @@ export default function ComputerInformation({
         <div className={`w-full px-3 py-3 ${isMobile ? 'mb-20' : ''}`}>
 
             {isLoading && (
-                <p className="col-span-full py-8 text-center secondary-text-color">
-                        Loading computer info...
-                    </p>
+                <ComputerInformationSkeleton />
             )}
             
             {!isLoading && computer && (

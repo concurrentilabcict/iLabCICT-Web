@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/table";
 import { formatDateTime } from "./auditLogUtils";
 import type { AuditLog } from "@/types/auditLog";
+import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 
 type AuditLogsTableProps = {
   auditLogs: AuditLog[];
@@ -38,14 +39,7 @@ export default function AuditLogsTable({
 
         <TableBody>
           {isLoading && (
-            <TableRow>
-              <TableCell
-                colSpan={6}
-                className="h-24 text-center secondary-text-color"
-              >
-                Loading audit logs...
-              </TableCell>
-            </TableRow>
+            <TableSkeleton columns={6} />
           )}
 
           {!isLoading && isError && (

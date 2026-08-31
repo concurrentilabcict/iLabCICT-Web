@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { ApiComputer, ApiRoom, TicketType } from "@/types/createTicket";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function Field({ label, className = "", children }: { label: string; className?: string; children: ReactNode }) {
   return (
@@ -70,9 +71,9 @@ export function LaboratoryDropdown({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button type="button" className="flex h-12 w-full cursor-pointer items-center justify-between gap-3 rounded-xl bg-white px-4 text-sm font-medium text-zinc-400 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none focus:ring-2 focus:ring-primary/30">
-            <span className={`truncate text-left ${selectedRoom ? "text-zinc-950" : ""}`}>
-              {isLoadingRooms ? "Loading laboratories..." : selectedRoom ? selectedRoom.room_name : "Select Laboratory"}
-            </span>
+            <div className={`truncate text-left ${selectedRoom ? "text-zinc-950" : ""}`}>
+              {isLoadingRooms ? <Skeleton className="h-4 w-36" /> : selectedRoom ? selectedRoom.room_name : "Select Laboratory"}
+            </div>
             <ChevronDown size={16} className="shrink-0 text-zinc-500" />
           </button>
         </DropdownMenuTrigger>
@@ -110,9 +111,9 @@ export function ComputerDropdown({
       <DropdownMenu open={isOpen} onOpenChange={(open) => onOpenChange(Boolean(selectedRoom) && open)}>
         <DropdownMenuTrigger asChild>
           <button type="button" disabled={!selectedRoom} className="flex h-12 w-full cursor-pointer items-center justify-between gap-3 rounded-xl bg-white px-4 text-sm font-medium text-zinc-400 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:bg-white disabled:text-zinc-300">
-            <span className={`truncate text-left ${selectedComputerCode ? "text-zinc-950" : ""}`}>
-              {selectedRoom ? selectedComputerCode || (isLoadingComputers ? "Loading computers..." : "Select Computer") : "Select a laboratory first"}
-            </span>
+            <div className={`truncate text-left ${selectedComputerCode ? "text-zinc-950" : ""}`}>
+              {selectedRoom ? selectedComputerCode || (isLoadingComputers ? <Skeleton className="h-4 w-32" /> : "Select Computer") : "Select a laboratory first"}
+            </div>
             <ChevronDown size={16} className="shrink-0 text-zinc-500" />
           </button>
         </DropdownMenuTrigger>
@@ -123,7 +124,7 @@ export function ComputerDropdown({
             </DropdownMenuItem>
           )) : (
             <DropdownMenuItem disabled className="py-2.5">
-              {isLoadingComputers ? "Loading computers..." : "No computers available"}
+              {isLoadingComputers ? <Skeleton className="h-4 w-full" /> : "No computers available"}
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

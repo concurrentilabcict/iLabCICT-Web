@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
+import ProfileStatsSkeleton from "@/components/ProfileStatsSkeleton/ProfileStatsSkeleton";
 
 type TechnicianResolvedPerDay = {
   day: string;
@@ -80,7 +81,7 @@ export default function ProfileTicketStats() {
   }, [profileStats]);
 
   if (isLoading) {
-    return <p className="px-3 text-sm secondary-text-color">Loading ticket stats...</p>;
+    return <ProfileStatsSkeleton />;
   }
 
   if (isError) {

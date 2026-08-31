@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import RequestHistorySkeleton from "@/components/RequestHistorySkeleton/RequestHistorySkeleton";
 
 type RequestHistoryProps = {
   roomId: number | null;
@@ -160,8 +161,8 @@ export default function RequestHistory({ roomId }: RequestHistoryProps) {
 
   if (!roomId) {
     return (
-      <div className="p-4 text-sm font-medium secondary-text-color">
-        Loading room request history...
+      <div className="p-4">
+        <RequestHistorySkeleton />
       </div>
     );
   }
@@ -198,9 +199,7 @@ export default function RequestHistory({ roomId }: RequestHistoryProps) {
 
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-6">
         {isLoading && (
-          <p className="py-8 text-center text-sm font-medium secondary-text-color">
-            Loading request history...
-          </p>
+          <RequestHistorySkeleton />
         )}
 
         {isError && (

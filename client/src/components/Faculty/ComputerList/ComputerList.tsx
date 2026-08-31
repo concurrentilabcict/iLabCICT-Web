@@ -1,5 +1,6 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ComputerCard from "./ComputerCard";
+import ComputerListSkeleton from "@/components/ComputerListSkeleton/ComputerListSkeleton";
 import type { Status, StatusFilter } from "@/utils/computer";
 import type { ApiComputerCard, ApiRoomComputers, ComputerCardType } from "@/types/computer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -317,9 +318,7 @@ export default function ComputerList({
             sm:grid sm:grid-cols-2 mb-3`}>
 
                 {isLoading && (
-                    <p className="col-span-full py-8 text-center secondary-text-color">
-                        Loading computers...
-                    </p>
+                    <ComputerListSkeleton />
                 )}
 
                 {!isLoading && paginatedComputers.length === 0 && (
