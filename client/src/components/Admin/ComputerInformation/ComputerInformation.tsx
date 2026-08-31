@@ -130,7 +130,9 @@ export default function ComputerInformation({
     const { data, isLoading } = useQuery<ComputerInformationData>({
         queryKey: ["computer", roomName, computerCode],
         queryFn: async () => {
-            const computerRes = await privateFetch(buildApiUrl(`/api/rooms/${encodeURIComponent(roomName)}/computers/${encodeURIComponent(computerCode)}`));
+            const computerRes = await privateFetch(
+                buildApiUrl(`/api/computers/${encodeURIComponent(computerCode)}/`)
+            );
 
             const computerData = (await computerRes.json()) as ApiComputerDetails;
             if(!computerRes.ok){

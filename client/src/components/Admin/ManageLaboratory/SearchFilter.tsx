@@ -1,6 +1,6 @@
 import { Search, Funnel, ChevronDown, X } from 'lucide-react';
 import { useRef, useState } from 'react';
-import type { StatusFilter } from '@/utils/room';
+import { statusConfig, type StatusFilter } from '@/utils/room';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -16,6 +16,8 @@ type SearchFilterProps = {
 };
 
 const statusOptions: StatusFilter[] = ["All", "Operational", "Maintenance", "Degraded", "OutOfService"];
+const getStatusLabel = (status: StatusFilter) =>
+    status === "All" ? status : statusConfig[status].value;
 
 export default function SearchFilter({
     searchQuery,
@@ -85,7 +87,7 @@ export default function SearchFilter({
                         >
                             <div className='flex items-center gap-x-1'>
                                 <Funnel size={14} />
-                                <span>{selectedStatus}</span>
+                                <span>{getStatusLabel(selectedStatus)}</span>
                             </div>
                             <ChevronDown
                                 size={14}
@@ -107,7 +109,7 @@ export default function SearchFilter({
                                 }`}
                                 onSelect={() => onStatusChange(status)}
                             >
-                                {status}
+                                {getStatusLabel(status)}
                             </DropdownMenuItem>
                         ))}
                     </DropdownMenuContent>
