@@ -24,16 +24,15 @@ export default function AuditLogsTable({
 }: AuditLogsTableProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-primary-color bg-white">
-      <Table>
+      <Table className="table-fixed">
         <TableHeader>
           <TableRow>
-            <TableHead className="bg-muted">Log ID</TableHead>
-            <TableHead className="bg-muted">Performed By</TableHead>
-            <TableHead className="bg-muted">Action</TableHead>
-            <TableHead className="bg-muted">Summary</TableHead>
-            <TableHead className="bg-muted">IP Address</TableHead>
-            <TableHead className="bg-muted">User Agent</TableHead>
-            <TableHead className="bg-muted">Created</TableHead>
+            <TableHead className="w-[80px] bg-muted">Log ID</TableHead>
+            <TableHead className="w-[180px] bg-muted">Performed By</TableHead>
+            <TableHead className="w-[180px] bg-muted">Action</TableHead>
+            <TableHead className="w-[320px] bg-muted">Summary</TableHead>
+            <TableHead className="w-[140px] bg-muted">IP Address</TableHead>
+            <TableHead className="w-[190px] bg-muted">Created</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -41,7 +40,7 @@ export default function AuditLogsTable({
           {isLoading && (
             <TableRow>
               <TableCell
-                colSpan={7}
+                colSpan={6}
                 className="h-24 text-center secondary-text-color"
               >
                 Loading audit logs...
@@ -51,7 +50,7 @@ export default function AuditLogsTable({
 
           {!isLoading && isError && (
             <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center text-red-500">
+              <TableCell colSpan={6} className="h-24 text-center text-red-500">
                 Failed to load audit logs.
               </TableCell>
             </TableRow>
@@ -60,7 +59,7 @@ export default function AuditLogsTable({
           {!isLoading && !isError && auditLogs.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={7}
+                colSpan={6}
                 className="h-24 text-center secondary-text-color"
               >
                 No audit logs found.
@@ -85,19 +84,14 @@ export default function AuditLogsTable({
                 className="cursor-pointer transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#bf3419]"
               >
                 <TableCell className="font-medium">#{auditLog.id}</TableCell>
-                <TableCell>{auditLog.performedBy}</TableCell>
-                <TableCell>{auditLog.actionTitle}</TableCell>
-                <TableCell>
-                  <p className="max-w-[360px] truncate">
+                <TableCell className="truncate">{auditLog.performedBy}</TableCell>
+                <TableCell className="truncate">{auditLog.actionTitle}</TableCell>
+                <TableCell className="max-w-0">
+                  <p className="truncate" title={auditLog.actionSummary}>
                     {auditLog.actionSummary}
                   </p>
                 </TableCell>
                 <TableCell>{auditLog.ipAddress}</TableCell>
-                <TableCell>
-                  <p className="max-w-[280px] truncate" title={auditLog.userAgent}>
-                    {auditLog.userAgent}
-                  </p>
-                </TableCell>
                 <TableCell>{formatDateTime(auditLog.createdAt)}</TableCell>
               </TableRow>
             ))}
