@@ -14,11 +14,12 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 type ComputerListProps = {
-    roomName: string,
+    roomId: string,
     searchQuery: string,
     statusFilter: StatusFilter,
     setCustodian: (custodian: string) => void,
     setRoomDatabaseId: (roomId: number | null) => void,
+    setRoomName: (roomName: string) => void,
 }
 
 const formatLabel = (text: string) => {
@@ -31,11 +32,12 @@ const formatLabel = (text: string) => {
 };
 
 export default function ComputerList({
-    roomName,
+    roomId,
     searchQuery,
     statusFilter,
     setCustodian,
     setRoomDatabaseId,
+    setRoomName,
 }: ComputerListProps){
 
     const isMobile = useMediaQuery("(max-width: 767px)");
@@ -69,9 +71,9 @@ export default function ComputerList({
 
 
     const { data: computers = [], isLoading } = useQuery<ComputerCardType[]>({
-        queryKey: ["computers", roomName],
+        queryKey: ["computers", roomId],
         queryFn: async ()=> {
-            const res = await privateFetch(buildApiUrl(`/api/rooms/${encodeURIComponent(roomName)}/computers/`));
+            const res = await privateFetch(buildApiUrl(`/api/rooms/${encodeURIComponent(roomId)}/computers/`));
 
             const data = await res.json() as ApiRoomComputers & { message?: string };
 
@@ -84,6 +86,7 @@ export default function ComputerList({
                 : "No assigned custodian";
             setCustodian(custodian);
             setRoomDatabaseId(data.id);
+            setRoomName(data.room_name);
 
             return data.computers.map(mapComputerCard)
          }

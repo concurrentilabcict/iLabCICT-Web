@@ -103,7 +103,7 @@ export default function AdminComputerListPage(){
                 {isMobile ? <NavBar/> : <Sidebar/>}
                     <SidebarInset>
                         <div className="min-h-screen bg-[#fbfbfb]">
-                            {isMobile ? <Header title={roomName}/>: <MobileHeader title={roomName}/>}
+                            {isMobile ? <MobileHeader title={roomName}/> : <Header title={roomName}/>}
                             <div className="mx-auto max-w-[1000px]">
                                 <SearchFilter
                                     searchQuery={searchQuery}

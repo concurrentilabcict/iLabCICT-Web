@@ -27,7 +27,18 @@ export default function FacultyComputerListPage(){
   
 
     const { room } = useParams();
-    const roomName = room ? decodeURIComponent(room) : "";
+    const roomId = room ? decodeURIComponent(room) : "";
+    const [resolvedRoomName, setResolvedRoomName] = useState({
+        roomId,
+        name: roomId,
+    });
+    const roomName =
+        resolvedRoomName.roomId === roomId
+            ? resolvedRoomName.name
+            : roomId;
+    const handleRoomNameChange = (name: string) => {
+        setResolvedRoomName({ roomId, name });
+    };
 
     useEffect(()=>{
         document.title = `${roomName + ` | `}ILabCICT`;
@@ -40,7 +51,7 @@ export default function FacultyComputerListPage(){
                 {isMobile ? <NavBar/> : <Sidebar/>}
                     <SidebarInset>
                         <div className="min-h-screen bg-[#f8fafc]">
-                            {isMobile ? <Header title={roomName}/>: <MobileHeader title={roomName}/>}
+                            {isMobile ? <MobileHeader title={roomName}/> : <Header title={roomName}/>}
                             <div className="mx-auto max-w-[1000px]">
                                 <SearchFilter
                                     custodianName={custodian}
@@ -62,11 +73,12 @@ export default function FacultyComputerListPage(){
                                 </div>
 
                                 <ComputerList
-                                    roomName={roomName}
+                                    roomId={roomId}
                                     statusFilter={statusFilter}
                                     searchQuery={searchQuery}
                                     setCustodian={setCustodian}
                                     setRoomDatabaseId={setRoomDatabaseId}
+                                    setRoomName={handleRoomNameChange}
                                 />
                                 <Sheet
                                     open={requestHistoryOpen}
