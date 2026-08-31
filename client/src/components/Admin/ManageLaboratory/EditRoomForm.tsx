@@ -38,6 +38,21 @@ type ApiAvailableUser = {
     last_name: string
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null;
+
+const getResponseMessage = (value: unknown) => {
+    if (!isRecord(value)) {
+        return undefined;
+    }
+
+    return typeof value.message === "string"
+        ? value.message
+        : typeof value.detail === "string"
+            ? value.detail
+            : undefined;
+};
+
 const floorNumberOptions: Array<{
     label: string,
     value: FloorNumber
@@ -195,18 +210,25 @@ export default function EditRoomForm({
                         room_name: form.roomName.trim(),
                         floor_number: form.floorNumber,
                         building_name: form.buildingName,
-                        room_status: form.roomStatus,
+                        status: form.roomStatus,
                         assigned_custodian: form.assignedCustodianId,
                         assigned_technician: form.assignedTechnicianId
                     }),
                 }
             );
-            const data = await response.json();
+            const data: unknown = await response.json();
 
             if(!response.ok){
                 throw createApiError(
                     response.status,
-                    data.message || data.detail || "Failed to edit room."
+                    getResponseMessage(data) || "Failed to edit room."
+                );
+            }
+
+            if (!isRecord(data) || data.status !== form.roomStatus) {
+                throw createApiError(
+                    500,
+                    "The room status was not saved by the server."
                 );
             }
 
