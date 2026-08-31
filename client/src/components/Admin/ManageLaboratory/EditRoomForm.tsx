@@ -18,7 +18,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { appToast } from "@/utils/appToast";
 import DropDownOptions from "./DropDownOptions";
-import type { RoomForm, BuildingNames, RoomStatus, FloorNumber } from "@/types/room";
+import type { Room, RoomForm, BuildingNames, RoomStatus, FloorNumber } from "@/types/room";
 import type { EditRoomFormType } from "@/types/room";
 
 type AddRoomProps = { 
@@ -212,10 +212,43 @@ export default function EditRoomForm({
 
             return data;
         },
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({
-                queryKey: ["edit-rooms"]
-            });
+        onSuccess: () => {
+            const assignedCustodian = custodians.find(
+                (custodian) => custodian.id === form.assignedCustodianId
+            );
+            const assignedTechnician = technicians.find(
+                (technician) => technician.id === form.assignedTechnicianId
+            );
+
+            queryClient.setQueryData<Room[]>(
+                ["rooms"],
+                (currentRooms = []) =>
+                    currentRooms.map((currentRoom) =>
+                        currentRoom.id === room.id
+                            ? {
+                                ...currentRoom,
+                                roomName: form.roomName.trim(),
+                                floorNumber: form.floorNumber,
+                                buildingName: form.buildingName,
+                                status: form.roomStatus,
+                                assignedCustodian: assignedCustodian
+                                    ? {
+                                        id: assignedCustodian.id,
+                                        firstName: assignedCustodian.firstName,
+                                        lastName: assignedCustodian.lastName,
+                                    }
+                                    : null,
+                                assignedTechnician: assignedTechnician
+                                    ? {
+                                        id: assignedTechnician.id,
+                                        firstName: assignedTechnician.firstName,
+                                        lastName: assignedTechnician.lastName,
+                                    }
+                                    : null,
+                            }
+                            : currentRoom
+                    )
+            );
 
             appToast.success("Room details updated successfully.");
             closeSheet();
