@@ -24,43 +24,40 @@ export default function ComputerCard({computer}: CompCardType){
     const {room} = useParams()
     const navigate = useNavigate()
     return(
-        <>
-             <article className="group flex h-full min-h-[300px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] md:max-w-[550px]">
+             <article className="group flex h-full min-h-[300px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-2xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] md:max-w-[550px]">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl primary-bg-color text-white shadow-md shadow-[#bf3419]/20">
+                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
                             <LaptopMinimal size={18} />
-                        </div>
-                        <div className="min-w-0">
-                            <h1 className="truncate text-lg font-bold leading-snug text-zinc-950">{computer.computerCode}</h1>
-                            <p className="mt-0.5 truncate text-sm font-medium text-zinc-500">{computer.operatingSystem}</p>
-                        </div>
+                        </span>
+                        <h1 className="truncate text-lg font-bold leading-snug text-zinc-950">{computer.computerCode}</h1>
                     </div>
                     <div
-                        className={`flex w-fit shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${statusData.className}`}
+                        className={`inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${statusData.className}`}
                     >
                         <StatusIcon size={14} />
                         <span>{formatLabel(computer.computerStatus)}</span>
                     </div>                    
                 </div>
 
-                <div className="grid gap-2.5">
-                    <InfoTile icon={Cpu} label="Processor" value={computer.cpu} />
-                    <InfoTile icon={LaptopMinimal} label="Graphics" value={computer.gpu} />
-                    <InfoTile icon={MemoryStick} label="Memory" value={`${computer.ramSizeInstalled} GB RAM`} />
+                <div className="grid gap-3">
+                    <InfoTile icon={Cpu} label="CPU" value={computer.cpu} />
+                    <InfoTile icon={HardDrive} label="GPU" value={computer.gpu} />
+                    <InfoTile icon={MemoryStick} label="Memory" value={`${computer.ramSizeInstalled}GB RAM`} />
                 </div>
 
-                <div className="mt-auto border-t border-gray-100 pt-3">
+                <div className="mt-auto h-px w-full bg-gray-100" />
+
+                <div className="flex w-full gap-2">
                     <button
                         onClick={()=>navigate(`/manage-laboratory/${room}/${computer.computerCode}`)}
                         type="button"
-                        className="flex h-9 w-full shrink-0 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20"
+                        className="flex h-9 flex-1 shrink-0 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20"
                         >
                         <HardDrive size={17}/> View Specifications
                     </button>
                 </div>
              </article>
-        </>
     );
 }
 
@@ -72,8 +69,8 @@ type InfoTileProps = {
 
 function InfoTile({ icon: Icon, label, value }: InfoTileProps) {
     return (
-        <div className="flex min-w-0 items-center gap-2.5 rounded-2xl bg-zinc-50 p-3">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-400">
+        <div className="flex min-w-0 items-center gap-2.5 rounded-xl bg-zinc-50 p-3 shadow-sm shadow-black/[0.01]">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-400">
                 <Icon size={16} />
             </span>
             <div className="min-w-0">

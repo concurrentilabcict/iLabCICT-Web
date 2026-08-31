@@ -32,7 +32,7 @@ export default function RoomCard({
                     state: { roomName: room.roomName },
                 })
             }
-            className="group flex h-full min-h-[320px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] md:max-w-[550px]"
+            className="group flex h-full min-h-[360px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] md:max-w-[550px]"
         >
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
@@ -60,6 +60,21 @@ export default function RoomCard({
                     <InfoTile icon={User} label="Custodian" value={assignedCustodian} />
                     <InfoTile icon={Wrench} label="Assigned Technician" value={technician} />
                 </div>
+
+                <div className="mt-auto h-px w-full bg-gray-100" />
+
+                <button
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        navigate(`/manage-laboratory/${room.id}`, {
+                            state: { roomName: room.roomName },
+                        });
+                    }}
+                    type="button"
+                    className="flex h-9 w-full shrink-0 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20"
+                >
+                    <LaptopMinimal size={17} /> View Computers
+                </button>
              </article>
     );
 }
@@ -72,8 +87,8 @@ type InfoTileProps = {
 
 function InfoTile({ icon: Icon, label, value }: InfoTileProps) {
     return (
-        <div className="flex min-w-0 items-center gap-2.5 rounded-2xl bg-zinc-50 p-3 shadow-sm shadow-black/[0.01]">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-400">
+        <div className="flex min-w-0 items-center gap-2.5 rounded-xl bg-zinc-50 p-3 shadow-sm shadow-black/[0.01]">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-400">
                 <Icon size={16} />
             </div>
             <div className="min-w-0">

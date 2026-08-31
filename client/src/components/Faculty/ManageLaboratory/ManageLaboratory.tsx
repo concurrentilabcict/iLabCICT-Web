@@ -289,9 +289,8 @@ export default function Laboratory({
                             "No assigned custodian"
 
                     return(
-                        <RoomCard key={room.id} roomId={room.id}
-                            status={status} location={location} assignedCustodian={custodian} roomName={room.roomName}
-                            computerCount={room.computerCount} activeIssuesCount={room.activeIssuesCount}
+                        <RoomCard key={room.id}
+                            status={status} location={location} assignedCustodian={custodian} room={room}
                         />
                     )
                 })

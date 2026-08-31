@@ -14,7 +14,6 @@ type SearchFilterProps = {
     selectedStatus: StatusFilter,
     onSearchChange: (query: string) => void;
     onStatusChange: (type: StatusFilter) => void;
-    custodianName: string
 };
 
 const statusOptions: StatusFilter[] = ["All", "Active", "Broken", "Fixing"];
@@ -24,7 +23,6 @@ export default function SearchFilter({
     selectedStatus,
     onSearchChange,
     onStatusChange,
-    custodianName
 }: SearchFilterProps) {
     
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -43,7 +41,6 @@ export default function SearchFilter({
     
     return (
 
-        <div>
             <div className="flex items-center justify-between gap-x-2 px-3 py-3">
             <div
                 className={`relative w-full transition-all ${
@@ -59,7 +56,7 @@ export default function SearchFilter({
                     type="text"
                     value={searchQuery}
                     onChange={(event) => onSearchChange(event.target.value)}
-                    placeholder="Search Rooms..."
+                    placeholder="Search PCs..."
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
 	                    className="w-full rounded-md border primary-border-color bg-white py-2 pl-10 pr-10 shadow-sm shadow-black/5 outline-none placeholder:text-zinc-400 focus:border-black!"
@@ -118,15 +115,6 @@ export default function SearchFilter({
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            
-            </div>
-
-            <div className=' px-3'>
-                        <span className="text-sm secondary-text-color">Custodian: {custodianName || "No assigned custodian"}</span>
-            </div>
-            
-
         </div>
-       
     );
 }

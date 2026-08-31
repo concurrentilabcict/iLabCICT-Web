@@ -382,7 +382,7 @@ computer
                         <SheetFooter className={``}>
                             <Button type="submit" disabled={isSubmitting || isSame} className="hover:cursor-pointer">
                                 {isSubmitting && <Spinner />}
-                                Edit Computer
+                                Update Computer
                             </Button>
             
                             <SheetClose asChild>

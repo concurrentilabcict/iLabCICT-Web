@@ -24,6 +24,8 @@ type ComputerListProps = {
     searchQuery: string,
     statusFilter: StatusFilter,
     setCustodian: (custodian: string) => void,
+    setComputers: (computers: ComputerCardType[]) => void,
+    setRoomMeta: (meta: { buildingName: string; floorNumber: number; technicianName: string }) => void,
     setRoomDatabaseId: (roomId: number | null) => void,
     setRoomName: (roomName: string) => void,
 }
@@ -112,6 +114,8 @@ export default function ComputerList({
     searchQuery,
     statusFilter,
     setCustodian,
+    setComputers,
+    setRoomMeta,
     setRoomDatabaseId,
     setRoomName,
 }: ComputerListProps){
@@ -141,6 +145,13 @@ export default function ComputerList({
                 ? `${data.assigned_custodian.first_name} ${data.assigned_custodian.last_name}`
                 : "No assigned custodian";
             setCustodian(custodian);
+            setRoomMeta({
+                buildingName: data.building_name,
+                floorNumber: data.floor_number,
+                technicianName: data.assigned_technician
+                    ? `${data.assigned_technician.first_name} ${data.assigned_technician.last_name}`
+                    : "No Assigned",
+            });
             setRoomDatabaseId(data.id);
             setRoomName(data.room_name);
 
@@ -187,6 +198,13 @@ export default function ComputerList({
                         : "No assigned custodian";
 
                     setCustodian(custodian);
+                    setRoomMeta({
+                        buildingName: roomComputers.building_name,
+                        floorNumber: roomComputers.floor_number,
+                        technicianName: roomComputers.assigned_technician
+                            ? `${roomComputers.assigned_technician.first_name} ${roomComputers.assigned_technician.last_name}`
+                            : "No Assigned",
+                    });
                     setRoomDatabaseId(roomComputers.id);
                     setRoomName(roomComputers.room_name);
                     queryClient.setQueryData<ComputerCardType[]>(
@@ -234,7 +252,11 @@ export default function ComputerList({
                 computerSocketRef.current = null;
             }
         };
-    }, [queryClient, roomId, setCustodian, setRoomDatabaseId, setRoomName]);
+    }, [queryClient, roomId, setCustodian, setRoomDatabaseId, setRoomMeta, setRoomName]);
+
+    useEffect(() => {
+        setComputers(computers);
+    }, [computers, setComputers]);
 
     const filteredComputers = useMemo(() => {
         const normalizedQuery = searchQuery?.trim()
