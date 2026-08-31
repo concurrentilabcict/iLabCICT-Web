@@ -87,6 +87,57 @@ const isTicketWebSocketMessage = (
     );
 };
 
+const mapTicket = (ticket: ApiTicket): Ticket => ({
+    id: ticket.id,
+    ticketCode: ticket.ticket_code,
+    reportedBy: {
+        id: ticket.reported_by.id,
+        firstName: ticket.reported_by.first_name,
+        lastName: ticket.reported_by.last_name,
+    },
+    assignedTo: ticket.assigned_to
+        ? {
+            id: ticket.assigned_to.id,
+            firstName: ticket.assigned_to.first_name,
+            lastName: ticket.assigned_to.last_name,
+        }
+        : { id: 0, firstName: "Unassigned", lastName: "" },
+    room: {
+        id: ticket.room.id,
+        roomName: ticket.room.room_name,
+        buildingName: ticket.room.building_name,
+        floorNumber: ticket.room.floor_number,
+    },
+    computer: ticket.computer
+        ? {
+            id: ticket.computer.id,
+            computerCode: ticket.computer.computer_code,
+        }
+        : { id: 0, computerCode: "Not specified" },
+    type: ticket.type,
+    title: ticket.title,
+    complaintDescription: ticket.complaint_description,
+    issueImage: ticket.issue_image,
+    status: ticket.status,
+    createdAt: ticket.created_at,
+    updatedAt: ticket.updated_at,
+});
+
+const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
+    const ticket = mapTicket(apiTicket);
+    const ticketExists = tickets.some(
+        (currentTicket) => currentTicket.id === ticket.id
+    );
+
+    if (!ticketExists) {
+        return [ticket, ...tickets];
+    }
+
+    return tickets.map((currentTicket) =>
+        currentTicket.id === ticket.id ? ticket : currentTicket
+    );
+};
+
 export default function ManageTicket({
     statusFilter,
     typeFilter,
@@ -126,65 +177,6 @@ export default function ManageTicket({
 
         setSelectedTicketId(ticket.id);
         setSheetOpen(true);
-    };
-
-    const mapTicket = (ticket: ApiTicket): Ticket => ({
-
-
-        id: ticket.id,
-
-        ticketCode: ticket.ticket_code,
-
-        reportedBy: {
-            id: ticket.reported_by.id,
-            firstName: ticket.reported_by.first_name,
-            lastName: ticket.reported_by.last_name,
-        },
-
-        assignedTo: ticket.assigned_to ? {
-            id: ticket.assigned_to.id,
-            firstName: ticket.assigned_to.first_name,
-            lastName: ticket.assigned_to.last_name,
-        } : { id: 0, firstName: "Unassigned", lastName: "" },
-
-        room: {
-            id: ticket.room.id,
-            roomName: ticket.room.room_name,
-            buildingName: ticket.room.building_name,
-            floorNumber: ticket.room.floor_number,
-        },
-
-        computer: ticket.computer ? {
-            id: ticket.computer.id,
-            computerCode: ticket.computer.computer_code,
-        } : { id: 0, computerCode: "Not specified" },
-
-        type: ticket.type,
-        title: ticket.title,
-
-        complaintDescription: ticket.complaint_description,
-
-        issueImage: ticket.issue_image,
-
-        status: ticket.status,
-
-        createdAt: ticket.created_at,
-        updatedAt: ticket.updated_at,
-    });
-
-    const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
-        const ticket = mapTicket(apiTicket);
-        const ticketExists = tickets.some(
-            (currentTicket) => currentTicket.id === ticket.id
-        );
-
-        if (!ticketExists) {
-            return [ticket, ...tickets];
-        }
-
-        return tickets.map((currentTicket) =>
-            currentTicket.id === ticket.id ? ticket : currentTicket
-        );
     };
 
     const { data: tickets = [], isPending } = useQuery<Ticket[]>({
@@ -239,6 +231,20 @@ export default function ManageTicket({
                     return;
                 }
 
+                if (
+                    parsedMessage.event === "ticket_reassigned" &&
+                    parsedMessage.ticket.assigned_to?.id !== technicianId
+                ) {
+                    queryClient.setQueryData<Ticket[]>(
+                        TICKETS_QUERY_KEY,
+                        (currentTickets = []) =>
+                            currentTickets.filter(
+                                (ticket) => ticket.id !== parsedMessage.ticket.id
+                            )
+                    );
+                    return;
+                }
+
                 queryClient.setQueryData<Ticket[]>(
                     TICKETS_QUERY_KEY,
                     (currentTickets = []) =>
@@ -255,7 +261,7 @@ export default function ManageTicket({
                 ticketSocketRef.current = null;
             }
         };
-    }, [queryClient]);
+    }, [queryClient, technicianId]);
 
     const assignToMeMutation = useMutation({
         mutationFn: async (ticketId: number) => {
@@ -277,10 +283,26 @@ export default function ManageTicket({
                 throw createApiError(res.status, data.message || "Failed to assign ticket.");
             }
         },
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({
-                queryKey: TICKETS_QUERY_KEY,
-            });
+        onSuccess: (_data, ticketId) => {
+            queryClient.setQueryData<Ticket[]>(
+                TICKETS_QUERY_KEY,
+                (currentTickets = []) =>
+                    currentTickets.map((ticket) =>
+                        ticket.id === ticketId
+                            ? {
+                                ...ticket,
+                                status: "ongoing",
+                                assignedTo: {
+                                    id: technicianId,
+                                    firstName:
+                                        ticket.assignedTo?.firstName ?? "Assigned",
+                                    lastName: ticket.assignedTo?.lastName ?? "",
+                                    profileImage: ticket.assignedTo?.profileImage,
+                                },
+                            }
+                            : ticket
+                    )
+            );
 
             appToast.success("You're now assigned to this ticket.");
         },
@@ -302,10 +324,16 @@ export default function ManageTicket({
                 throw createApiError(res.status, data.message || "Failed to resolve ticket.");
             }
         },
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({
-                queryKey: TICKETS_QUERY_KEY,
-            });
+        onSuccess: (_data, ticketId) => {
+            queryClient.setQueryData<Ticket[]>(
+                TICKETS_QUERY_KEY,
+                (currentTickets = []) =>
+                    currentTickets.map((ticket) =>
+                        ticket.id === ticketId
+                            ? { ...ticket, status: "resolved" }
+                            : ticket
+                    )
+            );
 
             appToast.success("Ticket resolved successfully.");
         },

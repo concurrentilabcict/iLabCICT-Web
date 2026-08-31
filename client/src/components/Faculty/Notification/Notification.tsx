@@ -1,12 +1,10 @@
 import { useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Ticket } from "lucide-react";
 
-import { buildApiUrl, privateFetch } from "@/lib/api";
 import type { Notification as NotificationType } from "@/types/notification";
 import {
-  NOTIFICATIONS_QUERY_KEY,
+  useMarkNotificationAsRead,
   useNotifications,
 } from "@/components/Technician/Notification/useNotifications";
 import { formatDateTime } from "@/utils/string";
@@ -19,7 +17,7 @@ export default function Notification() {
   const [selectedFilter, setSelectedFilter] = useState<NotificationFilter>("All");
   const { notifications, isLoading, isError } = useNotifications();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const markNotificationAsRead = useMarkNotificationAsRead();
 
   const filteredNotifications = useMemo(() => {
     if (selectedFilter === "All") {
@@ -33,34 +31,13 @@ export default function Notification() {
     });
   }, [notifications, selectedFilter]);
 
-  const changeStatusMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await privateFetch(
-        buildApiUrl(`/api/notifications/${id}/`),
-        {
-          method: "PATCH",
-          body: JSON.stringify({ status: "read" }),
-        }
-      );
+  const handleNotificationClick = (notification: NotificationType) => {
+    if (notification.status.toLowerCase() === "unread") {
+      markNotificationAsRead.mutate(notification.id);
+    }
 
-      if (!response.ok) {
-        throw new Error("Failed to update notification status");
-      }
-    },
-    onSuccess: (_data, id) => {
-      const notificationId = Number(id);
-
-      queryClient.setQueryData<NotificationType[]>(
-        NOTIFICATIONS_QUERY_KEY,
-        (currentNotifications = []) =>
-          currentNotifications.map((notification) =>
-            notification.id === notificationId
-              ? { ...notification, status: "read" }
-              : notification
-          )
-      );
-    },
-  });
+    navigate(`/manage-ticket?ticket=${notification.entityId}`);
+  };
 
   if (isLoading) {
     return <NotificationMessage message="Loading notifications..." />;
@@ -99,10 +76,7 @@ export default function Notification() {
             <FacultyNotificationCard
               key={notification.id}
               notification={notification}
-              onClick={() => {
-                navigate(`/manage-ticket?ticket=${notification.ticket.id}`);
-                changeStatusMutation.mutate(notification.id.toString());
-              }}
+              onClick={() => handleNotificationClick(notification)}
             />
           ))
         ) : (

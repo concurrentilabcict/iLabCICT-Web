@@ -1,7 +1,12 @@
-import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
+import {
+    buildApiUrl,
+    buildWebSocketUrl,
+    getFreshAccessToken,
+    privateFetch,
+} from "@/lib/api";
 import type { Notification } from "@/types/notification";
 import { mapNotification, sortNotificationsByNewest } from "@/utils/notification";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 type InitialNotificationsMessage = {
@@ -68,6 +73,52 @@ const upsertNotification = (
             notification.id === nextNotification.id ? nextNotification : notification
         )
     );
+};
+
+export const useMarkNotificationAsRead = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (notificationId: number) => {
+            const response = await privateFetch(
+                buildApiUrl(`/api/notifications/${notificationId}/`),
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({ status: "read" }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to update notification status");
+            }
+        },
+        onMutate: async (notificationId) => {
+            await queryClient.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+
+            const previousNotifications =
+                queryClient.getQueryData<Notification[]>(NOTIFICATIONS_QUERY_KEY);
+
+            queryClient.setQueryData<Notification[]>(
+                NOTIFICATIONS_QUERY_KEY,
+                (currentNotifications = []) =>
+                    currentNotifications.map((notification) =>
+                        notification.id === notificationId
+                            ? { ...notification, status: "read" }
+                            : notification
+                    )
+            );
+
+            return { previousNotifications };
+        },
+        onError: (_error, _notificationId, context) => {
+            if (context?.previousNotifications) {
+                queryClient.setQueryData(
+                    NOTIFICATIONS_QUERY_KEY,
+                    context.previousNotifications
+                );
+            }
+        },
+    });
 };
 
 export const useNotifications = () => {

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
     Sheet,
     SheetContent,
+    SheetDescription,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
@@ -40,6 +41,9 @@ export default function DesktopNotification() {
             <SheetContent side="right" className="w-[420px]! gap-0 p-0 sm:max-w-none">
                 <SheetHeader className="border-b border-b-[#e5e5e5] px-4 py-4">
                     <SheetTitle>Notifications</SheetTitle>
+                    <SheetDescription className="sr-only">
+                        View and open your latest notifications.
+                    </SheetDescription>
                 </SheetHeader>
 
                 <div className="min-h-0 flex-1 overflow-y-auto">

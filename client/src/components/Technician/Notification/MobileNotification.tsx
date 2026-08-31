@@ -2,9 +2,7 @@ import type { Notification } from "@/types/notification";
 import NotificationCard from "./NotificationCard";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { buildApiUrl, privateFetch } from "@/lib/api";
-import { NOTIFICATIONS_QUERY_KEY } from "./useNotifications";
+import { useMarkNotificationAsRead } from "./useNotifications";
 
 type MobileNotificationProps = {
     notifications: Notification[];
@@ -17,6 +15,7 @@ const notificationFilters: NotificationFilter[] = ["All", "Read", "Unread"];
 export default function MobileNotification({ notifications }: MobileNotificationProps) {
     const [selectedFilter, setSelectedFilter] = useState<NotificationFilter>("All");
     const navigate = useNavigate();
+    const markNotificationAsRead = useMarkNotificationAsRead();
 
     const filteredNotifications = useMemo(() => {
         if (selectedFilter === "All") {
@@ -32,33 +31,13 @@ export default function MobileNotification({ notifications }: MobileNotification
         });
     }, [notifications, selectedFilter]);
 
-    const queryClient = useQueryClient();
-
-    const changeStatusMutation = useMutation({
-        mutationFn: async (id: string) => {
-            const res = await privateFetch(buildApiUrl(`/api/notifications/${id}/`), {
-                method: "PATCH",
-                body: JSON.stringify({ status: "read" }),
-            });
-
-            if (!res.ok) {
-                throw new Error("Failed to update notification status");
-            }
-        },
-        onSuccess: (_data, id) => {
-            const notificationId = Number(id);
-
-            queryClient.setQueryData<Notification[]>(
-                NOTIFICATIONS_QUERY_KEY,
-                (currentNotifications = []) =>
-                    currentNotifications.map((notification) =>
-                        notification.id === notificationId
-                            ? { ...notification, status: "read" }
-                            : notification
-                    )
-            );
+    const handleNotificationClick = (notification: Notification) => {
+        if (notification.status.toLowerCase() === "unread") {
+            markNotificationAsRead.mutate(notification.id);
         }
-    });
+
+        navigate(`/manage-ticket?ticket=${notification.entityId}`);
+    };
 
     return (
         <>
@@ -89,9 +68,7 @@ export default function MobileNotification({ notifications }: MobileNotification
                             <NotificationCard
                                 key={notification.id}
                                 notification={notification}
-                                onClick={() => {
-                                    navigate(`/manage-ticket?ticket=${notification.ticket.id}`);
-                                    changeStatusMutation.mutate(notification.id.toString())}}
+                                onClick={() => handleNotificationClick(notification)}
                             />
                         ))
                     ) : (

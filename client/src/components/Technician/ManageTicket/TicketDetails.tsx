@@ -50,10 +50,16 @@ export default function TicketDetails({
       }
     },
 
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["tickets"],
-      });
+    onSuccess: () => {
+      queryClient.setQueryData<Ticket[]>(
+        ["technician-tickets"],
+        (currentTickets = []) =>
+          currentTickets.map((currentTicket) =>
+            currentTicket.id === ticket.id
+              ? { ...currentTicket, status: "ongoing" }
+              : currentTicket
+          )
+      );
 
       appToast.success("Repair started successfully.");
 
