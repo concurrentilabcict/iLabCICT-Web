@@ -178,7 +178,11 @@ export default function ProcessTicket() {
         return <Navigate to="/manage-ticket" replace />;
     }
 
-    if (ticket.status !== "ongoing" || ticket.type !== "report") {
+    if (
+        ticket.status !== "ongoing" ||
+        ticket.type !== "report" ||
+        ticket.assignedTo?.id !== technicianId
+    ) {
         return <Navigate to="/manage-ticket" replace />;
     }
 

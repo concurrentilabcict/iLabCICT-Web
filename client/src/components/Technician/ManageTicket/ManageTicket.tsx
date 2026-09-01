@@ -108,7 +108,7 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
             firstName: ticket.assigned_to.first_name,
             lastName: ticket.assigned_to.last_name,
         }
-        : { id: 0, firstName: "Unassigned", lastName: "" },
+        : null,
     room: {
         id: ticket.room.id,
         roomName: ticket.room.room_name,
@@ -185,10 +185,14 @@ export default function ManageTicket({
         useState(cachedTicketsAreReady);
 
     const handleTicketClick = (ticket: Ticket) => {
-        if (ticket.status === "ongoing") {
-            if (ticket.type === "report") {
-                navigate(`/manage-ticket/${ticket.id}`);
-            }
+        const isAssignedToCurrentUser = ticket.assignedTo?.id === technicianId;
+
+        if (
+            ticket.status === "ongoing" &&
+            ticket.type === "report" &&
+            isAssignedToCurrentUser
+        ) {
+            navigate(`/manage-ticket/${ticket.id}`);
             return;
         }
 
@@ -294,29 +298,21 @@ export default function ManageTicket({
                 }),
             });
 
-            const data = await res.json();
+            const data = (await res.json()) as ApiTicket & { message?: string };
 
             if (!res.ok) {
                 throw createApiError(res.status, data.message || "Failed to assign ticket.");
             }
+
+            return mapTicket(data);
         },
-        onSuccess: (_data, ticketId) => {
+        onSuccess: (updatedTicket) => {
             queryClient.setQueryData<Ticket[]>(
                 TICKETS_QUERY_KEY,
                 (currentTickets = []) =>
                     currentTickets.map((ticket) =>
-                        ticket.id === ticketId
-                            ? {
-                                ...ticket,
-                                status: "ongoing",
-                                assignedTo: {
-                                    id: technicianId,
-                                    firstName:
-                                        ticket.assignedTo?.firstName ?? "Assigned",
-                                    lastName: ticket.assignedTo?.lastName ?? "",
-                                    profileImage: ticket.assignedTo?.profileImage,
-                                },
-                            }
+                        ticket.id === updatedTicket.id
+                            ? updatedTicket
                             : ticket
                     )
             );
@@ -440,7 +436,8 @@ export default function ManageTicket({
 
     if (
         notificationTicket?.status.toLowerCase() === "ongoing" &&
-        notificationTicket.type === "report"
+        notificationTicket.type === "report" &&
+        notificationTicket.assignedTo?.id === technicianId
     ) {
         return <Navigate to={`/manage-ticket/${notificationTicket.id}`} replace />;
     }
@@ -473,8 +470,15 @@ export default function ManageTicket({
                     const type = formatLabel(ticket.type) as TicketType;
                     const reportedBy = ticket.reportedBy.firstName + " " + ticket.reportedBy.lastName;
                     const assignedTo = `${ticket.assignedTo?.firstName ?? ""} ${ticket.assignedTo?.lastName ?? ""}`.trim();
-                    const canAssignToMe = ticket.assignedTo?.id !== technicianId;
-                    const canResolveRequest = ticket.status === "ongoing" && ticket.type === "request";
+                    const isAssignedToCurrentUser = ticket.assignedTo?.id === technicianId;
+                    const isAssignedToAnother =
+                        (ticket.assignedTo?.id ?? 0) > 0 && !isAssignedToCurrentUser;
+                    const canAssignToMe =
+                        ticket.status !== "resolved" && !isAssignedToCurrentUser;
+                    const canResolveRequest =
+                        isAssignedToCurrentUser &&
+                        ticket.status === "ongoing" &&
+                        ticket.type === "request";
 
                     return (
                         <div className="flex h-full w-full justify-center" key={ticket.id}>
@@ -486,8 +490,8 @@ export default function ManageTicket({
                                 floorNumber={ticket.room.floorNumber}
                                 computerCode={ticket.computer?.computerCode || "Not Specified"}
                                 assignedTechnician={assignedTo || "Unassigned"}
-                                isAssignedToCurrentUser={ticket.assignedTo?.id === technicianId}
-                                isAssignedToAnother={(ticket.assignedTo?.id ?? 0) > 0 && ticket.assignedTo?.id !== technicianId}
+                                isAssignedToCurrentUser={isAssignedToCurrentUser}
+                                isAssignedToAnother={isAssignedToAnother}
                                 date={ticket.createdAt}
                                 canAssignToMe={canAssignToMe}
                                 isAssigning={assignToMeMutation.isPending && assignToMeMutation.variables === ticket.id}
@@ -548,6 +552,10 @@ export default function ManageTicket({
                     {selectedTicket && (
                         <TicketDetails
                             ticket={selectedTicket}
+                            canAssignToMe={
+                                selectedTicket.status !== "resolved" &&
+                                selectedTicket.assignedTo?.id !== technicianId
+                            }
                             isAssigning={assignToMeMutation.isPending && assignToMeMutation.variables === selectedTicket.id}
                             onAssignToMe={() => assignToMeMutation.mutate(selectedTicket.id)}
                             closeSheet={() => setSheetOpen(false)}

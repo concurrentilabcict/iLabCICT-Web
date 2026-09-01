@@ -19,6 +19,7 @@ import { Spinner } from "@/components/ui/spinner"
 type TicketDetailsProps = {
   ticket: Ticket;
   closeSheet: () => void;
+  canAssignToMe?: boolean;
   isAssigning?: boolean;
   onAssignToMe?: () => void;
 };
@@ -26,13 +27,14 @@ type TicketDetailsProps = {
 export default function TicketDetails({
   ticket,
   closeSheet,
+  canAssignToMe = false,
   isAssigning = false,
   onAssignToMe,
 }: TicketDetailsProps) {
   const status = capitalize(ticket.status);
   const statusData = statusConfig[status as Status];
   const StatusIcon = statusData?.icon;
-  const isUnassigned = ticket.assignedTo?.id === 0;
+  const isUnassigned = !ticket.assignedTo || ticket.assignedTo.id <= 0;
 
   const queryClient = useQueryClient();
 
@@ -167,7 +169,7 @@ export default function TicketDetails({
       </div>
 
       <SheetFooter className={`${ticket.status === "resolved" ? "hidden" : ""}`}>
-        {isUnassigned ? (
+        {canAssignToMe ? (
           <Button onClick={onAssignToMe} disabled={isAssigning || !onAssignToMe}>
             {isAssigning ? (
               <>
@@ -177,7 +179,7 @@ export default function TicketDetails({
             ) : (
               <>
                 <UserCheck size={16} />
-                Assign to me
+                {isUnassigned ? "Assign to me" : "Reassign to me"}
               </>
             )}
           </Button>
