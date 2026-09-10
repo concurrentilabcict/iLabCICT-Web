@@ -15,6 +15,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import { appToast } from "@/utils/appToast";
 import { Spinner } from "@/components/ui/spinner"
+import ResolveRequestDialog from "./ResolveRequestDialog";
 
 type TicketDetailsProps = {
   ticket: Ticket;
@@ -22,6 +23,9 @@ type TicketDetailsProps = {
   canAssignToMe?: boolean;
   isAssigning?: boolean;
   onAssignToMe?: () => void;
+  canResolveRequest?: boolean;
+  isResolvingRequest?: boolean;
+  onResolveRequest?: () => void;
 };
 
 export default function TicketDetails({
@@ -30,6 +34,9 @@ export default function TicketDetails({
   canAssignToMe = false,
   isAssigning = false,
   onAssignToMe,
+  canResolveRequest = false,
+  isResolvingRequest = false,
+  onResolveRequest,
 }: TicketDetailsProps) {
   const status = capitalize(ticket.status);
   const statusData = statusConfig[status as Status];
@@ -169,7 +176,13 @@ export default function TicketDetails({
       </div>
 
       <SheetFooter className={`${ticket.status === "resolved" ? "hidden" : ""}`}>
-        {canAssignToMe ? (
+        {canResolveRequest ? (
+          <ResolveRequestDialog
+            ticketCode={ticket.ticketCode}
+            isSubmitting={isResolvingRequest}
+            onResolve={() => onResolveRequest?.()}
+          />
+        ) : canAssignToMe ? (
           <Button onClick={onAssignToMe} disabled={isAssigning || !onAssignToMe}>
             {isAssigning ? (
               <>
@@ -191,7 +204,12 @@ export default function TicketDetails({
         )}
 
         <SheetClose asChild>
-          <Button disabled={ticketMutation.isPending || isAssigning} variant="outline">Close</Button>
+          <Button
+            disabled={ticketMutation.isPending || isAssigning || isResolvingRequest}
+            variant="outline"
+          >
+            Close
+          </Button>
         </SheetClose>
       </SheetFooter>
     </>

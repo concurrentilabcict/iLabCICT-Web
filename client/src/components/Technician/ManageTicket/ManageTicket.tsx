@@ -558,6 +558,13 @@ export default function ManageTicket({
                             }
                             isAssigning={assignToMeMutation.isPending && assignToMeMutation.variables === selectedTicket.id}
                             onAssignToMe={() => assignToMeMutation.mutate(selectedTicket.id)}
+                            canResolveRequest={
+                                selectedTicket.assignedTo?.id === technicianId &&
+                                selectedTicket.status === "ongoing" &&
+                                selectedTicket.type === "request"
+                            }
+                            isResolvingRequest={resolveRequestMutation.isPending && resolveRequestMutation.variables === selectedTicket.id}
+                            onResolveRequest={() => resolveRequestMutation.mutate(selectedTicket.id)}
                             closeSheet={() => setSheetOpen(false)}
                         />
                     )}

@@ -7,6 +7,7 @@ import {
     Layers2,
     MessageSquareText,
     Monitor,
+    Pencil,
     User,
     Wrench,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import { appToast } from "@/utils/appToast";
 import Header from "@/components/Header/Header";
 import ProcessTicketSkeleton from "@/components/ProcessTicketSkeleton/ProcessTicketSkeleton";
 import MobileHeader from "@/components/Header/MobileHeader";
+import EditComputerForm from "@/components/Technician/ComputerList/EditComputerForm";
 import NavBar from "@/components/Technician/NavBar/NavBar";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { Button } from "@/components/ui/button";
@@ -26,10 +28,12 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
+import type { ApiComputerCard, ComputerCardType } from "@/types/computer";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 import { capitalize, formatDateTime } from "@/utils/string";
 import {
@@ -44,6 +48,31 @@ const maintenanceOptions = [
     { label: "Replace", value: "replace" },
     { label: "Installation", value: "installation" },
 ];
+
+type ApiEditableComputer = Omit<ApiComputerCard, "room"> & {
+    room: number | { id: number };
+    message?: string;
+};
+
+const mapEditableComputer = (computer: ApiEditableComputer): ComputerCardType => ({
+    id: computer.id,
+    room: typeof computer.room === "number" ? computer.room : computer.room.id,
+    computerCode: computer.computer_code,
+    operatingSystem: computer.operating_system,
+    gpu: computer.gpu,
+    cpu: computer.cpu,
+    motherboard: computer.motherboard,
+    ramSizeInstalled: computer.ram_size_installed,
+    diskSizeInstalled: computer.disk_size_installed,
+    buildVersion: computer.build_version,
+    computerStatus: computer.computer_status,
+    monitorStatus: computer.monitor_status,
+    mouseStatus: computer.mouse_status,
+    keyboardStatus: computer.keyboard_status,
+    upsStatus: computer.ups_status,
+    createdAt: computer.created_at,
+    updatedAt: computer.updated_at,
+});
 
 const mapTicket = (ticket: ApiTicket): Ticket => ({
     id: ticket.id,
@@ -95,6 +124,7 @@ export default function ProcessTicket() {
     const [maintenanceType, setMaintenanceType] = useState("repair");
     const [isMaintenanceTypeOpen, setIsMaintenanceTypeOpen] = useState(false);
     const [repairNotes, setRepairNotes] = useState("");
+    const [isEditComputerOpen, setIsEditComputerOpen] = useState(false);
 
     const {
         data: ticket,
@@ -114,6 +144,43 @@ export default function ProcessTicket() {
         },
         enabled: !!id,
     });
+
+    const editableComputerQuery = useQuery<ComputerCardType>({
+        queryKey: ["process-ticket-computer", ticket?.computer?.computerCode],
+        queryFn: async () => {
+            const computerCode = ticket?.computer?.computerCode;
+
+            if (!computerCode || ticket.computer?.id === 0) {
+                throw createApiError(400, "This ticket does not have an affected computer.");
+            }
+
+            const response = await privateFetch(
+                buildApiUrl(`/api/computers/${encodeURIComponent(computerCode)}/`)
+            );
+            const data = (await response.json()) as ApiEditableComputer;
+
+            if (!response.ok) {
+                throw createApiError(
+                    response.status,
+                    data.message || "Failed to fetch computer information."
+                );
+            }
+
+            return mapEditableComputer(data);
+        },
+        enabled: false,
+    });
+
+    const handleEditComputer = async () => {
+        const result = await editableComputerQuery.refetch();
+
+        if (result.data) {
+            setIsEditComputerOpen(true);
+            return;
+        }
+
+        appToast.error("We couldn't load the computer details. Please try again.");
+    };
 
     const createRepairLogMutation = useMutation({
         mutationFn: async () => {
@@ -197,9 +264,11 @@ export default function ProcessTicket() {
     const selectedMaintenanceType = maintenanceOptions.find(
         (option) => option.value === maintenanceType
     )?.label ?? "Repair";
+    const canEditComputer = Boolean(ticket.computer && ticket.computer.id > 0);
 
     return (
         <ProcessTicketShell isMobile={isMobile}>
+            <>
             <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-4 px-3 py-4 pb-24 md:px-5 md:pb-8">
                 <div className="flex flex-wrap items-center gap-2 text-sm secondary-text-color">
                     <span className="rounded-full bg-white px-3 py-1 font-medium text-foreground">
@@ -240,9 +309,28 @@ export default function ProcessTicket() {
 
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-                                <div className="mb-3 flex items-center gap-x-1.5 font-medium">
-                                    <Monitor size={16} />
-                                    <h2>Device Information</h2>
+                                <div className="mb-3 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-x-1.5 font-medium">
+                                        <Monitor size={16} />
+                                        <h2>Device Information</h2>
+                                    </div>
+
+                                    {canEditComputer && (
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            onClick={handleEditComputer}
+                                            disabled={editableComputerQuery.isFetching}
+                                            className="shrink-0"
+                                        >
+                                            {editableComputerQuery.isFetching ? (
+                                                <Spinner className="size-4" />
+                                            ) : (
+                                                <Pencil size={14} />
+                                            )}
+                                            Edit Computer
+                                        </Button>
+                                    )}
                                 </div>
 
                                 <div className="space-y-3 text-sm">
@@ -389,6 +477,21 @@ export default function ProcessTicket() {
                     </aside>
                 </div>
             </div>
+
+            <Sheet open={isEditComputerOpen} onOpenChange={setIsEditComputerOpen}>
+                <SheetContent
+                    side={isMobile ? "bottom" : "right"}
+                    className={isMobile ? "h-[90vh]" : "w-[1000px]!"}
+                >
+                    {editableComputerQuery.data && (
+                        <EditComputerForm
+                            computer={editableComputerQuery.data}
+                            closeSheet={() => setIsEditComputerOpen(false)}
+                        />
+                    )}
+                </SheetContent>
+            </Sheet>
+            </>
         </ProcessTicketShell>
     );
 }

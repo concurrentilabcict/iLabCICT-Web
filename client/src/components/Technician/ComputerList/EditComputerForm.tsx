@@ -7,7 +7,6 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus} from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -145,9 +144,11 @@ computer
             return data;
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({
-                queryKey: ["technician-computers"]
-            });
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ["technician-computers"] }),
+                queryClient.invalidateQueries({ queryKey: ["computer"] }),
+                queryClient.invalidateQueries({ queryKey: ["process-ticket-computer"] }),
+            ]);
 
             appToast.success("Computer details updated successfully.");
             closeSheet();
