@@ -1,13 +1,6 @@
-import { useMediaQuery } from "@/hooks/useMediaQuery"
 import type { ComputerCardType } from "@/types/computer"
-import { Building2, Download, Eye, Layers3, LaptopMinimal, Plus, User, Wrench } from "lucide-react"
-import ComputerCsvImport from "@/components/ComputerCsvImport/ComputerCsvImport"
-const formatDate = (date: string) =>
-  new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
+import { Building2, Eye, Layers3, LaptopMinimal, Plus, User, Wrench } from "lucide-react"
+import ComputerExcelActions from "@/components/ComputerExcelActions/ComputerExcelActions"
 
 type ButtonGroupType = {
     roomName: string
@@ -22,11 +15,6 @@ type ButtonGroupType = {
     isRequestHistoryDisabled: boolean
     roomId: number | null
 }
-
-const escapeCsvCell = (value: unknown) => {
-    const text = value == null ? "" : String(value);
-    return `"${text.replace(/"/g, '""')}"`;
-};
 
 export default function ButtonGroup({
     roomName,
@@ -46,70 +34,6 @@ export default function ButtonGroup({
         setIsEditing(false)
         setSheetOpen(true)
     }
-
-    const exportComputers = ()=> {
-
-        if(computers.length===0){
-            return;
-        }
-           
-        const headers = [
-            "Computer Code",
-            "Operating System",
-            "GPU",
-            "CPU",
-            "Motherboard",
-            "RAM Installed (GB)",
-            "Disk Installed (GB)",
-            "Build Version",
-            "Computer Status",
-            "Monitor Status",
-            "Mouse Status",
-            "Keyboard Status",
-            "UPS Status",
-            "Room",
-            "Updated At",
-            "Created At",
-        ];
-
-        const rows = computers.map((computer) => [
-            computer.computerCode,
-            computer.operatingSystem,
-            computer.gpu,
-            computer.cpu,
-            computer.motherboard,
-            computer.ramSizeInstalled,
-            computer.diskSizeInstalled,
-            computer.buildVersion,
-            computer.computerStatus,
-            computer.monitorStatus,
-            computer.mouseStatus,
-            computer.keyboardStatus,
-            computer.upsStatus,
-            roomName,
-            formatDate(computer.updatedAt),
-            formatDate(computer.createdAt)
-        ]);
-
-        const csv = [headers, ...rows]
-            .map((row) => row.map(escapeCsvCell).join(","))
-            .join("\r\n");
-        const blob = new Blob([`\uFEFF${csv}`], {
-        type: "text/csv;charset=utf-8",
-        });
-        const url = URL.createObjectURL(blob);
-        const downloadLink = document.createElement("a");
-        downloadLink.href = url;
-        downloadLink.download = `computers-${new Date().toISOString().slice(0, 10)}.csv`;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        downloadLink.remove();
-        URL.revokeObjectURL(url);
-
-    } 
-
-
-    const isMobile = useMediaQuery("(max-width: 767px)")
 
     return(
         <>
@@ -158,21 +82,14 @@ export default function ButtonGroup({
                     <Eye size={16} />
                     <span>Request History</span>
                 </button>
-                <div className="flex items-center gap-2.5">
-                    <button
-                        onClick={exportComputers}
-                        type="button"
-                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color shadow-sm shadow-black/5 hover:cursor-pointer hover:bg-gray-50"
-                    >
-                        <Download size={16}/>
-                        <span className={isMobile ? 'hidden' : ''} >Export</span>
-                    </button>
-                    <ComputerCsvImport
+                <ComputerExcelActions
                         roomId={roomId}
-                        showLabel={!isMobile}
-                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color shadow-sm shadow-black/5 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-                    />
-                </div>
+                        roomName={roomName}
+                        buildingName={buildingName}
+                        floorNumber={floorNumber}
+                        computers={computers}
+                        buttonClassName="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color shadow-sm shadow-black/5 hover:cursor-pointer hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                />
             </div>
         </div>
             

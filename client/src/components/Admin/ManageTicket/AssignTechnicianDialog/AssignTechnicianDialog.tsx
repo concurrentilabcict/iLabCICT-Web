@@ -1,4 +1,4 @@
-import { Check, UserRoundCog } from "lucide-react";
+import { UserRoundCog } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -92,13 +92,11 @@ export default function AssignTechnicianDialog({
                                                 key={technician.id}
                                                 value={`${name} ${technician.id}`}
                                                 onSelect={() => onSelectTechnician(technician.id)}
-                                                className="cursor-pointer"
+                                                data-checked={selectedTechnicianId === technician.id}
+                                                className="cursor-pointer data-[checked=true]:[&_svg:last-child]:text-[#bf3419]"
                                             >
                                                 <UserRoundCog />
                                                 <span className="min-w-0 flex-1 truncate">{name}</span>
-                                                {selectedTechnicianId === technician.id && (
-                                                    <Check className="text-[#bf3419]" />
-                                                )}
                                             </CommandItem>
                                         );
                                     })}
