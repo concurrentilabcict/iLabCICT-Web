@@ -5,12 +5,10 @@ import type { Status, StatusFilter } from "@/utils/computer";
 import type { ApiComputerCard, ApiRoomComputers, ComputerCardType } from "@/types/computer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-    buildApiUrl,
     buildWebSocketUrl,
-    createApiError,
     getFreshAccessToken,
-    privateFetch,
 } from "@/lib/api";
+import { fetchRoomComputers } from "@/lib/roomComputers";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 type ComputerListProps = {
@@ -22,6 +20,7 @@ type ComputerListProps = {
     setRoomMeta: (meta: { buildingName: string; floorNumber: number; technicianName: string }) => void,
     setRoomDatabaseId: (roomId: number | null) => void,
     setRoomName: (roomName: string) => void,
+    onLoadStateChange: (state: "loading" | "success" | "error") => void,
 }
 
 type RoomComputersWebSocketEvent =
@@ -112,6 +111,7 @@ export default function ComputerList({
     setRoomMeta,
     setRoomDatabaseId,
     setRoomName,
+    onLoadStateChange,
 }: ComputerListProps){
     const queryClient = useQueryClient();
     const computerSocketRef = useRef<WebSocket | null>(null);
@@ -124,16 +124,10 @@ export default function ComputerList({
         filterKey
     });
 
-    const { data: computers = [], isLoading } = useQuery<ComputerCardType[]>({
+    const { data: computers = [], isLoading, isError, error, refetch } = useQuery<ComputerCardType[]>({
         queryKey: ["computers", roomId],
         queryFn: async ()=> {
-            const res = await privateFetch(buildApiUrl(`/api/rooms/${encodeURIComponent(roomId)}/computers/`));
-
-            const data = await res.json() as ApiRoomComputers & { message?: string };
-
-            if(!res.ok){
-                throw createApiError(res.status, data.message || 'Failed to fetch computers.');
-            }
+            const data = await fetchRoomComputers(roomId);
 
             const custodian = data.assigned_custodian
                 ? `${data.assigned_custodian.first_name} ${data.assigned_custodian.last_name}`
@@ -150,8 +144,16 @@ export default function ComputerList({
             setRoomName(data.room_name);
 
             return data.computers.map(mapComputerCard)
-         }
+         },
+        enabled: Boolean(roomId),
+        networkMode: "always",
+        retry: 1,
+        retryDelay: 750,
     });
+
+    useEffect(() => {
+        onLoadStateChange(isLoading ? "loading" : isError ? "error" : "success");
+    }, [isError, isLoading, onLoadStateChange]);
 
     useEffect(() => {
         let socket: WebSocket | null = null;
@@ -314,13 +316,28 @@ export default function ComputerList({
                     <ComputerListSkeleton />
                 )}
 
-                {!isLoading && paginatedComputers.length === 0 && (
+                {!isLoading && !isError && paginatedComputers.length === 0 && (
                     <p className="col-span-full py-8 text-center secondary-text-color">
                         No Computers found.
                     </p>
                 )}
 
-                {!isLoading && paginatedComputers.map((computer)=> {
+                {isError && (
+                    <div className="col-span-full flex flex-col items-center gap-3 py-8 text-center">
+                        <p className="text-red-600">
+                            {error instanceof Error ? error.message : "Failed to load computers."}
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => void refetch()}
+                            className="rounded-lg primary-bg-color px-4 py-2 text-sm font-semibold text-white"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                )}
+
+                {!isLoading && !isError && paginatedComputers.map((computer)=> {
 
                         return(
                             <ComputerCard 

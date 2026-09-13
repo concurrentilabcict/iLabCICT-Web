@@ -9,12 +9,10 @@ import type {
 } from "@/types/computer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-    buildApiUrl,
     buildWebSocketUrl,
-    createApiError,
     getFreshAccessToken,
-    privateFetch,
 } from "@/lib/api";
+import { fetchRoomComputers } from "@/lib/roomComputers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
@@ -40,7 +38,8 @@ type ComputerListProps = {
     selectedComputer: ComputerCardType, 
     setSheetOpen: (open: boolean) => void,
     setIsEditing: (open: boolean) => void,
-    setSelectedComputer: (computer: ComputerCardType) => void
+    setSelectedComputer: (computer: ComputerCardType) => void,
+    onLoadStateChange: (state: "loading" | "success" | "error") => void,
 }
 
 type RoomComputersWebSocketEvent =
@@ -101,6 +100,7 @@ export default function ComputerList({
     setSheetOpen,
     setIsEditing,
     setSelectedComputer,
+    onLoadStateChange,
 }: ComputerListProps){
 
     const isMobile = useMediaQuery("(max-width: 767px)");
@@ -169,17 +169,7 @@ export default function ComputerList({
     const { data: computers = [], isLoading, isError } = useQuery<ComputerCardType[]>({
         queryKey,
         queryFn: async () => {
-            const response = await privateFetch(
-                buildApiUrl(`/api/rooms/${encodeURIComponent(roomId)}/computers/`)
-            );
-            const data = (await response.json()) as ApiRoomComputers & { message?: string };
-
-            if (!response.ok) {
-                throw createApiError(
-                    response.status,
-                    data.message || "Failed to fetch computers."
-                );
-            }
+            const data = await fetchRoomComputers(roomId);
 
             const custodian = data.assigned_custodian
                 ? `${data.assigned_custodian.first_name} ${data.assigned_custodian.last_name}`
@@ -200,7 +190,15 @@ export default function ComputerList({
 
             return data.computers.map(mapComputerCard);
         },
+        enabled: Boolean(roomId),
+        networkMode: "always",
+        retry: 1,
+        retryDelay: 750,
     });
+
+    useEffect(() => {
+        onLoadStateChange(isLoading ? "loading" : isError ? "error" : "success");
+    }, [isError, isLoading, onLoadStateChange]);
 
     useEffect(() => {
         setComputers(computers);

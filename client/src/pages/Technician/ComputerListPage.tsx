@@ -9,8 +9,9 @@ import MobileHeader from "@/components/Header/MobileHeader";
 import { useQueryClient } from "@tanstack/react-query";
 import RequestHistory from "@/components/RequestHistory/RequestHistory";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ButtonGroup from "@/components/Technician/ComputerList/ButtonGroup";
 import type { StatusFilter } from "@/utils/computer";
 import { useLocation, useParams } from "react-router-dom";
@@ -38,6 +39,7 @@ export default function ComputerListPage(){
     const [requestHistoryOpen, setRequestHistoryOpen] = useState(false);
     const [roomDatabaseId, setRoomDatabaseId] = useState<number | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [loadState, setLoadState] = useState<"loading" | "success" | "error">("loading");
     const [selectedComputer, setSelectedComputer] = useState<ComputerCardType>({
         id: 0,
         cpu: "",
@@ -80,7 +82,7 @@ export default function ComputerListPage(){
         [cachedRooms, decodedRoom]
     );
     const roomId = matchedRoom ? String(matchedRoom.id) : decodedRoom;
-    const fallbackRoomName = locationState?.roomName ?? matchedRoom?.roomName ?? decodedRoom;
+    const fallbackRoomName = locationState?.roomName ?? matchedRoom?.roomName ?? "";
     const [resolvedRoomName, setResolvedRoomName] = useState({
         roomId,
         name: fallbackRoomName
@@ -89,12 +91,16 @@ export default function ComputerListPage(){
         resolvedRoomName.roomId === roomId
             ? resolvedRoomName.name
             : fallbackRoomName;
-    const handleRoomNameChange = (name: string) => {
+    const handleRoomNameChange = useCallback((name: string) => {
         setResolvedRoomName({ roomId, name });
-    };
+    }, [roomId]);
+    const handleLoadStateChange = useCallback(
+        (state: "loading" | "success" | "error") => setLoadState(state),
+        []
+    );
 
     useEffect(()=>{
-        document.title = `${roomName + ` | `}ILabCICT`;
+        document.title = `${roomName ? `${roomName} | ` : "Laboratory | "}ILabCICT`;
     }, [roomName])
 
     return(
@@ -103,7 +109,7 @@ export default function ComputerListPage(){
                 {isMobile ? <NavBar/> : <Sidebar/>}
                     <SidebarInset>
                         <div className="min-h-screen w-full min-w-0 bg-[#f8fafc]">
-                            {isMobile ? <MobileHeader title={roomName}/> : <Header title={roomName}/>}
+                            {isMobile ? <MobileHeader title={roomName || "Laboratory"}/> : <Header title={roomName || "Laboratory"}/>}
                             <div className="mx-auto w-full min-w-0 max-w-[1000px]">
                                 <SearchFilter
                                     searchQuery={searchQuery}
@@ -111,6 +117,13 @@ export default function ComputerListPage(){
                                     selectedStatus={statusFilter}
                                     onStatusChange={setStatusFilter}
                                 />
+                                {loadState === "loading" ? (
+                                    <RoomSummarySkeleton />
+                                ) : loadState === "error" ? (
+                                    <div className="mx-3 my-3 rounded-2xl bg-white p-6 text-center text-sm text-red-600 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+                                        Laboratory details could not be loaded.
+                                    </div>
+                                ) : (
                                 <ButtonGroup
                                     roomName={roomName}
                                     buildingName={roomMeta.buildingName}
@@ -123,6 +136,7 @@ export default function ComputerListPage(){
                                     onRequestHistoryClick={() => setRequestHistoryOpen(true)}
                                     isRequestHistoryDisabled={!roomDatabaseId}
                                 />
+                                )}
                                 <ComputerList
                                     setComputers={setComputers}
                                     isEditing={isEditing}
@@ -138,6 +152,7 @@ export default function ComputerListPage(){
                                     statusFilter={statusFilter}
                                     searchQuery={searchQuery}
                                     setCustodian={setCustodian}
+                                    onLoadStateChange={handleLoadStateChange}
                                 />
                                 <Sheet
                                     open={requestHistoryOpen}
@@ -155,5 +170,22 @@ export default function ComputerListPage(){
                     </SidebarInset>
             </SidebarProvider>
         </>
+    );
+}
+
+function RoomSummarySkeleton() {
+    return (
+        <div className="mx-3 my-3 space-y-4 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+            <Skeleton className="h-6 w-32" />
+            <div className="flex gap-3">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-24" />
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+                <Skeleton className="h-14 w-full rounded-xl" />
+                <Skeleton className="h-14 w-full rounded-xl" />
+            </div>
+        </div>
     );
 }

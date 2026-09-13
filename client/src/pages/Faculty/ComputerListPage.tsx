@@ -8,17 +8,25 @@ import Header from "@/components/Header/Header";
 import MobileHeader from "@/components/Header/MobileHeader";
 import RequestHistory from "@/components/RequestHistory/RequestHistory";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { StatusFilter } from "@/utils/computer";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { Building2, Eye, Layers3, LaptopMinimal, User, Wrench, type LucideIcon } from "lucide-react";
 import type { ComputerCardType } from "@/types/computer";
+import type { Room } from "@/types/room";
+import { useQueryClient } from "@tanstack/react-query";
+
+type ComputerListLocationState = {
+    roomName?: string;
+};
 
 
 export default function FacultyComputerListPage(){
     
     const isMobile = useMediaQuery("(max-width: 767px)");
+    const queryClient = useQueryClient();
 
     const [custodian, setCustodian] = useState("");
     const [computers, setComputers] = useState<ComputerCardType[]>([]);
@@ -31,24 +39,39 @@ export default function FacultyComputerListPage(){
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
     const [requestHistoryOpen, setRequestHistoryOpen] = useState(false);
     const [roomDatabaseId, setRoomDatabaseId] = useState<number | null>(null);
+    const [loadState, setLoadState] = useState<"loading" | "success" | "error">("loading");
   
 
     const { room } = useParams();
+    const location = useLocation();
+    const locationState = location.state as ComputerListLocationState | null;
     const roomId = room ? decodeURIComponent(room) : "";
+    const cachedRooms = useMemo(
+        () => queryClient.getQueryData<Room[]>(["rooms"]) ?? [],
+        [queryClient]
+    );
+    const cachedRoomName = cachedRooms.find(
+        (currentRoom) => String(currentRoom.id) === roomId
+    )?.roomName;
+    const fallbackRoomName = locationState?.roomName ?? cachedRoomName ?? "";
     const [resolvedRoomName, setResolvedRoomName] = useState({
         roomId,
-        name: roomId,
+        name: fallbackRoomName,
     });
     const roomName =
         resolvedRoomName.roomId === roomId
             ? resolvedRoomName.name
-            : roomId;
-    const handleRoomNameChange = (name: string) => {
+            : fallbackRoomName;
+    const handleRoomNameChange = useCallback((name: string) => {
         setResolvedRoomName({ roomId, name });
-    };
+    }, [roomId]);
+    const handleLoadStateChange = useCallback(
+        (state: "loading" | "success" | "error") => setLoadState(state),
+        []
+    );
 
     useEffect(()=>{
-        document.title = `${roomName + ` | `}ILabCICT`;
+        document.title = `${roomName ? `${roomName} | ` : "Laboratory | "}ILabCICT`;
     }, [roomName])
 
 
@@ -58,7 +81,7 @@ export default function FacultyComputerListPage(){
                 {isMobile ? <NavBar/> : <Sidebar/>}
                     <SidebarInset>
                         <div className="min-h-screen w-full min-w-0 bg-[#f8fafc]">
-                            {isMobile ? <MobileHeader title={roomName}/> : <Header title={roomName}/>}
+                            {isMobile ? <MobileHeader title={roomName || "Laboratory"}/> : <Header title={roomName || "Laboratory"}/>}
                             <div className="mx-auto w-full min-w-0 max-w-[1000px]">
                                 <SearchFilter
                                     searchQuery={searchQuery}
@@ -66,6 +89,13 @@ export default function FacultyComputerListPage(){
                                     selectedStatus={statusFilter}
                                     onStatusChange={setStatusFilter}
                                 />
+                                {loadState === "loading" ? (
+                                    <RoomSummarySkeleton />
+                                ) : loadState === "error" ? (
+                                    <div className="mx-3 my-3 rounded-2xl bg-white p-6 text-center text-sm text-red-600 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+                                        Laboratory details could not be loaded.
+                                    </div>
+                                ) : (
                                 <div className="mx-3 my-3 rounded-2xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                                     <div className="min-w-0">
                                         <h1 className="truncate text-lg font-bold leading-snug text-zinc-950">{roomName}</h1>
@@ -91,6 +121,7 @@ export default function FacultyComputerListPage(){
                                         </button>
                                     </div>
                                 </div>
+                                )}
 
                                 <ComputerList
                                     roomId={roomId}
@@ -101,6 +132,7 @@ export default function FacultyComputerListPage(){
                                     setRoomMeta={setRoomMeta}
                                     setRoomDatabaseId={setRoomDatabaseId}
                                     setRoomName={handleRoomNameChange}
+                                    onLoadStateChange={handleLoadStateChange}
                                 />
                                 <Sheet
                                     open={requestHistoryOpen}
@@ -118,6 +150,23 @@ export default function FacultyComputerListPage(){
                     </SidebarInset>
             </SidebarProvider>
         </>
+    );
+}
+
+function RoomSummarySkeleton() {
+    return (
+        <div className="mx-3 my-3 space-y-4 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+            <Skeleton className="h-6 w-32" />
+            <div className="flex gap-3">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-24" />
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+                <Skeleton className="h-14 w-full rounded-xl" />
+                <Skeleton className="h-14 w-full rounded-xl" />
+            </div>
+        </div>
     );
 }
 

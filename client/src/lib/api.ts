@@ -81,7 +81,9 @@ const shouldRefreshAccessToken = (token: string) => {
     return expiresAt - nowInSeconds <= TOKEN_REFRESH_BUFFER_SECONDS;
 };
 
-export const refreshAccessToken = async () => {
+let refreshPromise: Promise<string | null> | null = null;
+
+const requestAccessTokenRefresh = async () => {
     const refreshToken = localStorage.getItem("refreshToken");
 
     if (!refreshToken) {
@@ -123,6 +125,16 @@ export const refreshAccessToken = async () => {
     return data.access;
 };
 
+export const refreshAccessToken = () => {
+    if (!refreshPromise) {
+        refreshPromise = requestAccessTokenRefresh().finally(() => {
+            refreshPromise = null;
+        });
+    }
+
+    return refreshPromise;
+};
+
 export const getFreshAccessToken = async () => {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -141,7 +153,7 @@ export const privateFetch = async (
     url: string,
     options: RequestInit = {}
 ) => {
-    let accessToken = localStorage.getItem("accessToken") || "";
+    let accessToken = await getFreshAccessToken() ?? "";
 
     const makeRequest = () => {
         const isFormData = options.body instanceof FormData;
