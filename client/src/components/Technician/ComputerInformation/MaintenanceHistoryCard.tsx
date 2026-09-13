@@ -98,7 +98,7 @@ export default function MaintenanceHistoryCard({
 
     return(
         <>
-              <div className="flex h-[430px] min-h-0 min-w-0 w-full max-w-[600px] flex-col gap-y-2.5 rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:max-w-[550px]">
+              <div className="flex h-[430px] min-h-0 min-w-0 w-full max-w-[600px] flex-col gap-y-2.5 rounded-3xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:max-w-[550px]">
                     
                     <div className="flex justify-between items-center mb-1.5">
                         <div className="flex gap-2 items-center">
