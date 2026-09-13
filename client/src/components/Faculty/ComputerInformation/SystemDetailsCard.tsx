@@ -50,7 +50,7 @@ export default function SystemDetailsCard({
                     <div className="mt-4 space-y-4">
                         <section>
                             <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-zinc-400">Platform</p>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
                                 <SpecItem icon={MonitorCog} label="Operating System" value={operatingSystem} />
                                 <SpecItem icon={Braces} label="Build Version" value={buildVersion} />
                             </div>
@@ -66,16 +66,16 @@ export default function SystemDetailsCard({
 
                         <section>
                             <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-zinc-400">Memory & Board</p>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
                                 <SpecItem icon={MemoryStick} label="RAM" value={ramSize} />
                                 <SpecItem icon={HardDrive} label="Storage" value={diskSize} />
-                                <SpecItem icon={Microchip} label="Motherboard" value={motherboard} className="col-span-2" />
+                                <SpecItem icon={Microchip} label="Motherboard" value={motherboard} className="min-[380px]:col-span-2" />
                             </div>
                         </section>
 
                         <section>
                             <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-zinc-400">Record</p>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
                                 <SpecItem icon={CalendarClock} label="Created" value={formatDateTime(createdAt)} />
                                 <SpecItem icon={CalendarClock} label="Last Modified" value={formatDateTime(updatedAt)} />
                             </div>

@@ -30,11 +30,11 @@ export default function MoreMenu({ isActive, showWeeklyReport = true }: MoreMenu
             <DropdownMenuTrigger asChild>
                 <button
                     type="button"
-                    className={`relative z-10 flex h-16 min-w-0 cursor-pointer flex-col items-center justify-end gap-y-1 rounded-2xl px-1 text-center outline-none transition
+                    className={`relative z-10 flex h-16 w-full min-w-0 max-w-full cursor-pointer flex-col items-center justify-end gap-y-1 rounded-2xl px-0.5 text-center outline-none transition min-[360px]:px-1
                     ${isActive ? "primary-text-color" : "secondary-text-color"}`}
                 >
                     <CircleEllipsis size={23} />
-                    <span className="text-sm">More</span>
+                    <span className="text-[11px] min-[360px]:text-sm">More</span>
                 </button>
             </DropdownMenuTrigger>
 

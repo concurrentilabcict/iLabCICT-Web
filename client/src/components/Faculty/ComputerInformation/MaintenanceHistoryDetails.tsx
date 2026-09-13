@@ -55,38 +55,38 @@ export default function MaintenanceHistoryDetails({
           </div>
         </div>
         
-        <div className="flex items-center justify-between">
+        <div className="flex min-w-0 items-center justify-between gap-4">
           <div className="flex items-center gap-x-1.5 font-medium secondary-text-color">
             <BadgeCheck size={14} />
             <h3>Status</h3>
           </div>
-          <span>{capitalize(maintenanceHistory?.repairLog.ticket.status || "")}</span>
+          <span className="min-w-0 break-words text-right">{capitalize(maintenanceHistory?.repairLog.ticket.status || "")}</span>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex min-w-0 items-center justify-between gap-4">
           <div className="flex items-center gap-x-1.5 font-medium secondary-text-color">
             <Layers2 size={14} />
             <h3>Type</h3>
           </div>
-          <span>{capitalize(maintenanceHistory?.maintenanceType || "")}</span>
+          <span className="min-w-0 break-words text-right">{capitalize(maintenanceHistory?.maintenanceType || "")}</span>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex min-w-0 items-center justify-between gap-4">
           <div className="flex items-center gap-x-1.5 font-medium secondary-text-color">
             <User size={14} />
             <h3>Performed By</h3>
           </div>
-          <p>
+          <p className="min-w-0 break-words text-right">
             {maintenanceHistory?.performedBy}
           </p>
         </div>
 
-        <div className={`flex items-center justify-between `}>
+        <div className="flex min-w-0 items-center justify-between gap-4">
           <div className="flex items-center gap-x-1.5 font-medium secondary-text-color">
             <CalendarDays size={14} />
             <h3>Date Performed</h3>
           </div>
-          <span>{formatDateTime(maintenanceHistory?.datePerformed || "")}</span>
+          <span className="min-w-0 break-words text-right">{formatDateTime(maintenanceHistory?.datePerformed || "")}</span>
         </div>
 
 

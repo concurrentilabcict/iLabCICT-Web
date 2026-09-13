@@ -136,7 +136,7 @@ export default function MaintenanceHistoryCard({
                                 setMaintenanceHistory(mh)
                                 openSheet(true)
                             }}
-                            className="flex gap-2 items-start hover:cursor-pointer">
+                            className="flex min-w-0 items-start gap-2 hover:cursor-pointer">
                             
                                 <div className={`shrink-0 ${typeData.className} p-1.5 pt-1 rounded-md`}>
                                     <TypeIcon
@@ -144,14 +144,14 @@ export default function MaintenanceHistoryCard({
                                     />
                                 </div>
 
-                                <div className="flex flex-col gap-0.5">
-                                    <div className="flex gap-2 items-center">
+                                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                                    <div className="flex min-w-0 flex-wrap items-center gap-2">
                                         <span className="font-semibold text-sm">{mh.maintenanceHistoryCode}</span>
                                         <span className={`font-medium ${typeData.className} text-xs px-1.5 py-1 rounded-md`}>{formatLabel(mh.maintenanceType)}</span>
                                     </div>
                                     
-                                    <div className="flex gap-1 items-center">
-                                        <span className="secondary-text-color text-xs">{maintenanceTitle}</span>
+                                    <div className="flex min-w-0 flex-wrap items-center gap-1">
+                                        <span className="break-words text-xs secondary-text-color">{maintenanceTitle}</span>
                                         <span className="secondary-text-color text-xs">-</span>
                                         <span className="secondary-text-color text-xs">{maintenanceStatus}</span>
                                     </div>

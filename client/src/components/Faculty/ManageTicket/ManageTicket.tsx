@@ -14,7 +14,7 @@ import ManageTicketCard from "./ManageTicketCard";
 import ManageTicketSkeleton from "@/components/ManageTicketSkeleton/ManageTicketSkeleton";
 import TicketDetails from "./TicketDetails";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 import { useSearchParams } from "react-router-dom";
 
 type ManageTicketProps = {
@@ -287,17 +287,12 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
 
       {totalPages > 1 && (
         <div className={`px-3 ${isMobile ? "mb-23" : "mb-10"}`}>
-          <Pagination className={`flex ${isMobile ? "justify-center" : "justify-end"}`}>
-            <PaginationContent>
-              <PaginationItem><PaginationPrevious onClick={() => setPage(Math.max(1, currentPage - 1))} /></PaginationItem>
-              {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink isActive={currentPage === pageNumber} onClick={() => setPage(pageNumber)}>{pageNumber}</PaginationLink>
-                </PaginationItem>
-              ))}
-              <PaginationItem><PaginationNext onClick={() => setPage(Math.min(totalPages, currentPage + 1))} /></PaginationItem>
-            </PaginationContent>
-          </Pagination>
+          <ResponsivePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            className={isMobile ? "justify-center" : "justify-end"}
+          />
         </div>
       )}
 

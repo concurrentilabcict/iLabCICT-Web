@@ -47,15 +47,15 @@ export default function NavBar() {
     if (isTyping) return null;
 
     const navBarClass =
-        "fixed inset-x-0 bottom-0 z-10 bg-white border-t border-t-[#e5e5e5] pb-[env(safe-area-inset-bottom)]";
+        "fixed inset-x-0 bottom-0 z-10 w-full min-w-0 bg-white border-t border-t-[#e5e5e5] pb-[env(safe-area-inset-bottom)]";
     const navContentClass =
-        "relative mx-auto grid h-20 max-w-[430px] grid-cols-5 items-end overflow-visible bg-white px-2 pb-3";
+        "relative mx-auto grid h-20 w-full min-w-0 max-w-[430px] grid-cols-5 items-end bg-white px-1 pb-3 min-[360px]:px-2";
     const navButtonClass =
-        "relative z-10 flex h-16 min-w-0 cursor-pointer flex-col items-center justify-end gap-y-1 rounded-2xl px-1 text-center transition";
+        "relative z-10 flex h-16 w-full min-w-0 max-w-full cursor-pointer flex-col items-center justify-end gap-y-1 rounded-2xl px-0.5 text-center transition min-[360px]:px-1";
     const inactiveNavClass = "secondary-text-color hover:text-gray-700";
     const activeNavClass = "primary-text-color";
     const qrButtonClass =
-        "primary-bg-color relative z-10 mx-auto flex h-14 w-14 -translate-y-1 cursor-pointer items-center justify-center self-end rounded-full text-white transition hover:bg-[#d0472c]";
+        "primary-bg-color relative z-10 mx-auto flex size-12 -translate-y-1 cursor-pointer items-center justify-center self-end rounded-full text-white transition hover:bg-[#d0472c] min-[360px]:size-14";
 
     if (isFaculty) {
         return (
@@ -71,7 +71,7 @@ export default function NavBar() {
                     }`}
                 >
                     <ScrollText size={23} />
-                    <span className='text-sm'>Tickets</span>
+                    <span className='text-[11px] min-[360px]:text-sm'>Tickets</span>
                 </button>
 
                 <button
@@ -84,7 +84,7 @@ export default function NavBar() {
                     }`}
                 >
                     <Monitor size={23} />
-                    <span className='text-sm'>Laboratory</span>
+                    <span className='whitespace-nowrap text-[11px] min-[360px]:text-sm'>Laboratory</span>
                 </button>
 
                 <button
@@ -106,7 +106,7 @@ export default function NavBar() {
                     }`}
                 >
                     <CircleHelp size={23} />
-                    <span className='text-sm'>FAQ</span>
+                    <span className='text-[11px] min-[360px]:text-sm'>FAQ</span>
                 </button>
 
                 <MoreMenu

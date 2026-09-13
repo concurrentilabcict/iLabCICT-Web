@@ -75,7 +75,7 @@ export default function ComputerAssetCard({
                     : "border-white shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:rounded-3xl"
             }`}
         >
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-2xl primary-bg-color p-4 text-white md:flex md:items-center md:justify-between md:gap-5 md:p-5">
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-2xl primary-bg-color p-4 text-white min-[360px]:gap-4 md:flex md:items-center md:justify-between md:gap-5 md:p-5">
                 <div className="min-w-0">
                     <div className="flex min-w-0 items-center gap-2 md:gap-3">
                         <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/15 md:size-10">
@@ -86,7 +86,7 @@ export default function ComputerAssetCard({
                         </p>
                     </div>
 
-                    <h1 className="mt-4 break-words text-2xl font-bold leading-tight md:mt-5 md:text-3xl">
+                    <h1 className="mt-4 break-all text-xl font-bold leading-tight min-[360px]:text-2xl md:mt-5 md:break-normal md:text-3xl">
                         {computerCode}
                     </h1>
 
@@ -115,7 +115,7 @@ export default function ComputerAssetCard({
 
                 <div className="flex shrink-0 items-end justify-end self-end md:items-center md:self-center">
                     <div
-                        className={`grid size-24 place-items-center rounded-2xl bg-white p-2 sm:size-32 md:size-40 ${
+                        className={`grid size-20 place-items-center rounded-2xl bg-white p-2 min-[360px]:size-24 sm:size-32 md:size-40 ${
                             variant === "bordered" ? "border border-white/30" : "shadow-lg shadow-black/15"
                         }`}
                     >
