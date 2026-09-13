@@ -4,6 +4,7 @@ import { Upload } from "lucide-react";
 
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { appToast } from "@/utils/appToast";
+import { getCsvCell, normalizeCsvHeader, parseCsv } from "@/utils/csv";
 
 type ComputerCsvImportProps = {
     roomId: number | null;
@@ -27,57 +28,6 @@ type ComputerImportPayload = {
     computer_status: string;
     quantity: number;
 };
-
-const normalizeHeader = (header: string) =>
-    header.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-
-const parseCsv = (csv: string) => {
-    const rows: string[][] = [];
-    let row: string[] = [];
-    let cell = "";
-    let quoted = false;
-
-    for (let index = 0; index < csv.length; index += 1) {
-        const character = csv[index];
-        const nextCharacter = csv[index + 1];
-
-        if (character === '"' && quoted && nextCharacter === '"') {
-            cell += '"';
-            index += 1;
-        } else if (character === '"') {
-            quoted = !quoted;
-        } else if (character === "," && !quoted) {
-            row.push(cell.trim());
-            cell = "";
-        } else if ((character === "\n" || character === "\r") && !quoted) {
-            if (character === "\r" && nextCharacter === "\n") {
-                index += 1;
-            }
-
-            row.push(cell.trim());
-            if (row.some(Boolean)) {
-                rows.push(row);
-            }
-            row = [];
-            cell = "";
-        } else {
-            cell += character;
-        }
-    }
-
-    row.push(cell.trim());
-    if (row.some(Boolean)) {
-        rows.push(row);
-    }
-
-    return rows;
-};
-
-const getCell = (
-    row: string[],
-    headerIndexes: Map<string, number>,
-    header: string
-) => row[headerIndexes.get(normalizeHeader(header)) ?? -1] ?? "";
 
 const hasApiStatus = (error: unknown): error is Error & { status: number } =>
     error instanceof Error &&
@@ -105,10 +55,10 @@ const createPayload = (
     headerIndexes: Map<string, number>,
     roomId: number
 ): ComputerImportPayload => {
-    const ramSize = Number(getCell(row, headerIndexes, "RAM Installed (GB)"));
-    const diskSize = Number(getCell(row, headerIndexes, "Disk Installed (GB)"));
-    const cpu = getCell(row, headerIndexes, "CPU");
-    const operatingSystem = getCell(row, headerIndexes, "Operating System");
+    const ramSize = Number(getCsvCell(row, headerIndexes, "RAM Installed (GB)"));
+    const diskSize = Number(getCsvCell(row, headerIndexes, "Disk Installed (GB)"));
+    const cpu = getCsvCell(row, headerIndexes, "CPU");
+    const operatingSystem = getCsvCell(row, headerIndexes, "Operating System");
 
     if (!cpu || !operatingSystem || !Number.isFinite(ramSize) || !Number.isFinite(diskSize)) {
         throw new Error("CSV rows require CPU, Operating System, RAM, and Disk values.");
@@ -117,17 +67,17 @@ const createPayload = (
     return {
         room: roomId,
         cpu,
-        gpu: getCell(row, headerIndexes, "GPU"),
-        motherboard: getCell(row, headerIndexes, "Motherboard"),
+        gpu: getCsvCell(row, headerIndexes, "GPU"),
+        motherboard: getCsvCell(row, headerIndexes, "Motherboard"),
         ram_size_installed: ramSize,
         disk_size_installed: diskSize,
         operating_system: operatingSystem,
-        build_version: getCell(row, headerIndexes, "Build Version"),
-        computer_status: getCell(row, headerIndexes, "Computer Status") || "active",
-        monitor_status: getCell(row, headerIndexes, "Monitor Status") || "active",
-        mouse_status: getCell(row, headerIndexes, "Mouse Status") || "active",
-        keyboard_status: getCell(row, headerIndexes, "Keyboard Status") || "active",
-        ups_status: getCell(row, headerIndexes, "UPS Status") || "active",
+        build_version: getCsvCell(row, headerIndexes, "Build Version"),
+        computer_status: getCsvCell(row, headerIndexes, "Computer Status") || "active",
+        monitor_status: getCsvCell(row, headerIndexes, "Monitor Status") || "active",
+        mouse_status: getCsvCell(row, headerIndexes, "Mouse Status") || "active",
+        keyboard_status: getCsvCell(row, headerIndexes, "Keyboard Status") || "active",
+        ups_status: getCsvCell(row, headerIndexes, "UPS Status") || "active",
         quantity: 1,
     };
 };
@@ -153,7 +103,7 @@ export default function ComputerCsvImport({
             }
 
             const headerIndexes = new Map(
-                headers.map((header, index) => [normalizeHeader(header), index])
+                headers.map((header, index) => [normalizeCsvHeader(header), index])
             );
             const requiredHeaders = [
                 "CPU",
@@ -162,7 +112,7 @@ export default function ComputerCsvImport({
                 "Disk Installed (GB)",
             ];
 
-            if (requiredHeaders.some((header) => !headerIndexes.has(normalizeHeader(header)))) {
+            if (requiredHeaders.some((header) => !headerIndexes.has(normalizeCsvHeader(header)))) {
                 throw new Error(
                     `The CSV file must include: ${requiredHeaders.join(", ")}.`
                 );

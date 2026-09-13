@@ -1,6 +1,7 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import type { EditRoomFormType, Room } from "@/types/room"
-import { Download, Upload, Plus } from "lucide-react"
+import { Download, Plus } from "lucide-react"
+import RoomCsvImport from "./RoomCsvImport/RoomCsvImport"
 
 type ButtonGroupType = {
     rooms: Room[]
@@ -56,6 +57,8 @@ export default function ButtonGroup({
             "Floor Number",
             "Building Name",
             "Assigned Custodian",
+            "Assigned Custodian ID",
+            "Assigned Technician ID",
             "Computer Count",
             "Active Issues",
             "Status",
@@ -72,6 +75,8 @@ export default function ButtonGroup({
                 room.assignedCustodian?.lastName,
                 room.assignedCustodian?.firstName
             ),
+            room.assignedCustodian?.id ?? "",
+            room.assignedTechnician?.id ?? "",
             room.computerCount,
             room.activeIssuesCount,
             room.status,
@@ -126,13 +131,10 @@ export default function ButtonGroup({
                         <span className={isMobile ? 'hidden' : ''} >Export</span>
                     </button>
 
-	                    <button
-	                        type="button"
-	                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color hover:bg-gray-50"
-	                    >
-                        <Upload size={16}/>
-                        <span className={isMobile ? 'hidden' : ''}>Import</span>
-                    </button>
+                    <RoomCsvImport
+                        showLabel={!isMobile}
+                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color hover:cursor-pointer hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    />
                     
                 </div>
 
