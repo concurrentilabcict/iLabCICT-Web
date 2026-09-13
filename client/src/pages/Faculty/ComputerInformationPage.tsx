@@ -30,10 +30,10 @@ export default function FacultyComputerInformationPage(){
         <>
             <SidebarProvider>
                 {isMobile ? <NavBar/> : <Sidebar/>}
-                    <SidebarInset>
-                         <div className="min-h-screen bg-[#f8fafc]">
+                    <SidebarInset className="min-w-0 max-w-full">
+                         <div className="min-h-screen w-full min-w-0 max-w-full bg-[#f8fafc]">
 	                            {isMobile ? <MobileHeader title={pcCode}/> : <Header title={pcCode}/>}
-	                            <div className="mx-auto max-w-[1000px]">
+	                            <div className="mx-auto w-full min-w-0 max-w-[1000px]">
 	                                <ComputerInformation
 	                                    sheetOpen={sheetOpen}
 	                                    setSheetOpen={setSheetOpen}

@@ -99,7 +99,7 @@ export default function MaintenanceHistoryCard({
     return(
         <>
               <div className="self-start bg-white flex flex-col gap-y-2.5 border primary-border-color
-	                h-[430px] min-h-0 rounded-3xl border border-white p-4 w-full max-w-[600px] md:max-w-[550px] shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+	                h-[430px] min-h-0 min-w-0 rounded-3xl border border-white p-4 w-full max-w-[600px] md:max-w-[550px] shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                     
                     <div className="flex justify-between items-center mb-1.5">
                         <div className="flex gap-2 items-center">
@@ -146,7 +146,7 @@ export default function MaintenanceHistoryCard({
 
                                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                                     <div className="flex min-w-0 flex-wrap items-center gap-2">
-                                        <span className="font-semibold text-sm">{mh.maintenanceHistoryCode}</span>
+                                        <span className="min-w-0 break-all font-semibold text-sm">{mh.maintenanceHistoryCode}</span>
                                         <span className={`font-medium ${typeData.className} text-xs px-1.5 py-1 rounded-md`}>{formatLabel(mh.maintenanceType)}</span>
                                     </div>
                                     

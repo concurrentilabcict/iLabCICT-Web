@@ -69,7 +69,7 @@ export default function ComputerAssetCard({
 
     return (
         <section
-            className={`w-full rounded-2xl border bg-white p-3 md:p-4 ${
+            className={`w-full min-w-0 max-w-full rounded-2xl border bg-white p-3 md:p-4 ${
                 variant === "bordered"
                     ? "border-gray-200"
                     : "border-white shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:rounded-3xl"
@@ -91,13 +91,13 @@ export default function ComputerAssetCard({
                     </h1>
 
                     <div className="mt-4 grid gap-2 text-sm font-semibold text-white/90 sm:grid-cols-3 md:mt-5 md:grid-cols-1 md:gap-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex min-w-0 items-center gap-2">
                             <MapPin className="size-4 text-white/70" />
-                            <span>{buildingName}</span>
+                            <span className="min-w-0 break-words">{buildingName}</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex min-w-0 items-center gap-2">
                             <Building2 className="size-4 text-white/70" />
-                            <span>{roomName}</span>
+                            <span className="min-w-0 break-words">{roomName}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <Layers3 className="size-4 text-white/70" />

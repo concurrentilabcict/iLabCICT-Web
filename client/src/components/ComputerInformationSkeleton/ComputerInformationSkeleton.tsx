@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ComputerInformationSkeleton() {
     return (
-        <div className="space-y-3">
+        <div className="min-w-0 max-w-full space-y-3">
             <div className="rounded-3xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]"><Skeleton className="h-[240px] w-full rounded-2xl" /></div>
             <div className="grid items-start gap-3 sm:grid-cols-2">
                 <div className="space-y-3 rounded-3xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">

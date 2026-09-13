@@ -169,14 +169,14 @@ export default function ComputerInformation({
     return(
         <>
         
-        <div className={`w-full px-3 py-3 ${isMobile ? 'mb-20' : ''}`}>
+        <div className={`w-full min-w-0 max-w-full px-3 py-3 ${isMobile ? 'mb-20' : ''}`}>
 
             {isLoading && (
                 <ComputerInformationSkeleton />
             )}
             
             {!isLoading && computer && (
-                <div className="space-y-3">
+                <div className="min-w-0 max-w-full space-y-3">
                     <ComputerAssetCard
                         computerCode={computer.computerCode}
                         buildingName={formatLabel(computer.room.buildingName)}
@@ -185,7 +185,7 @@ export default function ComputerInformation({
                         status={formatLabel(computer.computerStatus) as Status}
                     />
 
-                    <div className="grid items-start gap-3 sm:grid-cols-2">
+                    <div className="grid min-w-0 grid-cols-1 items-start gap-3 sm:grid-cols-2">
                         <SystemDetailsCard 
                             cpu={computer.cpu}
                             gpu={computer.gpu}
@@ -199,7 +199,7 @@ export default function ComputerInformation({
                             status={formatLabel(computer.computerStatus) as Status}
                         />
 
-                        <div className="flex flex-col gap-3">
+                        <div className="flex min-w-0 max-w-full flex-col gap-3">
                             <MaintenanceHistoryCard
                                 setMaintenanceHistory={setMaintenanceHistory}
                                 openSheet={handleSheetOpenChange}

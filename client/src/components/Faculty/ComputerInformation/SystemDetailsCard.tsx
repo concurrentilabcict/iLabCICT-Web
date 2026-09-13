@@ -33,8 +33,8 @@ export default function SystemDetailsCard({
 
     return(
             <>
-                <div className="w-full max-w-[600px] rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:max-w-[550px]">
-                    <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-4">
+                <div className="w-full min-w-0 max-w-[600px] rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:max-w-[550px]">
+                    <div className="flex min-w-0 items-center justify-between gap-3 border-b border-gray-100 pb-4">
                         <div className="flex min-w-0 items-center gap-3">
                             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
                                 <Cpu size={18}/>
@@ -44,7 +44,7 @@ export default function SystemDetailsCard({
                                 <p className="truncate text-sm font-medium text-zinc-500">Hardware and operating system</p>
                             </div>
                         </div>
-                        <span className={`flex w-fit shrink-0 items-center rounded-full px-3 py-1.5 text-sm font-semibold ${statusData?.className}`}>{status}</span>
+                        <span className={`flex max-w-[45%] shrink-0 items-center break-words rounded-full px-3 py-1.5 text-center text-sm font-semibold ${statusData?.className}`}>{status}</span>
                     </div>
 
                     <div className="mt-4 space-y-4">

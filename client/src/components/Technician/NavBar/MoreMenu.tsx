@@ -18,9 +18,10 @@ import { useAuth } from "@/auth/useAuth";
 type MoreMenuProps = {
     isActive?: boolean;
     showWeeklyReport?: boolean;
+    compactLabel?: boolean;
 };
 
-export default function MoreMenu({ isActive, showWeeklyReport = true }: MoreMenuProps) {
+export default function MoreMenu({ isActive, showWeeklyReport = true, compactLabel = false }: MoreMenuProps) {
 
     const navigate = useNavigate();
     const { logout } = useAuth();
@@ -30,11 +31,11 @@ export default function MoreMenu({ isActive, showWeeklyReport = true }: MoreMenu
             <DropdownMenuTrigger asChild>
                 <button
                     type="button"
-                    className={`relative z-10 flex h-16 w-full min-w-0 max-w-full cursor-pointer flex-col items-center justify-end gap-y-1 rounded-2xl px-0.5 text-center outline-none transition min-[360px]:px-1
+                    className={`relative z-10 flex h-16 w-full min-w-0 max-w-full cursor-pointer flex-col items-center justify-end gap-y-1 rounded-2xl px-0.5 text-center outline-none transition min-[360px]:px-1 ${compactLabel ? "text-[11px] min-[360px]:text-xs" : "text-sm"}
                     ${isActive ? "primary-text-color" : "secondary-text-color"}`}
                 >
                     <CircleEllipsis size={23} />
-                    <span className="text-[11px] min-[360px]:text-sm">More</span>
+                    <span>More</span>
                 </button>
             </DropdownMenuTrigger>
 

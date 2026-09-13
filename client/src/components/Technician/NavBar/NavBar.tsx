@@ -47,11 +47,11 @@ export default function NavBar() {
     if (isTyping) return null;
 
     const navBarClass =
-        "fixed inset-x-0 bottom-0 z-10 w-full min-w-0 bg-white border-t border-t-[#e5e5e5] pb-[env(safe-area-inset-bottom)]";
+        "fixed inset-x-0 bottom-0 z-40 box-border w-dvw max-w-[100dvw] min-w-0 border-t border-t-[#e5e5e5] bg-white pb-[env(safe-area-inset-bottom)]";
     const navContentClass =
-        "relative mx-auto grid h-20 w-full min-w-0 max-w-[430px] grid-cols-5 items-end bg-white px-1 pb-3 min-[360px]:px-2";
+        "relative mx-auto grid h-20 w-full min-w-0 max-w-[430px] grid-cols-[repeat(5,minmax(0,1fr))] items-end bg-white px-1 pb-3 min-[360px]:px-2";
     const navButtonClass =
-        "relative z-10 flex h-16 w-full min-w-0 max-w-full cursor-pointer flex-col items-center justify-end gap-y-1 rounded-2xl px-0.5 text-center transition min-[360px]:px-1";
+        "relative z-10 flex h-16 w-full min-w-0 max-w-full cursor-pointer flex-col items-center justify-end gap-y-1 rounded-2xl px-0.5 text-center text-[11px] transition min-[360px]:px-1 min-[360px]:text-xs";
     const inactiveNavClass = "secondary-text-color hover:text-gray-700";
     const activeNavClass = "primary-text-color";
     const qrButtonClass =
@@ -71,7 +71,7 @@ export default function NavBar() {
                     }`}
                 >
                     <ScrollText size={23} />
-                    <span className='text-[11px] min-[360px]:text-sm'>Tickets</span>
+                    <span>Tickets</span>
                 </button>
 
                 <button
@@ -84,7 +84,7 @@ export default function NavBar() {
                     }`}
                 >
                     <Monitor size={23} />
-                    <span className='whitespace-nowrap text-[11px] min-[360px]:text-sm'>Laboratory</span>
+                    <span className="max-w-full whitespace-nowrap">Laboratory</span>
                 </button>
 
                 <button
@@ -106,12 +106,13 @@ export default function NavBar() {
                     }`}
                 >
                     <CircleHelp size={23} />
-                    <span className='text-[11px] min-[360px]:text-sm'>FAQ</span>
+                    <span>FAQ</span>
                 </button>
 
                 <MoreMenu
                     isActive={pathname === "/notifications"}
                     showWeeklyReport={false}
+                    compactLabel
                 />
                 </div>
             </nav>
