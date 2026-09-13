@@ -1,8 +1,8 @@
-import { useRef, useState, type ChangeEvent } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useRef, type ChangeEvent } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 
-import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { appToast } from "@/utils/appToast";
 
 type ComputerCsvImportProps = {
@@ -79,6 +79,27 @@ const getCell = (
     header: string
 ) => row[headerIndexes.get(normalizeHeader(header)) ?? -1] ?? "";
 
+const hasApiStatus = (error: unknown): error is Error & { status: number } =>
+    error instanceof Error &&
+    "status" in error &&
+    typeof error.status === "number";
+
+const getResponseMessage = (value: unknown) => {
+    if (typeof value !== "object" || value === null) {
+        return null;
+    }
+
+    if ("detail" in value && typeof value.detail === "string") {
+        return value.detail;
+    }
+
+    if ("message" in value && typeof value.message === "string") {
+        return value.message;
+    }
+
+    return null;
+};
+
 const createPayload = (
     row: string[],
     headerIndexes: Map<string, number>,
@@ -118,19 +139,12 @@ export default function ComputerCsvImport({
 }: ComputerCsvImportProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const queryClient = useQueryClient();
-    const [isImporting, setIsImporting] = useState(false);
+    const importMutation = useMutation({
+        mutationFn: async (file: File) => {
+            if (roomId === null) {
+                throw new Error("The laboratory could not be resolved.");
+            }
 
-    const importFile = async (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        event.target.value = "";
-
-        if (!file || roomId === null) {
-            return;
-        }
-
-        setIsImporting(true);
-
-        try {
             const rows = parseCsv(await file.text());
             const [headers, ...dataRows] = rows;
 
@@ -141,6 +155,19 @@ export default function ComputerCsvImport({
             const headerIndexes = new Map(
                 headers.map((header, index) => [normalizeHeader(header), index])
             );
+            const requiredHeaders = [
+                "CPU",
+                "Operating System",
+                "RAM Installed (GB)",
+                "Disk Installed (GB)",
+            ];
+
+            if (requiredHeaders.some((header) => !headerIndexes.has(normalizeHeader(header)))) {
+                throw new Error(
+                    `The CSV file must include: ${requiredHeaders.join(", ")}.`
+                );
+            }
+
             const payloads = dataRows.map((row) =>
                 createPayload(row, headerIndexes, roomId)
             );
@@ -150,14 +177,37 @@ export default function ComputerCsvImport({
                     method: "POST",
                     body: JSON.stringify(payload),
                 });
-                const responseData = await response.json() as { detail?: string; message?: string };
+                const responseData: unknown = await response.json().catch(() => null);
 
                 if (!response.ok) {
                     throw createApiError(
                         response.status,
-                        responseData.detail ?? responseData.message ?? "Failed to import computers."
+                        getResponseMessage(responseData) ?? "Failed to import computers."
                     );
                 }
+            }
+
+            return payloads.length;
+        },
+        onSuccess: (importedCount) => {
+            appToast.success(
+                `${importedCount} ${importedCount === 1 ? "computer" : "computers"} imported successfully.`
+            );
+        },
+        onError: (error) => {
+            const message = error instanceof Error
+                ? error.message
+                : "We couldn't import the computers. Please try again.";
+
+            if (hasApiStatus(error) && error.status === 400) {
+                appToast.warning(message);
+            } else {
+                appToast.error(message);
+            }
+        },
+        onSettled: async () => {
+            if (roomId === null) {
+                return;
             }
 
             await Promise.all([
@@ -166,20 +216,15 @@ export default function ComputerCsvImport({
                 queryClient.invalidateQueries({ queryKey: ["computers", String(roomId)] }),
                 queryClient.invalidateQueries({ queryKey: ["rooms"] }),
             ]);
-            appToast.success(`${payloads.length} ${payloads.length === 1 ? "computer" : "computers"} imported successfully.`);
-        } catch (error) {
-            const message = error instanceof Error
-                ? error.message
-                : "We couldn't import the computers. Please try again.";
-            const apiError = error as ApiError;
+        },
+    });
 
-            if (apiError.status === 400) {
-                appToast.warning(message);
-            } else {
-                appToast.error(message);
-            }
-        } finally {
-            setIsImporting(false);
+    const importFile = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+
+        if (file) {
+            importMutation.mutate(file);
         }
     };
 
@@ -188,11 +233,11 @@ export default function ComputerCsvImport({
             <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
-                disabled={roomId === null || isImporting}
+                disabled={roomId === null || importMutation.isPending}
                 className={className}
             >
                 <Upload size={16} />
-                {showLabel && <span>{isImporting ? "Importing..." : "Import"}</span>}
+                {showLabel && <span>{importMutation.isPending ? "Importing..." : "Import"}</span>}
             </button>
             <input
                 ref={inputRef}
