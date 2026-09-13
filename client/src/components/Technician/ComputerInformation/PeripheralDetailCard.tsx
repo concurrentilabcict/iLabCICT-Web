@@ -29,7 +29,7 @@ export default function PeripheralDetailCard({
 
     return(
                 <>
-                <div className="w-full max-w-[600px] shrink-0 rounded-3xl border border-white bg-white p-3.5 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:max-w-[550px]">
+                <div className="w-full min-w-0 max-w-[600px] shrink-0 rounded-3xl border border-white bg-white p-3.5 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:max-w-[550px]">
                     <div className="flex items-center gap-3">
                         <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
                             <Cable size={18}/>
@@ -40,7 +40,7 @@ export default function PeripheralDetailCard({
                         </div>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div className="mt-3 grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
                         {items.map(({ label, status, data, icon: Icon }) => (
                             <div key={label} className="flex min-w-0 items-center gap-2 rounded-2xl bg-zinc-50 p-2.5">
                                 <span className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-400">
@@ -48,7 +48,7 @@ export default function PeripheralDetailCard({
                                 </span>
                                 <div className="min-w-0">
                                     <p className="text-[0.65rem] font-bold uppercase tracking-[0.12em] text-zinc-400">{label}</p>
-                                    <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${data?.className}`}>{status}</span>
+                                    <span className={`mt-1 inline-flex max-w-full break-words rounded-full px-2 py-0.5 text-sm font-semibold ${data?.className}`}>{status}</span>
                                 </div>
                             </div>
                         ))}

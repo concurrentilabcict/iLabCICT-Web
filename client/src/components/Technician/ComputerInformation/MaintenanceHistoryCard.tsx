@@ -98,7 +98,7 @@ export default function MaintenanceHistoryCard({
 
     return(
         <>
-              <div className="flex h-[430px] min-h-0 w-full max-w-[600px] flex-col gap-y-2.5 rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:max-w-[550px]">
+              <div className="flex h-[430px] min-h-0 min-w-0 w-full max-w-[600px] flex-col gap-y-2.5 rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:max-w-[550px]">
                     
                     <div className="flex justify-between items-center mb-1.5">
                         <div className="flex gap-2 items-center">
@@ -136,7 +136,7 @@ export default function MaintenanceHistoryCard({
                                 setMaintenanceHistory(mh)
                                 openSheet(true)
                             }}
-                            className="flex gap-2 items-start hover:cursor-pointer">
+                            className="flex min-w-0 gap-2 items-start hover:cursor-pointer">
                             
                                 <div className={`shrink-0 ${typeData.className} p-1.5 pt-1 rounded-md`}>
                                     <TypeIcon
@@ -144,14 +144,14 @@ export default function MaintenanceHistoryCard({
                                     />
                                 </div>
 
-                                <div className="flex flex-col gap-0.5">
-                                    <div className="flex gap-2 items-center">
-                                        <span className="font-semibold text-sm">{mh.maintenanceHistoryCode}</span>
+                                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                                    <div className="flex min-w-0 flex-wrap gap-2 items-center">
+                                        <span className="min-w-0 break-all font-semibold text-sm">{mh.maintenanceHistoryCode}</span>
                                         <span className={`font-medium ${typeData.className} text-xs px-1.5 py-1 rounded-md`}>{formatLabel(mh.maintenanceType)}</span>
                                     </div>
                                     
-                                    <div className="flex gap-1 items-center">
-                                        <span className="secondary-text-color text-xs">{maintenanceTitle}</span>
+                                    <div className="flex min-w-0 flex-wrap gap-1 items-center">
+                                        <span className="break-words secondary-text-color text-xs">{maintenanceTitle}</span>
                                         <span className="secondary-text-color text-xs">-</span>
                                         <span className="secondary-text-color text-xs">{maintenanceStatus}</span>
                                     </div>

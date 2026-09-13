@@ -16,14 +16,7 @@ import {
     SheetContent,
 } from "@/components/ui/sheet";
 
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
+import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 
 import TicketDetails from "./TicketDetails";
 
@@ -507,32 +500,12 @@ export default function ManageTicket({
 
             <div className={`px-3 ${isMobile ? "mb-23" : "mb-10"}`}>
                 {totalPages > 1 && (
-                    <Pagination className={`flex ${isMobile ? "justify-center" : "justify-end"}`}>
-                        <PaginationContent>
-                            <PaginationItem>
-                                <PaginationPrevious
-                                    onClick={() => goToPage(currentPage - 1)}
-                                />
-                            </PaginationItem>
-
-                            {Array.from({ length: totalPages }, (_, i) => (
-                                <PaginationItem key={i + 1}>
-                                    <PaginationLink
-                                        isActive={currentPage === i + 1}
-                                        onClick={() => goToPage(i + 1)}
-                                    >
-                                        {i + 1}
-                                    </PaginationLink>
-                                </PaginationItem>
-                            ))}
-
-                            <PaginationItem>
-                                <PaginationNext
-                                    onClick={() => goToPage(currentPage + 1)}
-                                />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
+                    <ResponsivePagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={goToPage}
+                        className={isMobile ? "justify-center" : "justify-end"}
+                    />
                 )}
             </div>
 

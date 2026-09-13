@@ -24,9 +24,9 @@ export default function ManageTicketPage() {
     <SidebarProvider>
       {isMobile ? <NavBar /> : <Sidebar />}
       <SidebarInset>
-        <div className="min-h-screen bg-[#f8fafc]">
+        <div className="min-h-screen w-full min-w-0 bg-[#f8fafc]">
           {isMobile ? <MobileHeader title="Manage Tickets" /> : <Header title="Manage Tickets" />}
-          <div className="mx-auto max-w-[1000px]">
+          <div className="mx-auto w-full min-w-0 max-w-[1000px]">
             <Filter selectedStatus={statusFilter} onStatusChange={setStatusFilter} />
             <SearchFilter
               searchQuery={searchQuery}

@@ -8,24 +8,22 @@ import type {
     ComputerCardType
 } from "@/types/computer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
+import {
+    buildApiUrl,
+    buildWebSocketUrl,
+    createApiError,
+    getFreshAccessToken,
+    privateFetch,
+} from "@/lib/api";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getPaginationWindow } from "@/utils/pagination";
+import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 
 import {
     Sheet,
     SheetContent,
 } from "@/components/ui/sheet";
 
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
 import AddComputerForm from "./AddComputerForm";
 import EditComputerForm from "./EditComputerForm";
 type ComputerListProps = {
@@ -58,7 +56,6 @@ type RoomComputersWebSocketEvent =
     };
 
 const ROOM_COMPUTERS_QUERY_KEY = "technician-room-computers";
-const ROOM_COMPUTERS_READY_QUERY_KEY = "technician-room-computers-ready";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null;
@@ -114,20 +111,6 @@ export default function ComputerList({
         () => [ROOM_COMPUTERS_QUERY_KEY, roomId] as const,
         [roomId]
     );
-    const readyQueryKey = useMemo(
-        () => [ROOM_COMPUTERS_READY_QUERY_KEY, roomId] as const,
-        [roomId]
-    );
-    const cachedComputersAreReady =
-        queryClient.getQueryData<boolean>(readyQueryKey) === true;
-    const [computerReadiness, setComputerReadiness] = useState({
-        roomId,
-        isReady: cachedComputersAreReady
-    });
-    const hasInitialComputers =
-        computerReadiness.roomId === roomId
-            ? computerReadiness.isReady
-            : cachedComputersAreReady;
     const [roomDatabaseId, setRoomDatabaseId] = useState<number | null>(null);
 
     const ITEMS_PER_PAGE = 10;
@@ -183,19 +166,41 @@ export default function ComputerList({
         );
     }, []);
 
-    const { data: computers = [], isPending } = useQuery<ComputerCardType[]>({
+    const { data: computers = [], isLoading, isError } = useQuery<ComputerCardType[]>({
         queryKey,
-        queryFn: () =>
-            Promise.resolve(
-                queryClient.getQueryData<ComputerCardType[]>(queryKey) ?? []
-            ),
-        initialData: () =>
-            queryClient.getQueryData<ComputerCardType[]>(queryKey) ?? [],
-        retry: false,
-        staleTime: Infinity,
-        gcTime: Infinity,
+        queryFn: async () => {
+            const response = await privateFetch(
+                buildApiUrl(`/api/rooms/${encodeURIComponent(roomId)}/computers/`)
+            );
+            const data = (await response.json()) as ApiRoomComputers & { message?: string };
+
+            if (!response.ok) {
+                throw createApiError(
+                    response.status,
+                    data.message || "Failed to fetch computers."
+                );
+            }
+
+            const custodian = data.assigned_custodian
+                ? `${data.assigned_custodian.first_name} ${data.assigned_custodian.last_name}`
+                : "No custodian";
+            const technician = data.assigned_technician
+                ? `${data.assigned_technician.first_name} ${data.assigned_technician.last_name}`
+                : "No Assigned";
+
+            setRoomName(data.room_name);
+            setCustodian(custodian);
+            setRoomMeta({
+                buildingName: data.building_name,
+                floorNumber: data.floor_number,
+                technicianName: technician,
+            });
+            setRoomDatabaseId(data.id);
+            setRequestHistoryRoomId(data.id);
+
+            return data.computers.map(mapComputerCard);
+        },
     });
-    const isLoading = isPending || !hasInitialComputers;
 
     useEffect(() => {
         setComputers(computers);
@@ -203,10 +208,13 @@ export default function ComputerList({
 
     useEffect(() => {
         let socket: WebSocket | null = null;
-        const connectSocket = window.setTimeout(async () => {
+        let reconnectTimer: number | undefined;
+        let shouldReconnect = true;
+
+        const connectSocket = async () => {
             const accessToken = await getFreshAccessToken();
 
-            if (!accessToken || !roomId) {
+            if (!accessToken || !roomId || !shouldReconnect) {
                 return;
             }
 
@@ -250,8 +258,6 @@ export default function ComputerList({
                     });
                     setRoomDatabaseId(roomComputers.id);
                     setRequestHistoryRoomId(roomComputers.id);
-                    setComputerReadiness({ roomId, isReady: true });
-                    queryClient.setQueryData(readyQueryKey, true);
                     queryClient.setQueryData<ComputerCardType[]>(
                         queryKey,
                         mappedComputers
@@ -273,17 +279,31 @@ export default function ComputerList({
                         )
                 );
             });
-        }, 0);
+
+            socket.addEventListener("close", () => {
+                if (shouldReconnect) {
+                    reconnectTimer = window.setTimeout(connectSocket, 1_500);
+                }
+            });
+        };
+
+        const connectTimer = window.setTimeout(connectSocket, 0);
 
         return () => {
-            window.clearTimeout(connectSocket);
+            shouldReconnect = false;
+            window.clearTimeout(connectTimer);
+
+            if (reconnectTimer !== undefined) {
+                window.clearTimeout(reconnectTimer);
+            }
+
             socket?.close();
 
             if (computerSocketRef.current === socket) {
                 computerSocketRef.current = null;
             }
         };
-    }, [queryClient, queryKey, readyQueryKey, roomId, setCustodian, setComputers, setRequestHistoryRoomId, setRoomMeta, setRoomName, upsertComputer]);
+    }, [queryClient, queryKey, roomId, setCustodian, setComputers, setRequestHistoryRoomId, setRoomMeta, setRoomName, upsertComputer]);
 
     const filteredComputers = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLowerCase()
@@ -324,8 +344,6 @@ export default function ComputerList({
     const currentPage = pagination.filterKey === filterKey
         ?Math.min(pagination.page, maxPage)
         : 1;
-    const visiblePages = getPaginationWindow(currentPage, totalPages);
-
     const goToPage = (page: number) => {
         setPagination({
             page: Math.min(Math.max(page, 1), maxPage),
@@ -348,9 +366,15 @@ export default function ComputerList({
                     <ComputerListSkeleton />
                 )}
 
-                {!isLoading && paginatedComputers.length === 0 && (
+                {!isLoading && !isError && paginatedComputers.length === 0 && (
                     <p className="col-span-full py-8 text-center secondary-text-color">
                         No Computers found.
+                    </p>
+                )}
+
+                {isError && (
+                    <p className="col-span-full py-8 text-center text-red-600">
+                        Failed to load computers.
                     </p>
                 )}
 
@@ -373,32 +397,12 @@ export default function ComputerList({
 
             <div className={`px-3 ${isMobile ? "mb-23" : "mb-10"}`}>
                 {totalPages > 1 && (
-                    <Pagination className={`flex ${isMobile ? "justify-center" : "justify-end"}`}>
-                        <PaginationContent>
-                            <PaginationItem>
-                                <PaginationPrevious
-                                    onClick={() => goToPage(currentPage - 1)}
-                                />
-                            </PaginationItem>
-
-                            {visiblePages.map((pageNumber) => (
-                                <PaginationItem key={pageNumber}>
-                                    <PaginationLink
-                                        isActive={currentPage === pageNumber}
-                                        onClick={() => goToPage(pageNumber)}
-                                    >
-                                        {pageNumber}
-                                    </PaginationLink>
-                                </PaginationItem>
-                            ))}
-
-                            <PaginationItem>
-                                <PaginationNext
-                                    onClick={() => goToPage(currentPage + 1)}
-                                />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
+                    <ResponsivePagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={goToPage}
+                        className={isMobile ? "justify-center" : "justify-end"}
+                    />
                 )}
             </div>
 

@@ -1,20 +1,18 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
+import {
+    buildApiUrl,
+    buildWebSocketUrl,
+    createApiError,
+    getFreshAccessToken,
+    privateFetch,
+} from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ApiRoom, Room } from "@/types/room";
 import RoomCard from "./RoomCard";
 import LaboratorySkeleton from "@/components/LaboratorySkeleton/LaboratorySkeleton";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Status, StatusFilter, Floor, FloorFilter } from "@/utils/room";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
-import { getPaginationWindow } from "@/utils/pagination";
+import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 
 type LaboratoryProps = {
     statusFilter: StatusFilter,
@@ -35,7 +33,6 @@ type RoomsWebSocketEvent =
     };
 
 const ROOMS_QUERY_KEY = ["technician-rooms"] as const;
-const ROOMS_READY_QUERY_KEY = ["technician-rooms-ready"] as const;
 const ROOMS_WS_ENDPOINT = "/ws/rooms/";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -129,35 +126,38 @@ export default function Laboratory({
     const isMobile = useMediaQuery("(max-width: 767px)");
     const queryClient = useQueryClient();
     const roomSocketRef = useRef<WebSocket | null>(null);
-    const cachedRoomsAreReady =
-        queryClient.getQueryData<boolean>(ROOMS_READY_QUERY_KEY) === true;
-    const [hasInitialRooms, setHasInitialRooms] = useState(cachedRoomsAreReady);
     const filterKey = JSON.stringify([statusFilter, floorFilter, searchQuery]);
     const [pagination, setPagination] = useState({
         page: 1,
         filterKey
     });
 
-    const { data: rooms = [], isPending } = useQuery<Room[]>({
+    const { data: rooms = [], isLoading, isError } = useQuery<Room[]>({
         queryKey: ROOMS_QUERY_KEY,
-        queryFn: () =>
-            Promise.resolve(
-                queryClient.getQueryData<Room[]>(ROOMS_QUERY_KEY) ?? []
-            ),
-        initialData: () =>
-            queryClient.getQueryData<Room[]>(ROOMS_QUERY_KEY) ?? [],
-        retry: false,
-        staleTime: Infinity,
-        gcTime: Infinity,
+        queryFn: async () => {
+            const response = await privateFetch(buildApiUrl("/api/rooms/"));
+            const data = (await response.json()) as ApiRoom[] | { message?: string };
+
+            if (!response.ok) {
+                const message = Array.isArray(data)
+                    ? "Failed to fetch rooms."
+                    : data.message || "Failed to fetch rooms.";
+                throw createApiError(response.status, message);
+            }
+
+            return (data as ApiRoom[]).map(mapRoom);
+        },
     });
-    const isLoading = isPending || !hasInitialRooms;
 
     useEffect(() => {
         let socket: WebSocket | null = null;
-        const connectSocket = window.setTimeout(async () => {
+        let reconnectTimer: number | undefined;
+        let shouldReconnect = true;
+
+        const connectSocket = async () => {
             const accessToken = await getFreshAccessToken();
 
-            if (!accessToken) {
+            if (!accessToken || !shouldReconnect) {
                 return;
             }
 
@@ -182,8 +182,6 @@ export default function Laboratory({
 
                 if (parsedMessage.event === "initial_rooms") {
                     const initialRooms = parsedMessage.room ?? parsedMessage.rooms ?? [];
-                    setHasInitialRooms(true);
-                    queryClient.setQueryData(ROOMS_READY_QUERY_KEY, true);
                     queryClient.setQueryData<Room[]>(
                         ROOMS_QUERY_KEY,
                         initialRooms.map(mapRoom)
@@ -205,10 +203,24 @@ export default function Laboratory({
                     (currentRooms = []) => upsertRoom(currentRooms, parsedMessage.room)
                 );
             });
-        }, 0);
+
+            socket.addEventListener("close", () => {
+                if (shouldReconnect) {
+                    reconnectTimer = window.setTimeout(connectSocket, 1_500);
+                }
+            });
+        };
+
+        const connectTimer = window.setTimeout(connectSocket, 0);
 
         return () => {
-            window.clearTimeout(connectSocket);
+            shouldReconnect = false;
+            window.clearTimeout(connectTimer);
+
+            if (reconnectTimer !== undefined) {
+                window.clearTimeout(reconnectTimer);
+            }
+
             socket?.close();
 
             if (roomSocketRef.current === socket) {
@@ -267,8 +279,6 @@ export default function Laboratory({
     const currentPage = pagination.filterKey === filterKey
         ? Math.min(pagination.page, maxPage)
         : 1;
-    const visiblePages = getPaginationWindow(currentPage, totalPages);
-
     const goToPage = (page: number) => {
         setPagination({
             page: Math.min(Math.max(page, 1), maxPage),
@@ -291,9 +301,15 @@ export default function Laboratory({
                     <LaboratorySkeleton />
                 )}
 
-                {!isLoading && paginatedRooms.length === 0 &&(
+                {!isLoading && !isError && paginatedRooms.length === 0 &&(
                     <p className="col-span-full py-8 text-center secondary-text-color">
                         No rooms found.
+                    </p>
+                )}
+
+                {isError && (
+                    <p className="col-span-full py-8 text-center text-red-600">
+                        Failed to load rooms.
                     </p>
                 )}
 
@@ -324,32 +340,12 @@ export default function Laboratory({
 
              <div className={`px-3 ${isMobile ? "mb-23" : "mb-10"}`}>
                 {totalPages > 1 && (
-                    <Pagination className={`flex ${isMobile ? "justify-center" : "justify-end"}`}>
-                        <PaginationContent>
-                            <PaginationItem>
-                                <PaginationPrevious
-                                    onClick={() => goToPage(currentPage - 1)}
-                                />
-                            </PaginationItem>
-
-                            {visiblePages.map((pageNumber) => (
-                                <PaginationItem key={pageNumber}>
-                                    <PaginationLink
-                                        isActive={currentPage === pageNumber}
-                                        onClick={() => goToPage(pageNumber)}
-                                    >
-                                        {pageNumber}
-                                    </PaginationLink>
-                                </PaginationItem>
-                            ))}
-
-                            <PaginationItem>
-                                <PaginationNext
-                                    onClick={() => goToPage(currentPage + 1)}
-                                />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
+                    <ResponsivePagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={goToPage}
+                        className={isMobile ? "justify-center" : "justify-end"}
+                    />
                 )}
             </div>
         </>

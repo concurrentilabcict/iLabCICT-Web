@@ -57,9 +57,9 @@ export default function FacultyComputerListPage(){
             <SidebarProvider>
                 {isMobile ? <NavBar/> : <Sidebar/>}
                     <SidebarInset>
-                        <div className="min-h-screen bg-[#f8fafc]">
+                        <div className="min-h-screen w-full min-w-0 bg-[#f8fafc]">
                             {isMobile ? <MobileHeader title={roomName}/> : <Header title={roomName}/>}
-                            <div className="mx-auto max-w-[1000px]">
+                            <div className="mx-auto w-full min-w-0 max-w-[1000px]">
                                 <SearchFilter
                                     searchQuery={searchQuery}
                                     onSearchChange={setSearchQuery}
