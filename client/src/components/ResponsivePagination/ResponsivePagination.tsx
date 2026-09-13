@@ -33,7 +33,15 @@ const getMobilePageItems = (
         return [1, "start-ellipsis", totalPages - 2, totalPages - 1, totalPages];
     }
 
-    return [1, "start-ellipsis", currentPage, "end-ellipsis", totalPages];
+    return [
+        1,
+        "start-ellipsis",
+        currentPage - 1,
+        currentPage,
+        currentPage + 1,
+        "end-ellipsis",
+        totalPages,
+    ];
 };
 
 export default function ResponsivePagination({
@@ -57,6 +65,7 @@ export default function ResponsivePagination({
                 href="#"
                 isActive={currentPage === page}
                 aria-label={`Go to page ${page}`}
+                className="size-7 min-[360px]:size-8"
                 onClick={(event) => {
                     event.preventDefault();
                     onPageChange(page);
@@ -73,7 +82,9 @@ export default function ResponsivePagination({
                 href="#"
                 aria-disabled={previousDisabled}
                 tabIndex={previousDisabled ? -1 : undefined}
-                className={previousDisabled ? "pointer-events-none opacity-40" : undefined}
+                className={`size-7 p-0! min-[360px]:size-8 md:h-8 md:w-auto md:pr-2.5! md:pl-1.5! ${
+                    previousDisabled ? "pointer-events-none opacity-40" : ""
+                }`}
                 onClick={(event) => {
                     event.preventDefault();
                     if (!previousDisabled) onPageChange(currentPage - 1);
@@ -88,7 +99,9 @@ export default function ResponsivePagination({
                 href="#"
                 aria-disabled={nextDisabled}
                 tabIndex={nextDisabled ? -1 : undefined}
-                className={nextDisabled ? "pointer-events-none opacity-40" : undefined}
+                className={`size-7 p-0! min-[360px]:size-8 md:h-8 md:w-auto md:pr-1.5! md:pl-2.5! ${
+                    nextDisabled ? "pointer-events-none opacity-40" : ""
+                }`}
                 onClick={(event) => {
                     event.preventDefault();
                     if (!nextDisabled) onPageChange(currentPage + 1);
@@ -106,7 +119,7 @@ export default function ResponsivePagination({
                         pageLink(item)
                     ) : (
                         <PaginationItem key={item}>
-                            <PaginationEllipsis className="size-8" />
+                            <PaginationEllipsis className="size-6 min-[360px]:size-7" />
                         </PaginationItem>
                     )
                 )}
