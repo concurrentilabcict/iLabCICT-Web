@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { type ReactNode } from "react";
 import { useAuth } from "../auth/useAuth";
+import AdminDesktopGuard from "@/components/AdminDesktopGuard/AdminDesktopGuard";
 
 export type AppRole = "admin" | "technician" | "faculty";
 
@@ -18,6 +19,10 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
     if (!allowedRoles.some((allowedRole) => allowedRole === role)) {
         return <Navigate to="/unauthorized" replace />;
+    }
+
+    if (role === "admin") {
+        return <AdminDesktopGuard>{children}</AdminDesktopGuard>;
     }
 
     return children;

@@ -36,6 +36,7 @@ import AdminComputerInformationPage from "./pages/Admin/ComputerInformationPage"
 import AdminComputerListPage from "./pages/Admin/ComputerListPage"
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"
 import ResetPasswordPage from "./pages/ResetPasswordPage"
+import NotFound from "./components/NotFound/NotFound"
 
 const allRoles = ["technician", "admin", "faculty"] as const;
 const adminOnly = ["admin"] as const;
@@ -120,6 +121,7 @@ function App() {
           <FacultyFaqPage /></ProtectedRoute>} />
 
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route path="*" element={<NotFound />} />
 
       </Routes>
     </>
