@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MoreHorizontal } from "lucide-react";
+import { Eye, MoreHorizontal } from "lucide-react";
 
 import UserDetails from "./UserDetails";
 import UserForm from "./UserForm";
@@ -309,6 +309,7 @@ export default function ManageUser() {
                           <DropdownMenuItem
                             onClick={() => handleUserClick(user)}
                           >
+                            <Eye className="size-4" />
                             View User
                           </DropdownMenuItem>
                         </DropdownMenuContent>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal } from "lucide-react";
+import { Eye, MoreHorizontal } from "lucide-react";
 
 import RepairLogDetails from "./RepairLogDetails";
 import LogToolbar from "./LogToolbar";
@@ -426,6 +426,7 @@ export default function RepairLog() {
                           <DropdownMenuItem
                             onClick={() => handleRepairLogClick(repairLog)}
                           >
+                            <Eye className="size-4" />
                             View Repair Log
                           </DropdownMenuItem>
                         </DropdownMenuContent>

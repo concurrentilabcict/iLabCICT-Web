@@ -1,4 +1,4 @@
-import { MoreHorizontal } from "lucide-react";
+import { Download, Eye, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,9 +35,11 @@ export default function WeeklyReportActions({
 
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => onView(report)}>
+          <Eye className="size-4" />
           View Report
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onExport(report)}>
+          <Download className="size-4" />
           Export PDF
         </DropdownMenuItem>
       </DropdownMenuContent>

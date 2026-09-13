@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { ChevronDown, MoreHorizontal, Search, X } from "lucide-react";
+import { ChevronDown, Eye, MoreHorizontal, Search, X } from "lucide-react";
 
 import TicketDetails from "./TicketDetails";
 import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
@@ -314,6 +314,7 @@ export default function RecentTicket({
                             <DropdownMenuItem
                               onClick={() => handleTicketClick(ticket)}
                             >
+                              <Eye className="size-4" />
                               View Ticket
                             </DropdownMenuItem>
                           </DropdownMenuContent>

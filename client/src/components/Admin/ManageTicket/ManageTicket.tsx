@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Eye, MoreHorizontal, Trash2, UserRoundCog } from "lucide-react";
 
+import AssignTechnicianDialog, {
+  type AssignableTechnician,
+} from "./AssignTechnicianDialog/AssignTechnicianDialog";
+import DeleteTicketDialog from "./DeleteTicketDialog/DeleteTicketDialog";
 import TicketDetails from "./TicketDetails";
 import TicketToolbar from "./TicketToolbar";
 import placeholderPicture from "@/assets/profile-placeholder.png";
@@ -31,10 +35,18 @@ import {
 } from "@/components/ui/table";
 import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
+import {
+  buildApiUrl,
+  buildWebSocketUrl,
+  createApiError,
+  getFreshAccessToken,
+  privateFetch,
+  type ApiError,
+} from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 import { getPaginationWindow } from "@/utils/pagination";
 import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
+import { appToast } from "@/utils/appToast";
 
 const ITEMS_PER_PAGE = 10;
 const ADMIN_TICKETS_QUERY_KEY = ["admin-tickets"] as const;
@@ -53,6 +65,17 @@ type TicketChangeMessage = {
 };
 
 type TicketWebSocketMessage = InitialTicketsMessage | TicketChangeMessage;
+
+type ApiTechnician = {
+  id: number;
+  firstName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+  role: string;
+  isActive?: boolean;
+  is_active?: boolean;
+};
 
 const formatLabel = (text: string) =>
   text
@@ -122,6 +145,28 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+const getResponseMessage = (value: unknown) => {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return typeof value.message === "string"
+    ? value.message
+    : typeof value.detail === "string"
+      ? value.detail
+      : null;
+};
+
+const getTechniciansFromResponse = (
+  data: ApiTechnician[] | { results?: ApiTechnician[] }
+) => Array.isArray(data) ? data : data.results ?? [];
+
+const mapTechnician = (technician: ApiTechnician): AssignableTechnician => ({
+  id: technician.id,
+  firstName: technician.firstName ?? technician.first_name ?? "",
+  lastName: technician.lastName ?? technician.last_name ?? "",
+});
+
 const isTicketWebSocketMessage = (
   value: unknown
 ): value is TicketWebSocketMessage => {
@@ -183,6 +228,11 @@ export default function ManageTicket() {
   const [typeFilter, setTypeFilter] = useState<TicketTypeFilter>("All");
   const [dateFilter, setDateFilter] = useState<Date>();
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [assignmentTicket, setAssignmentTicket] = useState<Ticket | null>(null);
+  const [selectedTechnicianId, setSelectedTechnicianId] = useState<
+    number | null
+  >(null);
+  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [hasInitialTickets, setHasInitialTickets] =
     useState(cachedTicketsAreReady);
@@ -204,6 +254,140 @@ export default function ManageTicket() {
     gcTime: Infinity,
   });
   const isLoading = isPending || !hasInitialTickets;
+
+  const {
+    data: technicians = [],
+    isLoading: techniciansAreLoading,
+    isError: techniciansHaveError,
+  } = useQuery<AssignableTechnician[]>({
+    queryKey: ["admin-ticket-technicians"],
+    queryFn: async () => {
+      const response = await privateFetch(buildApiUrl("/api/users/"));
+      const data = (await response.json()) as
+        | ApiTechnician[]
+        | { results?: ApiTechnician[] };
+
+      if (!response.ok) {
+        throw createApiError(
+          response.status,
+          getResponseMessage(data) ?? "Failed to load technicians."
+        );
+      }
+
+      return getTechniciansFromResponse(data)
+        .filter((user) =>
+          user.role.toLowerCase() === "technician" &&
+          (user.isActive ?? user.is_active ?? true)
+        )
+        .map(mapTechnician)
+        .sort((first, second) =>
+          `${first.firstName} ${first.lastName}`.localeCompare(
+            `${second.firstName} ${second.lastName}`
+          )
+        );
+    },
+    enabled: assignmentTicket !== null,
+  });
+
+  const assignTechnicianMutation = useMutation({
+    mutationFn: async ({
+      ticketId,
+      technicianId,
+    }: {
+      ticketId: number;
+      technicianId: number;
+    }) => {
+      const response = await privateFetch(
+        buildApiUrl(`/api/tickets/${ticketId}/`),
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            assigned_to: technicianId,
+            status: "ongoing",
+          }),
+        }
+      );
+      const data = (await response.json()) as ApiTicket & { message?: string };
+
+      if (!response.ok) {
+        throw createApiError(
+          response.status,
+          data.message ?? "Failed to assign technician."
+        );
+      }
+
+      return mapTicket(data);
+    },
+    onSuccess: (updatedTicket) => {
+      const updateTicket = (currentTickets: Ticket[] = []) =>
+        currentTickets.map((ticket) =>
+          ticket.id === updatedTicket.id ? updatedTicket : ticket
+        );
+
+      queryClient.setQueryData<Ticket[]>(
+        ADMIN_TICKETS_QUERY_KEY,
+        updateTicket
+      );
+      queryClient.setQueryData<Ticket[]>(
+        ["admin-dashboard-tickets"],
+        updateTicket
+      );
+      setSelectedTicket((currentTicket) =>
+        currentTicket?.id === updatedTicket.id ? updatedTicket : currentTicket
+      );
+      setAssignmentTicket(null);
+      setSelectedTechnicianId(null);
+      appToast.success("Technician assigned successfully.");
+    },
+    onError: (error: ApiError) => {
+      appToast.error(
+        error.message || "We couldn't assign the technician. Please try again."
+      );
+    },
+  });
+
+  const deleteTicketMutation = useMutation({
+    mutationFn: async (ticketId: number) => {
+      const response = await privateFetch(
+        buildApiUrl(`/api/tickets/${ticketId}/`),
+        { method: "DELETE" }
+      );
+
+      if (!response.ok) {
+        const data: unknown = await response.json().catch(() => null);
+        throw createApiError(
+          response.status,
+          getResponseMessage(data) ?? "Failed to delete ticket."
+        );
+      }
+
+      return ticketId;
+    },
+    onSuccess: (ticketId) => {
+      const removeTicket = (currentTickets: Ticket[] = []) =>
+        currentTickets.filter((ticket) => ticket.id !== ticketId);
+
+      queryClient.setQueryData<Ticket[]>(
+        ADMIN_TICKETS_QUERY_KEY,
+        removeTicket
+      );
+      queryClient.setQueryData<Ticket[]>(
+        ["admin-dashboard-tickets"],
+        removeTicket
+      );
+      setSelectedTicket((currentTicket) =>
+        currentTicket?.id === ticketId ? null : currentTicket
+      );
+      setSheetOpen(false);
+      setTicketToDelete(null);
+      appToast.success("Ticket deleted successfully.");
+    },
+    onError: (error: ApiError) => {
+      appToast.error(
+        error.message || "We couldn't delete the ticket. Please try again."
+      );
+    },
+  });
 
   useEffect(() => {
     let socket: WebSocket | null = null;
@@ -333,6 +517,47 @@ export default function ManageTicket() {
     if (!open) {
       setSelectedTicket(null);
     }
+  };
+
+  const handleAssignTechnician = (ticket: Ticket) => {
+    setAssignmentTicket(ticket);
+    setSelectedTechnicianId(
+      ticket.assignedTo?.id && ticket.assignedTo.id > 0
+        ? ticket.assignedTo.id
+        : null
+    );
+  };
+
+  const handleAssignmentDialogOpenChange = (open: boolean) => {
+    if (!open && !assignTechnicianMutation.isPending) {
+      setAssignmentTicket(null);
+      setSelectedTechnicianId(null);
+    }
+  };
+
+  const handleAssignmentSubmit = () => {
+    if (!assignmentTicket || selectedTechnicianId === null) {
+      return;
+    }
+
+    assignTechnicianMutation.mutate({
+      ticketId: assignmentTicket.id,
+      technicianId: selectedTechnicianId,
+    });
+  };
+
+  const handleDeleteDialogOpenChange = (open: boolean) => {
+    if (!open && !deleteTicketMutation.isPending) {
+      setTicketToDelete(null);
+    }
+  };
+
+  const handleDeleteTicket = () => {
+    if (!ticketToDelete) {
+      return;
+    }
+
+    deleteTicketMutation.mutate(ticketToDelete.id);
   };
 
   const paginatedTickets = filteredTickets.slice(
@@ -482,13 +707,21 @@ export default function ManageTicket() {
                           <DropdownMenuItem
                             onClick={() => handleTicketClick(ticket)}
                           >
+                            <Eye className="size-4" />
                             View Ticket
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleAssignTechnician(ticket)}
+                          >
+                            <UserRoundCog className="size-4" />
                             Assign Technician
                           </DropdownMenuItem>
                           <div className="my-1 h-px w-full bg-border" />
-                          <DropdownMenuItem className="text-red-500">
+                          <DropdownMenuItem
+                            onClick={() => setTicketToDelete(ticket)}
+                            className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                          >
+                            <Trash2 className="size-4" />
                             Delete Ticket
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -541,6 +774,26 @@ export default function ManageTicket() {
           {selectedTicket && <TicketDetails ticket={selectedTicket} />}
         </SheetContent>
       </Sheet>
+
+      <AssignTechnicianDialog
+        open={assignmentTicket !== null}
+        onOpenChange={handleAssignmentDialogOpenChange}
+        ticketCode={assignmentTicket?.ticketCode}
+        technicians={technicians}
+        selectedTechnicianId={selectedTechnicianId}
+        onSelectTechnician={setSelectedTechnicianId}
+        onAssign={handleAssignmentSubmit}
+        isLoading={techniciansAreLoading}
+        isError={techniciansHaveError}
+        isPending={assignTechnicianMutation.isPending}
+      />
+
+      <DeleteTicketDialog
+        open={ticketToDelete !== null}
+        onOpenChange={handleDeleteDialogOpenChange}
+        onDelete={handleDeleteTicket}
+        isPending={deleteTicketMutation.isPending}
+      />
     </>
   );
 }

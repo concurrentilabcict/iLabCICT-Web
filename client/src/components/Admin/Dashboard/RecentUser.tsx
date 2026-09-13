@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { ChevronDown, MoreHorizontal, Search, X } from "lucide-react";
+import { ChevronDown, Eye, MoreHorizontal, Search, X } from "lucide-react";
 
 import UserDetails from "../ManageUser/UserDetails";
 import placeholderPicture from "@/assets/profile-placeholder.png";
@@ -283,6 +283,7 @@ export default function RecentUser({
 
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleUserClick(user)}>
+                              <Eye className="size-4" />
                               View User
                             </DropdownMenuItem>
                           </DropdownMenuContent>
