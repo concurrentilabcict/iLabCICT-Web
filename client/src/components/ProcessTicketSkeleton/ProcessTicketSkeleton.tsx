@@ -9,8 +9,8 @@ export default function ProcessTicketSkeleton() {
         <Skeleton className="h-7 w-24 rounded-full" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="space-y-4">
+      <div className="grid min-w-0 gap-4 min-[1400px]:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="min-w-0 space-y-4">
           <div className="space-y-4 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
             <div className="flex items-start gap-3">
               <Skeleton className="size-10 rounded-xl" />
@@ -22,11 +22,11 @@ export default function ProcessTicketSkeleton() {
             <Skeleton className="h-28 w-full rounded-xl" />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid min-w-0 gap-4 lg:grid-cols-2">
             {Array.from({ length: 2 }, (_, index) => (
               <div
                 key={index}
-                className="space-y-4 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]"
+                className="min-w-0 space-y-4 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]"
               >
                 <Skeleton className="h-5 w-36" />
                 <Skeleton className="h-4 w-full" />
@@ -42,7 +42,7 @@ export default function ProcessTicketSkeleton() {
           </div>
         </div>
 
-        <div className="space-y-4 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] lg:self-start">
+        <div className="min-w-0 space-y-4 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] min-[1400px]:self-start">
           <div className="flex gap-3">
             <Skeleton className="size-10 rounded-xl" />
             <div className="flex-1 space-y-2">

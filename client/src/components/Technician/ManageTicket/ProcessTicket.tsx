@@ -283,8 +283,8 @@ export default function ProcessTicket() {
                     </span>
                 </div>
 
-                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_420px]">
-                    <section className="flex flex-col gap-4">
+                <div className="grid min-w-0 gap-4 min-[1400px]:grid-cols-[minmax(0,1fr)_420px]">
+                    <section className="flex min-w-0 flex-col gap-4">
                         <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                             <div className="mb-4 flex items-start gap-3">
                                 <div className="rounded-xl bg-red-50 p-2.5 text-primary-color">
@@ -307,9 +307,9 @@ export default function ProcessTicket() {
                             </div>
                         </div>
 
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
-                                <div className="mb-3 flex items-center justify-between gap-3">
+                        <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+                            <div className="min-w-0 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+                                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                                     <div className="flex items-center gap-x-1.5 font-medium">
                                         <Monitor size={16} />
                                         <h2>Device Information</h2>
@@ -340,7 +340,7 @@ export default function ProcessTicket() {
                                 </div>
                             </div>
 
-                            <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+                            <div className="min-w-0 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                                 <div className="mb-3 flex items-center gap-x-1.5 font-medium">
                                     <User size={16} />
                                     <h2>People</h2>
@@ -375,7 +375,7 @@ export default function ProcessTicket() {
                         </div>
                     </section>
 
-                    <aside className="lg:sticky lg:top-24 lg:self-start">
+                    <aside className="min-w-0 min-[1400px]:sticky min-[1400px]:top-24 min-[1400px]:self-start">
                         <div className="rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                             <div className="mb-4 flex items-start gap-3">
                                 <div className="rounded-xl bg-red-50 p-2.5 text-primary-color">
@@ -506,7 +506,7 @@ function ProcessTicketShell({ children, isMobile }: ProcessTicketShellProps) {
         <SidebarProvider>
             {isMobile ? <NavBar /> : <Sidebar />}
             <SidebarInset>
-                <div className="min-h-screen bg-[#f8fafc]">
+                <div className="min-h-screen w-full min-w-0 bg-[#f8fafc]">
                     {isMobile ? <MobileHeader title="Process Ticket" /> : <Header title="Process Ticket" />}
                     {children}
                 </div>
@@ -522,9 +522,9 @@ type InfoRowProps = {
 
 function InfoRow({ label, value }: InfoRowProps) {
     return (
-        <div className="flex items-center justify-between gap-4">
-            <span className="secondary-text-color">{label}</span>
-            <span className="text-right font-medium">{value}</span>
+        <div className="grid min-w-0 grid-cols-[max-content_minmax(0,1fr)] items-start gap-4">
+            <span className="whitespace-nowrap secondary-text-color">{label}</span>
+            <span className="min-w-0 break-words text-right font-medium">{value}</span>
         </div>
     );
 }
