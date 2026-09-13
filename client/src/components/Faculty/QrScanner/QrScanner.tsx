@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 type QrScannerProps = {
-    onScan?: (value: string) => void;
+    onScan?: (value: string) => boolean | void | Promise<boolean | void>;
 };
 
 export function FacultyQrScanner({ onScan }: QrScannerProps) {
@@ -39,7 +39,16 @@ export function FacultyQrScanner({ onScan }: QrScannerProps) {
                         if (scannedRef.current) return;
 
                         scannedRef.current = true;
-                        onScanRef.current?.(result.getText());
+
+                        Promise.resolve(onScanRef.current?.(result.getText()))
+                            .then((shouldKeepLocked) => {
+                                if (shouldKeepLocked === false) {
+                                    scannedRef.current = false;
+                                }
+                            })
+                            .catch(() => {
+                                scannedRef.current = false;
+                            });
                     }
                 );
 

@@ -1,9 +1,11 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { appToast } from "@/utils/appToast";
 
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
+import { fetchComputerByCode } from "@/lib/computers";
+import { getComputerCodeFromQrValue } from "@/utils/qrComputer";
 import { Spinner } from "@/components/ui/spinner";
 import type { ApiComputer, ApiRelatedTicket, ApiRoom, ScannerState, TicketType } from "@/types/createTicket";
 import {
@@ -60,9 +62,11 @@ function getRelatedTickets(computer?: ApiComputer): ApiRelatedTicket[] {
 export default function CreateTicketForm() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const scannerState = location.state as ScannerState;
-  const computerCode = scannerState?.computerCode?.trim() ?? "";
+  const computerReference = searchParams.get("computer") ?? scannerState?.computerCode ?? "";
+  const computerCode = getComputerCodeFromQrValue(computerReference) ?? "";
   const isScannedReport = computerCode.length > 0;
   const [type, setType] = useState<TicketType>("report");
   const [roomId, setRoomId] = useState("");
@@ -100,15 +104,19 @@ export default function CreateTicketForm() {
 
   const activeComputerCode = computerCode || selectedComputerCode;
 
-  const { data: selectedComputerDetails, isLoading: isLoadingComputerDetails } = useQuery<ApiComputer>({
+  const {
+    data: selectedComputerDetails,
+    isLoading: isLoadingComputerDetails,
+    isError: isComputerDetailsError,
+    error: computerDetailsError,
+    refetch: retryComputerDetails,
+  } = useQuery<ApiComputer>({
     queryKey: ["computer", activeComputerCode],
     enabled: type === "report" && activeComputerCode.length > 0,
-    queryFn: async () => {
-      const response = await privateFetch(buildApiUrl(`/api/computers/${encodeURIComponent(activeComputerCode)}/`));
-      const data = await response.json();
-      if (!response.ok) throw createApiError(response.status, data.message || "Failed to load computer details.");
-      return data as ApiComputer;
-    },
+    queryFn: () => fetchComputerByCode(activeComputerCode),
+    networkMode: "always",
+    retry: 1,
+    retryDelay: 750,
   });
 
   const selectedPeripheralStatus = selectedComputerDetails ? getPeripheralStatuses(selectedComputerDetails) : [];
@@ -121,35 +129,33 @@ export default function CreateTicketForm() {
   const selectedComputerFromList = roomComputers.find((computer) => computer.computer_code === activeComputerCode);
   const selectedComputerId = selectedComputerDetails?.id ?? selectedComputerFromList?.id ?? null;
   const displayRoom = selectedComputerDetails?.room ?? selectedRoom;
+  const effectiveRoomId = isScannedReport && selectedComputerDetails?.room?.id
+    ? String(selectedComputerDetails.room.id)
+    : roomId;
   const isReport = type === "report";
   const descriptionPlaceholder =
     type === "report" ? "Describe the issue you are experiencing..." : "Describe what you are requesting...";
-
-  useEffect(() => {
-    if (computerCode) {
-      setType("report");
-    }
-  }, [computerCode]);
-
-  useEffect(() => {
-    if (computerCode && selectedComputerDetails?.room?.id) {
-      setRoomId(String(selectedComputerDetails.room.id));
-    }
-  }, [computerCode, selectedComputerDetails]);
-
-  useEffect(() => {
-    setIsRelatedTicketsOpen(false);
-  }, [activeComputerCode]);
 
   const handleSelectRoom = (nextRoomId: string) => {
     setRoomId(nextRoomId);
     setSelectedComputerCode("");
     setComputerDropdownOpen(false);
+    setIsRelatedTicketsOpen(false);
+  };
+
+  const handleSelectComputer = (nextComputerCode: string) => {
+    setSelectedComputerCode(nextComputerCode);
+    setIsRelatedTicketsOpen(false);
   };
 
   const handleSubmitRequest = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!roomId || !title.trim() || !description.trim()) {
+    if (isScannedReport && !selectedComputerId) {
+      appToast.warning("The scanned computer must finish loading before you submit the report.");
+      return;
+    }
+
+    if (!effectiveRoomId || !title.trim() || !description.trim()) {
       appToast.warning("Please complete all required fields.");
       return;
     }
@@ -165,7 +171,7 @@ export default function CreateTicketForm() {
         title: title.trim(),
         complaint_description: description.trim(),
         status: "open",
-        room: Number(roomId),
+        room: Number(effectiveRoomId),
         computer: type === "report" ? selectedComputerId : null,
       };
 
@@ -208,6 +214,24 @@ export default function CreateTicketForm() {
     </>
   );
 
+  const scannedComputerError = isScannedReport && isComputerDetailsError && (
+    <section className="rounded-xl bg-white p-5 text-center shadow-[0_4px_14px_rgba(15,23,42,0.08)]">
+      <h2 className="font-bold text-zinc-950">Unable to load the scanned computer</h2>
+      <p className="mt-1 text-sm font-medium text-zinc-500">
+        {computerDetailsError instanceof Error
+          ? computerDetailsError.message
+          : "Please check the QR code and try again."}
+      </p>
+      <button
+        type="button"
+        onClick={() => void retryComputerDetails()}
+        className="mt-4 rounded-lg primary-bg-color px-4 py-2 text-sm font-semibold text-white"
+      >
+        Try Again
+      </button>
+    </section>
+  );
+
   return (
     <form onSubmit={handleSubmitRequest} className="mx-auto w-full max-w-[760px] space-y-5 px-5 py-6 md:px-6 md:py-7">
       <section className="space-y-2">
@@ -221,7 +245,15 @@ export default function CreateTicketForm() {
         <QrScanButton onClick={() => navigate("/qr-scanner")} />
       )}
 
-      {isScannedReport && computerInformation}
+      {isScannedReport && (
+        <div className="space-y-4">
+          <div className="rounded-xl bg-[#fff8f6] px-4 py-3 text-sm font-semibold primary-text-color">
+            This report will be associated with {selectedComputerDetails?.computer_code ?? computerCode}.
+          </div>
+          {computerInformation}
+          {scannedComputerError}
+        </div>
+      )}
 
       {!isScannedReport && isReport && selectedComputerDetails && computerInformation}
 
@@ -243,7 +275,7 @@ export default function CreateTicketForm() {
           isLoadingComputers={isLoadingComputers}
           isOpen={computerDropdownOpen}
           onOpenChange={setComputerDropdownOpen}
-          onSelectComputer={setSelectedComputerCode}
+          onSelectComputer={handleSelectComputer}
         />
       )}
 
@@ -282,7 +314,7 @@ export default function CreateTicketForm() {
           <AlertDialogHeader>
             <AlertDialogTitle>Submit ticket?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will create a new {type} ticket for {selectedRoom ? `${selectedRoom.building_name} - ${selectedRoom.room_name}` : "the selected laboratory"}.
+              This will create a new {type} ticket for {displayRoom ? `${displayRoom.building_name} - ${displayRoom.room_name}` : "the selected laboratory"}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
