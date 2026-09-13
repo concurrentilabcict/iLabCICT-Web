@@ -122,6 +122,7 @@ export default function AdminComputerListPage(){
                                     setIsEditing={setIsEditing}
                                     onRequestHistoryClick={() => setRequestHistoryOpen(true)}
                                     isRequestHistoryDisabled={!roomDatabaseId}
+                                    roomId={roomDatabaseId}
                                 />
                                 <ComputerList
                                     setComputers={setComputers}

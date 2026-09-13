@@ -473,7 +473,7 @@ export default function RepairLog() {
       <Sheet open={sheetOpen} onOpenChange={handleSheetOpenChange}>
         <SheetContent
           side={isMobile ? "bottom" : "right"}
-          className={isMobile ? "h-[90vh]" : "w-[420px]!"}
+          className={isMobile ? "data-[side=bottom]:h-[90dvh] overflow-y-auto" : "w-[420px]! overflow-y-auto"}
         >
           {selectedRepairLog && (
             <RepairLogDetails repairLog={selectedRepairLog} />

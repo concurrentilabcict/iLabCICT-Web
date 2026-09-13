@@ -1,6 +1,7 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import type { ComputerCardType } from "@/types/computer"
-import { Building2, Download, Eye, Layers3, LaptopMinimal, Plus, Upload, User, Wrench } from "lucide-react"
+import { Building2, Download, Eye, Layers3, LaptopMinimal, Plus, User, Wrench } from "lucide-react"
+import ComputerCsvImport from "@/components/ComputerCsvImport/ComputerCsvImport"
 
 type ButtonGroupType = {
     roomName: string,
@@ -13,6 +14,7 @@ type ButtonGroupType = {
     setIsEditing: (open: boolean) => void
     onRequestHistoryClick: () => void,
     isRequestHistoryDisabled: boolean
+    roomId: number | null
 }
 
 const escapeCsvCell = (value: unknown) => {
@@ -37,7 +39,8 @@ export default function ButtonGroup({
     setSheetOpen,
     setIsEditing,
     onRequestHistoryClick,
-    isRequestHistoryDisabled
+    isRequestHistoryDisabled,
+    roomId
 }: ButtonGroupType){
 
     const handleAddComputerClick = () => {
@@ -165,13 +168,11 @@ export default function ButtonGroup({
                         <Download size={16}/>
                         <span className={isMobile ? 'hidden' : ''} >Export</span>
                     </button>
-                    <button
-                        type="button"
-                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color hover:bg-gray-50"
-                    >
-                        <Upload size={16}/>
-                        <span className={isMobile ? 'hidden' : ''}>Import</span>
-                    </button>
+                    <ComputerCsvImport
+                        roomId={roomId}
+                        showLabel={!isMobile}
+                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    />
                 </div>
             </div>
         </div>

@@ -415,7 +415,7 @@ export default function RepairLog({
                     side={isMobile ? "bottom" : "right"}
                     className={
                         isMobile
-                            ? "h-[90vh] overflow-hidden border-none"
+                            ? "data-[side=bottom]:h-[90dvh] overflow-hidden border-none"
                             : "w-[1000px]! overflow-hidden border-none"
                     }
                 >

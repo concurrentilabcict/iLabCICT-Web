@@ -140,7 +140,7 @@ export default function FacultyComputerListPage(){
                                 >
                                     <SheetContent
                                         side={isMobile ? "bottom" : "right"}
-                                        className={isMobile ? "h-[90vh] p-0" : "w-[520px]! p-0"}
+                                        className={isMobile ? "data-[side=bottom]:h-[90dvh] overflow-hidden p-0" : "w-[520px]! overflow-hidden p-0"}
                                     >
                                         <RequestHistory roomId={roomDatabaseId} />
                                     </SheetContent>
