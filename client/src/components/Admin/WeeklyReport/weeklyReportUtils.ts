@@ -5,7 +5,6 @@ import type {
   ApiWeeklyReport,
   WeeklyReport as WeeklyReportType,
 } from "@/types/weeklyReport";
-import { formatDateTime } from "@/utils/string";
 
 export const formatLabel = (text: string) =>
   text
@@ -89,9 +88,41 @@ const getReportPeriod = (title: string) => {
     return "Not specified";
   }
 
-  return `${formatReportDate(`${dates[0]}T00:00:00`)} to ${formatReportDate(
-    `${dates[1]}T00:00:00`
-  )}`;
+  const [startYear, startMonth, startDay] = dates[0].split("-").map(Number);
+  const [endYear, endMonth, endDay] = dates[1].split("-").map(Number);
+  const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long" });
+  const startMonthName = monthFormatter.format(
+    new Date(startYear, startMonth - 1, startDay)
+  );
+  const endMonthName = monthFormatter.format(
+    new Date(endYear, endMonth - 1, endDay)
+  );
+
+  if (startYear === endYear && startMonth === endMonth) {
+    return `${startMonthName} ${startDay}–${endDay}, ${startYear}`;
+  }
+
+  if (startYear === endYear) {
+    return `${startMonthName} ${startDay} – ${endMonthName} ${endDay}, ${startYear}`;
+  }
+
+  return `${startMonthName} ${startDay}, ${startYear} – ${endMonthName} ${endDay}, ${endYear}`;
+};
+
+const formatReportTimestamp = (date: string) => {
+  const value = new Date(date);
+  const datePart = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(value);
+  const timePart = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(value);
+
+  return `${datePart} • ${timePart}`;
 };
 
 const getPdfReportTitle = (title: string) => {
@@ -126,6 +157,13 @@ const buildPrintableReport = (report: WeeklyReportType) => {
   const totalRepairLogs = getTotalRepairLogs(report.repairLogSummary);
   const reportingPeriod = getReportPeriod(report.title);
   const pdfTitle = getPdfReportTitle(report.title);
+  const exportDocumentTitle =
+    reportingPeriod === "Not specified"
+      ? `${report.reportCode} - ${report.title}`
+      : `${report.reportCode} - Weekly Report - ${reportingPeriod.replace(
+          /\s*–\s*/g,
+          "-"
+        )}`;
   const headerBase = escapeHtml(getAssetUrl(bulsuHeaderBaseUrl));
   const cictSeal = escapeHtml(getAssetUrl(cictSealUrl));
   const footerArtwork = escapeHtml(getAssetUrl(bulsuFooterUrl));
@@ -145,7 +183,7 @@ const buildPrintableReport = (report: WeeklyReportType) => {
     <!doctype html>
     <html>
       <head>
-        <title>${escapeHtml(report.reportCode)} - ${escapeHtml(report.title)}</title>
+        <title>${escapeHtml(exportDocumentTitle)}</title>
         <style>
           @page { size: A4; margin: 0; }
           * { box-sizing: border-box; }
@@ -260,12 +298,41 @@ const buildPrintableReport = (report: WeeklyReportType) => {
             border-collapse: collapse;
             width: 100%;
           }
-          .meta {
+          .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             margin: 0 0 6mm;
-            table-layout: fixed;
+            overflow: hidden;
+            border: 0.75pt solid #d1d5db;
+            border-radius: 2.5mm;
           }
-          .meta th,
-          .meta td,
+          .meta-item {
+            min-width: 0;
+            padding: 2.8mm 3.2mm;
+            background: #f8f9fa;
+            border-bottom: 0.75pt solid #d1d5db;
+          }
+          .meta-item:nth-child(odd) {
+            border-right: 0.75pt solid #d1d5db;
+          }
+          .meta-item:nth-last-child(-n + 2) {
+            border-bottom: 0;
+          }
+          .meta-label {
+            color: #6b7280;
+            font-size: 7.5pt;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            line-height: 1.2;
+            margin-bottom: 1.2mm;
+            text-transform: uppercase;
+          }
+          .meta-value {
+            color: #111827;
+            font-size: 9.5pt;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+          }
           .summary-table th,
           .summary-table td {
             border: 0.75pt solid #cbd0d6;
@@ -273,13 +340,6 @@ const buildPrintableReport = (report: WeeklyReportType) => {
             text-align: left;
             vertical-align: top;
           }
-          .meta th {
-            background: #f3f4f6;
-            color: #374151;
-            font-size: 8.5pt;
-            width: 22%;
-          }
-          .meta td { width: 28%; }
           h2 {
             border-bottom: 0.75pt solid #d1d5db;
             font-size: 11.5pt;
@@ -366,28 +426,32 @@ const buildPrintableReport = (report: WeeklyReportType) => {
               <div class="report-code">WEEKLY MAINTENANCE REPORT · ${escapeHtml(report.reportCode)}</div>
             </section>
 
-            <table class="meta">
-              <tbody>
-                <tr>
-                  <th>Technician</th>
-                  <td>${escapeHtml(report.technicianName)}</td>
-                  <th>Report Status</th>
-                  <td>${escapeHtml(formatLabel(report.status))}</td>
-                </tr>
-                <tr>
-                  <th>Reporting Period</th>
-                  <td>${escapeHtml(reportingPeriod)}</td>
-                  <th>Total Repair Logs</th>
-                  <td>${totalRepairLogs}</td>
-                </tr>
-                <tr>
-                  <th>Created</th>
-                  <td>${escapeHtml(formatDateTime(report.createdAt))}</td>
-                  <th>Last Updated</th>
-                  <td>${escapeHtml(formatDateTime(report.updatedAt))}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="meta-grid">
+              <div class="meta-item">
+                <div class="meta-label">Technician</div>
+                <div class="meta-value">${escapeHtml(report.technicianName)}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Report Status</div>
+                <div class="meta-value">${escapeHtml(formatLabel(report.status))}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Reporting Period</div>
+                <div class="meta-value">${escapeHtml(reportingPeriod)}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Total Repair Logs</div>
+                <div class="meta-value">${totalRepairLogs}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Created</div>
+                <div class="meta-value">${escapeHtml(formatReportTimestamp(report.createdAt))}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Last Updated</div>
+                <div class="meta-value">${escapeHtml(formatReportTimestamp(report.updatedAt))}</div>
+              </div>
+            </div>
           </section>
 
           <section data-report-block data-pagination="text" data-title="Executive Summary">
