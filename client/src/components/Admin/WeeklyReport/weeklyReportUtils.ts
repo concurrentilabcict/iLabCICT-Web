@@ -94,9 +94,38 @@ const getReportPeriod = (title: string) => {
   )}`;
 };
 
+const getPdfReportTitle = (title: string) => {
+  const dates = title.match(/\d{4}-\d{2}-\d{2}/g);
+
+  if (!dates || dates.length < 2) {
+    return title;
+  }
+
+  const [startYear, startMonth, startDay] = dates[0].split("-").map(Number);
+  const [endYear, endMonth, endDay] = dates[1].split("-").map(Number);
+  const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long" });
+  const startMonthName = monthFormatter.format(
+    new Date(startYear, startMonth - 1, startDay)
+  );
+  const endMonthName = monthFormatter.format(
+    new Date(endYear, endMonth - 1, endDay)
+  );
+
+  if (startYear === endYear && startMonth === endMonth) {
+    return `Weekly Report — ${startMonthName} ${startDay}–${endDay}, ${startYear}`;
+  }
+
+  if (startYear === endYear) {
+    return `Weekly Report — ${startMonthName} ${startDay} – ${endMonthName} ${endDay}, ${startYear}`;
+  }
+
+  return `Weekly Report — ${startMonthName} ${startDay}, ${startYear} – ${endMonthName} ${endDay}, ${endYear}`;
+};
+
 const buildPrintableReport = (report: WeeklyReportType) => {
   const totalRepairLogs = getTotalRepairLogs(report.repairLogSummary);
   const reportingPeriod = getReportPeriod(report.title);
+  const pdfTitle = getPdfReportTitle(report.title);
   const headerBase = escapeHtml(getAssetUrl(bulsuHeaderBaseUrl));
   const cictSeal = escapeHtml(getAssetUrl(cictSealUrl));
   const footerArtwork = escapeHtml(getAssetUrl(bulsuFooterUrl));
@@ -333,7 +362,7 @@ const buildPrintableReport = (report: WeeklyReportType) => {
         <div id="report-source">
           <section data-report-block>
             <section class="report-heading">
-              <h1>${escapeHtml(report.title)}</h1>
+              <h1>${escapeHtml(pdfTitle)}</h1>
               <div class="report-code">WEEKLY MAINTENANCE REPORT · ${escapeHtml(report.reportCode)}</div>
             </section>
 

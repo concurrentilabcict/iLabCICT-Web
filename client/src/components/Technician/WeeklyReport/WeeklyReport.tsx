@@ -296,7 +296,10 @@ export default function WeeklyReport() {
         setSelectedReportId(report.id);
         setSheetOpen(true);
 
-        if (report.status.toLowerCase() === "unread") {
+        if (
+            report.technicianId === technicianId &&
+            report.status.toLowerCase() === "unread"
+        ) {
             markReportAsReadMutation.mutate(report.id);
         }
     };
