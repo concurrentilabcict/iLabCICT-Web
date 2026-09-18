@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, MoreHorizontal, Trash2, UserRoundCog } from "lucide-react";
+import { Archive, Eye, MoreHorizontal, UserRoundCog } from "lucide-react";
 
 import AssignTechnicianDialog, {
   type AssignableTechnician,
 } from "./AssignTechnicianDialog/AssignTechnicianDialog";
-import DeleteTicketDialog from "./DeleteTicketDialog/DeleteTicketDialog";
+import ArchiveTicketDialog from "./ArchiveTicketDialog/ArchiveTicketDialog";
 import TicketDetails from "./TicketDetails";
 import TicketToolbar from "./TicketToolbar";
 import placeholderPicture from "@/assets/profile-placeholder.png";
@@ -51,7 +51,10 @@ import { appToast } from "@/utils/appToast";
 const ITEMS_PER_PAGE = 10;
 const ADMIN_TICKETS_QUERY_KEY = ["admin-tickets"] as const;
 const ADMIN_TICKETS_READY_QUERY_KEY = ["admin-tickets-ready"] as const;
+const ADMIN_ARCHIVED_TICKETS_QUERY_KEY = ["admin-archived-tickets"] as const;
 const TICKETS_WS_ENDPOINT = "/ws/tickets/";
+
+type TicketView = "active" | "archived";
 
 type InitialTicketsMessage = {
   event: "initial_tickets";
@@ -64,7 +67,17 @@ type TicketChangeMessage = {
   ticket: ApiTicket;
 };
 
-type TicketWebSocketMessage = InitialTicketsMessage | TicketChangeMessage;
+type TicketArchivedMessage = {
+  event: "ticket_archived";
+  ticket?: ApiTicket;
+  ticket_id?: number;
+  id?: number;
+};
+
+type TicketWebSocketMessage =
+  | InitialTicketsMessage
+  | TicketChangeMessage
+  | TicketArchivedMessage;
 
 type ApiTechnician = {
   id: number;
@@ -161,6 +174,10 @@ const getTechniciansFromResponse = (
   data: ApiTechnician[] | { results?: ApiTechnician[] }
 ) => Array.isArray(data) ? data : data.results ?? [];
 
+const getTicketsFromResponse = (
+  data: ApiTicket[] | { results?: ApiTicket[]; ticket?: ApiTicket[] }
+) => Array.isArray(data) ? data : data.results ?? data.ticket ?? [];
+
 const mapTechnician = (technician: ApiTechnician): AssignableTechnician => ({
   id: technician.id,
   firstName: technician.firstName ?? technician.first_name ?? "",
@@ -176,6 +193,14 @@ const isTicketWebSocketMessage = (
 
   if (value.event === "initial_tickets") {
     return Array.isArray(value.ticket);
+  }
+
+  if (value.event === "ticket_archived") {
+    return (
+      ("ticket" in value && isRecord(value.ticket)) ||
+      typeof value.ticket_id === "number" ||
+      typeof value.id === "number"
+    );
   }
 
   return (
@@ -222,6 +247,7 @@ export default function ManageTicket() {
   const cachedTicketsAreReady =
     queryClient.getQueryData<boolean>(ADMIN_TICKETS_READY_QUERY_KEY) === true;
   const isMobile = useMediaQuery("(max-width: 767px)");
+  const [ticketView, setTicketView] = useState<TicketView>("active");
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
@@ -232,7 +258,7 @@ export default function ManageTicket() {
   const [selectedTechnicianId, setSelectedTechnicianId] = useState<
     number | null
   >(null);
-  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
+  const [ticketToArchive, setTicketToArchive] = useState<Ticket | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [hasInitialTickets, setHasInitialTickets] =
     useState(cachedTicketsAreReady);
@@ -254,6 +280,33 @@ export default function ManageTicket() {
     gcTime: Infinity,
   });
   const isLoading = isPending || !hasInitialTickets;
+
+  const {
+    data: archivedTickets = [],
+    isLoading: archivedTicketsAreLoading,
+    isError: archivedTicketsHaveError,
+  } = useQuery<Ticket[]>({
+    queryKey: ADMIN_ARCHIVED_TICKETS_QUERY_KEY,
+    queryFn: async () => {
+      const response = await privateFetch(
+        buildApiUrl("/api/tickets/?archived=true")
+      );
+      const data = (await response.json()) as
+        | ApiTicket[]
+        | { results?: ApiTicket[]; ticket?: ApiTicket[]; detail?: string };
+
+      if (!response.ok) {
+        throw createApiError(
+          response.status,
+          getResponseMessage(data) ?? "Failed to load archived tickets."
+        );
+      }
+
+      return getTicketsFromResponse(data).map(mapTicket);
+    },
+    enabled: ticketView === "archived",
+    staleTime: 30_000,
+  });
 
   const {
     data: technicians = [],
@@ -298,30 +351,43 @@ export default function ManageTicket() {
       technicianId: number;
     }) => {
       const response = await privateFetch(
-        buildApiUrl(`/api/tickets/${ticketId}/`),
+        buildApiUrl(`/api/tickets/${ticketId}/reassign/`),
         {
-          method: "PATCH",
-          body: JSON.stringify({
-            assigned_to: technicianId,
-            status: "ongoing",
-          }),
+          method: "POST",
+          body: JSON.stringify({ assigned_to: technicianId }),
         }
       );
-      const data = (await response.json()) as ApiTicket & { message?: string };
+      const data = (await response.json().catch(() => null)) as {
+        detail?: string;
+        message?: string;
+      } | null;
 
       if (!response.ok) {
         throw createApiError(
           response.status,
-          data.message ?? "Failed to assign technician."
+          data?.detail ?? data?.message ?? "Failed to assign technician."
         );
       }
 
-      return mapTicket(data);
+      return { ticketId, technicianId };
     },
-    onSuccess: (updatedTicket) => {
+    onSuccess: ({ ticketId, technicianId }) => {
+      const technician = technicians.find((user) => user.id === technicianId);
       const updateTicket = (currentTickets: Ticket[] = []) =>
         currentTickets.map((ticket) =>
-          ticket.id === updatedTicket.id ? updatedTicket : ticket
+          ticket.id === ticketId
+            ? {
+                ...ticket,
+                assignedTo: technician
+                  ? {
+                      id: technician.id,
+                      firstName: technician.firstName,
+                      lastName: technician.lastName,
+                    }
+                  : ticket.assignedTo,
+                status: "ongoing",
+              }
+            : ticket
         );
 
       queryClient.setQueryData<Ticket[]>(
@@ -333,7 +399,9 @@ export default function ManageTicket() {
         updateTicket
       );
       setSelectedTicket((currentTicket) =>
-        currentTicket?.id === updatedTicket.id ? updatedTicket : currentTicket
+        currentTicket?.id === ticketId
+          ? updateTicket([currentTicket])[0]
+          : currentTicket
       );
       setAssignmentTicket(null);
       setSelectedTechnicianId(null);
@@ -346,26 +414,29 @@ export default function ManageTicket() {
     },
   });
 
-  const deleteTicketMutation = useMutation({
-    mutationFn: async (ticketId: number) => {
+  const archiveTicketMutation = useMutation({
+    mutationFn: async (ticket: Ticket) => {
       const response = await privateFetch(
-        buildApiUrl(`/api/tickets/${ticketId}/`),
-        { method: "DELETE" }
+        buildApiUrl(`/api/tickets/${ticket.id}/archive/`),
+        {
+          method: "POST",
+          body: JSON.stringify({}),
+        }
       );
 
       if (!response.ok) {
         const data: unknown = await response.json().catch(() => null);
         throw createApiError(
           response.status,
-          getResponseMessage(data) ?? "Failed to delete ticket."
+          getResponseMessage(data) ?? "Failed to archive ticket."
         );
       }
 
-      return ticketId;
+      return ticket;
     },
-    onSuccess: (ticketId) => {
+    onSuccess: (archivedTicket) => {
       const removeTicket = (currentTickets: Ticket[] = []) =>
-        currentTickets.filter((ticket) => ticket.id !== ticketId);
+        currentTickets.filter((ticket) => ticket.id !== archivedTicket.id);
 
       queryClient.setQueryData<Ticket[]>(
         ADMIN_TICKETS_QUERY_KEY,
@@ -375,16 +446,23 @@ export default function ManageTicket() {
         ["admin-dashboard-tickets"],
         removeTicket
       );
+      queryClient.setQueryData<Ticket[]>(
+        ADMIN_ARCHIVED_TICKETS_QUERY_KEY,
+        (currentTickets = []) =>
+          currentTickets.some((ticket) => ticket.id === archivedTicket.id)
+            ? currentTickets
+            : [archivedTicket, ...currentTickets]
+      );
       setSelectedTicket((currentTicket) =>
-        currentTicket?.id === ticketId ? null : currentTicket
+        currentTicket?.id === archivedTicket.id ? null : currentTicket
       );
       setSheetOpen(false);
-      setTicketToDelete(null);
-      appToast.success("Ticket deleted successfully.");
+      setTicketToArchive(null);
+      appToast.success("Ticket archived successfully.");
     },
     onError: (error: ApiError) => {
       appToast.error(
-        error.message || "We couldn't delete the ticket. Please try again."
+        error.message || "We couldn't archive the ticket. Please try again."
       );
     },
   });
@@ -427,6 +505,54 @@ export default function ManageTicket() {
           return;
         }
 
+        if (parsedMessage.event === "ticket_archived") {
+          const archivedTicket = parsedMessage.ticket
+            ? mapTicket(parsedMessage.ticket)
+            : null;
+          const archivedTicketId =
+            archivedTicket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
+
+          if (archivedTicketId === undefined) {
+            return;
+          }
+
+          const removeArchivedTicket = (currentTickets: Ticket[] = []) =>
+            currentTickets.filter((ticket) => ticket.id !== archivedTicketId);
+
+          queryClient.setQueryData<Ticket[]>(
+            ADMIN_TICKETS_QUERY_KEY,
+            removeArchivedTicket
+          );
+          queryClient.setQueryData<Ticket[]>(
+            ["admin-dashboard-tickets"],
+            removeArchivedTicket
+          );
+
+          if (archivedTicket) {
+            queryClient.setQueryData<Ticket[]>(
+              ADMIN_ARCHIVED_TICKETS_QUERY_KEY,
+              (currentTickets = []) =>
+                currentTickets.some((ticket) => ticket.id === archivedTicket.id)
+                  ? currentTickets
+                  : [archivedTicket, ...currentTickets]
+            );
+          } else {
+            void queryClient.invalidateQueries({
+              queryKey: ADMIN_ARCHIVED_TICKETS_QUERY_KEY,
+            });
+          }
+
+          setSelectedTicket((currentTicket) => {
+            if (currentTicket?.id !== archivedTicketId) {
+              return currentTicket;
+            }
+
+            setSheetOpen(false);
+            return null;
+          });
+          return;
+        }
+
         queryClient.setQueryData<Ticket[]>(
           ADMIN_TICKETS_QUERY_KEY,
           (currentTickets = []) =>
@@ -453,10 +579,16 @@ export default function ManageTicket() {
     };
   }, [queryClient]);
 
+  const visibleTickets = ticketView === "active" ? tickets : archivedTickets;
+  const ticketsAreLoading =
+    ticketView === "active" ? isLoading : archivedTicketsAreLoading;
+  const ticketsHaveError =
+    ticketView === "active" ? isError : archivedTicketsHaveError;
+
   const filteredTickets = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return tickets.filter((ticket) => {
+    return visibleTickets.filter((ticket) => {
       const faculty = formatName(
         ticket.reportedBy.firstName,
         ticket.reportedBy.lastName
@@ -490,11 +622,18 @@ export default function ManageTicket() {
 
       return matchesSearch && matchesStatus && matchesType && matchesDate;
     }).sort(sortByNewest);
-  }, [tickets, searchQuery, statusFilter, typeFilter, dateFilter]);
+  }, [visibleTickets, searchQuery, statusFilter, typeFilter, dateFilter]);
 
   const updateFilter = (update: () => void) => {
     update();
     setPage(1);
+  };
+
+  const handleTicketViewChange = (view: TicketView) => {
+    setTicketView(view);
+    setPage(1);
+    setSelectedTicket(null);
+    setSheetOpen(false);
   };
 
   const totalPages = Math.ceil(filteredTickets.length / ITEMS_PER_PAGE);
@@ -546,18 +685,18 @@ export default function ManageTicket() {
     });
   };
 
-  const handleDeleteDialogOpenChange = (open: boolean) => {
-    if (!open && !deleteTicketMutation.isPending) {
-      setTicketToDelete(null);
+  const handleArchiveDialogOpenChange = (open: boolean) => {
+    if (!open && !archiveTicketMutation.isPending) {
+      setTicketToArchive(null);
     }
   };
 
-  const handleDeleteTicket = () => {
-    if (!ticketToDelete) {
+  const handleArchiveTicket = () => {
+    if (!ticketToArchive) {
       return;
     }
 
-    deleteTicketMutation.mutate(ticketToDelete.id);
+    archiveTicketMutation.mutate(ticketToArchive);
   };
 
   const paginatedTickets = filteredTickets.slice(
@@ -570,7 +709,9 @@ export default function ManageTicket() {
       <div className="mt-5 flex w-full flex-col gap-4 p-3">
       <TicketToolbar
         tickets={filteredTickets}
-        isLoading={isLoading}
+        isLoading={ticketsAreLoading}
+        ticketView={ticketView}
+        onTicketViewChange={handleTicketViewChange}
         searchQuery={searchQuery}
         onSearchQueryChange={(query) =>
           updateFilter(() => setSearchQuery(query))
@@ -600,34 +741,34 @@ export default function ManageTicket() {
           </TableHeader>
 
           <TableBody>
-            {isLoading && (
+            {ticketsAreLoading && (
               <TableSkeleton columns={7} />
             )}
 
-            {!isLoading && isError && (
+            {!ticketsAreLoading && ticketsHaveError && (
               <TableRow>
                 <TableCell
                   colSpan={7}
                   className="h-24 text-center text-red-500"
                 >
-                  Failed to load tickets.
+                  Failed to load {ticketView} tickets.
                 </TableCell>
               </TableRow>
             )}
 
-            {!isLoading && !isError && paginatedTickets.length === 0 && (
+            {!ticketsAreLoading && !ticketsHaveError && paginatedTickets.length === 0 && (
               <TableRow>
                 <TableCell
                   colSpan={7}
                   className="h-24 text-center secondary-text-color"
                 >
-                  No tickets found.
+                  No {ticketView} tickets found.
                 </TableCell>
               </TableRow>
             )}
 
-            {!isLoading &&
-              !isError &&
+            {!ticketsAreLoading &&
+              !ticketsHaveError &&
               paginatedTickets.map((ticket) => {
                 const faculty = formatName(
                   ticket.reportedBy.firstName,
@@ -710,20 +851,24 @@ export default function ManageTicket() {
                             <Eye className="size-4" />
                             View Ticket
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleAssignTechnician(ticket)}
-                          >
-                            <UserRoundCog className="size-4" />
-                            Assign Technician
-                          </DropdownMenuItem>
-                          <div className="my-1 h-px w-full bg-border" />
-                          <DropdownMenuItem
-                            onClick={() => setTicketToDelete(ticket)}
-                            className="text-red-600 focus:bg-red-50 focus:text-red-700"
-                          >
-                            <Trash2 className="size-4" />
-                            Delete Ticket
-                          </DropdownMenuItem>
+                          {ticketView === "active" && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() => handleAssignTechnician(ticket)}
+                              >
+                                <UserRoundCog className="size-4" />
+                                Assign Technician
+                              </DropdownMenuItem>
+                              <div className="my-1 h-px w-full bg-border" />
+                              <DropdownMenuItem
+                                onClick={() => setTicketToArchive(ticket)}
+                                className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                              >
+                                <Archive className="size-4" />
+                                Archive Ticket
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -788,11 +933,11 @@ export default function ManageTicket() {
         isPending={assignTechnicianMutation.isPending}
       />
 
-      <DeleteTicketDialog
-        open={ticketToDelete !== null}
-        onOpenChange={handleDeleteDialogOpenChange}
-        onDelete={handleDeleteTicket}
-        isPending={deleteTicketMutation.isPending}
+      <ArchiveTicketDialog
+        open={ticketToArchive !== null}
+        onOpenChange={handleArchiveDialogOpenChange}
+        onArchive={handleArchiveTicket}
+        isPending={archiveTicketMutation.isPending}
       />
     </>
   );

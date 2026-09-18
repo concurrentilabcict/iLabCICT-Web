@@ -1,153 +1,168 @@
-import Logo from '@/assets/logo.png';
-import { User, LockKeyhole, Eye, EyeOff, X } from 'lucide-react';
-import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { buildApiUrl, createApiError, publicFetch, type ApiError } from '@/lib/api';
-import { useAuth } from '@/auth/useAuth';
-import { useMutation } from '@tanstack/react-query';
-import { Spinner } from "@/components/ui/spinner"
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { ArrowLeft, Eye, EyeOff, LockKeyhole, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
+import Logo from "@/assets/logo.png";
+import { Spinner } from "@/components/ui/spinner";
+import {
+    buildApiUrl,
+    createApiError,
+    publicFetch,
+    type ApiError,
+} from "@/lib/api";
+import { appToast } from "@/utils/appToast";
 
-export default function ResetPasswordForm(){
+const RESET_TOKEN_STORAGE_KEY = "ilabcict_password_reset_token";
 
+type ResetPasswordResponse = {
+    message?: string;
+};
+
+export default function ResetPasswordForm() {
+    const navigate = useNavigate();
+    const [resetToken] = useState(() =>
+        sessionStorage.getItem(RESET_TOKEN_STORAGE_KEY)
+    );
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const navigate = useNavigate();
-
-    const [searchParams] = useSearchParams();
-    const token = searchParams.get("token");
-
-    const handleClick = () => {
-        if (!resetPasswordMutation.isPending) {
-            resetPasswordMutation.mutate();
-        }
-    };
-
     const resetPasswordMutation = useMutation({
         mutationFn: async () => {
-            if (!confirmPassword || !password) {
-                throw new Error("Username and password are required.");
-            }else if(confirmPassword !== password){
+            if (!resetToken) {
+                throw new Error("Your password reset session is missing or expired.");
+            }
+
+            if (!password || !confirmPassword) {
+                throw new Error("Enter and confirm your new password.");
+            }
+
+            if (password !== confirmPassword) {
                 throw new Error("Passwords must match.");
             }
 
-            const res = await publicFetch(buildApiUrl("/api/users/forgot-password/reset-password/"), {
-                method: "POST",
-                body: JSON.stringify({ 
-                    token: token || null,
-                    password: password,
-                    confirm_password: confirmPassword
-                }),
-            });
+            const response = await publicFetch(
+                buildApiUrl("/api/users/forgot-password/otp/reset-password/"),
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        reset_token: resetToken,
+                        new_password: password,
+                    }),
+                }
+            );
+            const data = (await response.json().catch(() => null)) as
+                | ResetPasswordResponse
+                | null;
 
-            const data = await res.json();
-            
-            if (!res.ok) {
+            if (!response.ok) {
                 throw createApiError(
-                    res.status,
-                    data.message || "Failed to reset password."
+                    response.status,
+                    data?.message || "Failed to reset password."
                 );
             }
 
             return data;
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
+            sessionStorage.removeItem(RESET_TOKEN_STORAGE_KEY);
             setError(null);
-            navigate("/login");
+            appToast.success(data?.message || "Password reset successfully.");
+            navigate("/login", { replace: true });
         },
-        onError: (error: ApiError) => {
-            if (error.status === 500) {
-                setError("Server error. Please try again later.");
-                return;
-            }
-        }
+        onError: (mutationError: ApiError) => {
+            setError(
+                mutationError.status === 500
+                    ? "Server error. Please try again later."
+                    : mutationError.message || "We couldn't reset your password."
+            );
+        },
     });
 
-    return(
-        <>
-            <div className="flex flex-col items-center justify-center gap-y-1 px-5 w-full">
-                <img src={Logo} alt="Logo" className="w-25 h-auto" />
-                <h1 className='primary-text-color text-3xl tracking-wide font-bold'>IlabCICT</h1>
-                <span>Create a new password for your account.</span>
-
-                {error &&
-                    <div className="flex items-center justify-center text-sm bg-red-100 text-red-700
-                    border border-red-700/50 rounded-md w-full max-w-sm p-5 mt-5">
-                        <span className='ml-auto'>{error}</span>
-                        <button onClick={() => setError(null)} className='ml-auto cursor-pointer'>
-                            <X size={18} strokeWidth={3} />
-                        </button>
-                    </div>}
-
-                <form
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        handleClick();
-                    }}
-                    className={`flex flex-col items-center w-full gap-y-5 ${error ? "mt-5" : "mt-5"}`}
-                >
-                    <div className="relative w-full max-w-sm">
-                        <LockKeyhole
-                            size={18}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 secondary-text-color"
-                        />
-
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="New password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="w-full rounded-lg border primary-border-color py-3 pl-10 pr-4 outline-none focus:border-black!"
-                        />
-
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 secondary-text-color cursor-pointer"
-                        >
-                            {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-                        </button>
-                    </div>
-
-                    <div className="relative w-full max-w-sm">
-                        <LockKeyhole
-                            size={18}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 secondary-text-color"
-                        />
-
-                        <input
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder="Confirm new password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                            className="w-full rounded-lg border primary-border-color py-3 pl-10 pr-4 outline-none focus:border-black!"
-                        />
-
-                        <button
-                            type="button"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 secondary-text-color cursor-pointer"
-                        >
-                            {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-                        </button>
-                    </div>
-
-                    <button className=' primary-button rounded-full! w-full max-w-sm'
-                        type="submit"
-                        disabled={resetPasswordMutation.isPending}>
-
-                        {resetPasswordMutation.isPending ? <><Spinner className='size-5' />Resetting password... </>
-                            : <>Reset Password</>}
-                    </button>
-                </form>
+    if (!resetToken) {
+        return (
+            <div className="flex w-full flex-col items-center justify-center gap-4 px-5 text-center">
+                <img src={Logo} alt="IlabCICT logo" className="h-auto w-25" />
+                <h1 className="primary-text-color text-3xl font-bold tracking-wide">IlabCICT</h1>
+                <h2 className="font-semibold">Reset session unavailable</h2>
+                <p className="max-w-sm text-sm secondary-text-color">
+                    Request and verify a new password reset code to continue.
+                </p>
+                <button type="button" onClick={() => navigate("/forgot-password")} className="primary-button w-full max-w-sm rounded-full!">
+                    Request New Code
+                </button>
+                <button type="button" onClick={() => navigate("/login")} className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium secondary-text-color hover:text-black">
+                    <ArrowLeft size={16} />
+                    Back to Login
+                </button>
             </div>
-        </>
-    );
+        );
+    }
 
+    return (
+        <div className="flex w-full flex-col items-center justify-center gap-y-1 px-5">
+            <img src={Logo} alt="IlabCICT logo" className="h-auto w-25" />
+            <h1 className="primary-text-color text-3xl font-bold tracking-wide">IlabCICT</h1>
+            <h2 className="mt-1 font-medium">Create a New Password</h2>
+            <p className="max-w-sm text-center text-sm secondary-text-color">
+                Choose a secure password for your account.
+            </p>
+
+            {error && (
+                <div className="mt-5 flex w-full max-w-sm items-center rounded-md border border-red-700/50 bg-red-100 p-4 text-sm text-red-700">
+                    <span className="flex-1 text-center">{error}</span>
+                    <button type="button" onClick={() => setError(null)} aria-label="Dismiss error" className="cursor-pointer">
+                        <X size={18} strokeWidth={3} />
+                    </button>
+                </div>
+            )}
+
+            <form
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    if (!resetPasswordMutation.isPending) resetPasswordMutation.mutate();
+                }}
+                className="mt-5 flex w-full flex-col items-center gap-5"
+            >
+                <div className="relative w-full max-w-sm">
+                    <LockKeyhole size={18} className="absolute left-3 top-1/2 -translate-y-1/2 secondary-text-color" />
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="New password"
+                        autoComplete="new-password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        required
+                        className="w-full rounded-lg border primary-border-color py-3 pl-10 pr-11 outline-none focus:border-black!"
+                    />
+                    <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer secondary-text-color">
+                        {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                    </button>
+                </div>
+
+                <div className="relative w-full max-w-sm">
+                    <LockKeyhole size={18} className="absolute left-3 top-1/2 -translate-y-1/2 secondary-text-color" />
+                    <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirm new password"
+                        autoComplete="new-password"
+                        value={confirmPassword}
+                        onChange={(event) => setConfirmPassword(event.target.value)}
+                        required
+                        className="w-full rounded-lg border primary-border-color py-3 pl-10 pr-11 outline-none focus:border-black!"
+                    />
+                    <button type="button" onClick={() => setShowConfirmPassword((visible) => !visible)} aria-label={showConfirmPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer secondary-text-color">
+                        {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                    </button>
+                </div>
+
+                <button type="submit" disabled={resetPasswordMutation.isPending} className="primary-button w-full max-w-sm rounded-full! disabled:opacity-50">
+                    {resetPasswordMutation.isPending ? <><Spinner className="size-5" />Resetting password...</> : "Reset Password"}
+                </button>
+            </form>
+        </div>
+    );
 }

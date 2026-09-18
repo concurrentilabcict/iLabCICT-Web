@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { Archive } from "lucide-react";
 
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -12,26 +12,26 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-type DeleteTicketDialogProps = {
+type ArchiveTicketDialogProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onDelete: () => void;
+    onArchive: () => void;
     isPending: boolean;
 };
 
-export default function DeleteTicketDialog({
+export default function ArchiveTicketDialog({
     open,
     onOpenChange,
-    onDelete,
+    onArchive,
     isPending,
-}: DeleteTicketDialogProps) {
+}: ArchiveTicketDialogProps) {
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Ticket?</AlertDialogTitle>
+                    <AlertDialogTitle>Archive Ticket?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This ticket will be permanently deleted and cannot be recovered.
+                        This ticket will move out of the active queue and remain available in Archived Tickets.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
@@ -39,16 +39,16 @@ export default function DeleteTicketDialog({
                     <AlertDialogCancel disabled={isPending}>
                         Cancel
                     </AlertDialogCancel>
-                    <AlertDialogAction onClick={onDelete} disabled={isPending}>
+                    <AlertDialogAction onClick={onArchive} disabled={isPending}>
                         {isPending ? (
                             <>
                                 <Spinner className="size-4" />
-                                Deleting...
+                                Archiving...
                             </>
                         ) : (
                             <>
-                                <Trash2 />
-                                Delete
+                                <Archive />
+                                Archive
                             </>
                         )}
                     </AlertDialogAction>

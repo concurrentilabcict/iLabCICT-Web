@@ -54,6 +54,12 @@ type TicketWebSocketMessage =
     | {
         event: "ticket_created" | "ticket_updated" | "ticket_reassigned";
         ticket: ApiTicket;
+    }
+    | {
+        event: "ticket_archived";
+        ticket?: ApiTicket;
+        ticket_id?: number;
+        id?: number;
     };
 
 const TICKETS_QUERY_KEY = ["technician-tickets"] as const;
@@ -78,6 +84,14 @@ const isTicketWebSocketMessage = (
 
     if (value.event === "initial_tickets") {
         return Array.isArray(value.ticket);
+    }
+
+    if (value.event === "ticket_archived") {
+        return (
+            ("ticket" in value && isRecord(value.ticket)) ||
+            typeof value.ticket_id === "number" ||
+            typeof value.id === "number"
+        );
     }
 
     return (
@@ -242,6 +256,26 @@ export default function ManageTicket({
                         TICKETS_QUERY_KEY,
                         parsedMessage.ticket.map(mapTicket)
                     );
+                    return;
+                }
+
+                if (parsedMessage.event === "ticket_archived") {
+                    const archivedTicketId =
+                        parsedMessage.ticket?.id ??
+                        parsedMessage.ticket_id ??
+                        parsedMessage.id;
+
+                    if (archivedTicketId === undefined) return;
+
+                    queryClient.setQueryData<Ticket[]>(
+                        TICKETS_QUERY_KEY,
+                        (currentTickets = []) =>
+                            currentTickets.filter(
+                                (ticket) => ticket.id !== archivedTicketId
+                            )
+                    );
+                    setSelectedTicketId(null);
+                    setSheetOpen(false);
                     return;
                 }
 

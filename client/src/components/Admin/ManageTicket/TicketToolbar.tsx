@@ -1,4 +1,4 @@
-import { ChevronDown, Download, Search, X } from 'lucide-react';
+import { Archive, ChevronDown, Download, Inbox, Search, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { StatusFilter, TicketTypeFilter } from '@/utils/ticket';
 import type { Ticket } from '@/types/ticket';
@@ -39,6 +39,8 @@ const typeOptions: TicketTypeFilter[] = ['All', 'Request', 'Report'];
 type TicketToolbarProps = {
     tickets: Ticket[];
     isLoading?: boolean;
+    ticketView: 'active' | 'archived';
+    onTicketViewChange: (view: 'active' | 'archived') => void;
     searchQuery: string;
     onSearchQueryChange: (query: string) => void;
     selectedStatus: StatusFilter;
@@ -70,6 +72,8 @@ const escapeCsvCell = (value: string) =>
 export default function TicketToolbar({
     tickets,
     isLoading = false,
+    ticketView,
+    onTicketViewChange,
     searchQuery,
     onSearchQueryChange,
     selectedStatus,
@@ -130,36 +134,65 @@ export default function TicketToolbar({
     return (
         <div className="flex w-full flex-col gap-y-3 ">
             <div className="flex items-center justify-between">
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                <div className="flex items-center gap-3">
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <button
+                                type="button"
+                                disabled={isLoading || tickets.length === 0}
+                                className="bg-white flex items-center gap-x-1.5 border rounded-xl py-2 px-3.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <Download size={20} className='rotate-180' />
+                                <span>Export</span>
+                            </button>
+                        </AlertDialogTrigger>
+
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Export Tickets?</AlertDialogTitle>
+
+                                <AlertDialogDescription>
+                                    This will download the current tickets table as a CSV file.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                                <AlertDialogAction onClick={exportTickets}>
+                                    Continue
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+
+                    <div className="flex rounded-xl border bg-white p-1" aria-label="Ticket view">
                         <button
                             type="button"
-                            disabled={isLoading || tickets.length === 0}
-                            className="bg-white flex items-center gap-x-1.5 border rounded-xl py-2 px-3.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                            onClick={() => onTicketViewChange('active')}
+                            aria-pressed={ticketView === 'active'}
+                            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${ticketView === 'active'
+                                ? 'primary-bg-color text-white'
+                                : 'secondary-text-color hover:bg-muted'
+                                }`}
                         >
-                            <Download size={20} className='rotate-180' />
-                            <span>Export</span>
+                            <Inbox size={16} />
+                            Active
                         </button>
-                    </AlertDialogTrigger>
-
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Export Tickets?</AlertDialogTitle>
-
-                            <AlertDialogDescription>
-                                This will download the current tickets table as a CSV file.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-                            <AlertDialogAction onClick={exportTickets}>
-                                Continue
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                        <button
+                            type="button"
+                            onClick={() => onTicketViewChange('archived')}
+                            aria-pressed={ticketView === 'archived'}
+                            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${ticketView === 'archived'
+                                ? 'primary-bg-color text-white'
+                                : 'secondary-text-color hover:bg-muted'
+                                }`}
+                        >
+                            <Archive size={16} />
+                            Archived
+                        </button>
+                    </div>
+                </div>
 
                 <div className="relative w-[300px]">
                     <Search
