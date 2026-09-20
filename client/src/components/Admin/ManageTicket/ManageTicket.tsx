@@ -289,7 +289,7 @@ export default function ManageTicket() {
     queryKey: ADMIN_ARCHIVED_TICKETS_QUERY_KEY,
     queryFn: async () => {
       const response = await privateFetch(
-        buildApiUrl("/api/tickets/?archived=true")
+        buildApiUrl("/api/tickets/archive/")
       );
       const data = (await response.json()) as
         | ApiTicket[]
@@ -435,6 +435,10 @@ export default function ManageTicket() {
       return ticket;
     },
     onSuccess: (archivedTicket) => {
+      const archivedTicketForCache: Ticket = {
+        ...archivedTicket,
+        status: "archived",
+      };
       const removeTicket = (currentTickets: Ticket[] = []) =>
         currentTickets.filter((ticket) => ticket.id !== archivedTicket.id);
 
@@ -451,8 +455,11 @@ export default function ManageTicket() {
         (currentTickets = []) =>
           currentTickets.some((ticket) => ticket.id === archivedTicket.id)
             ? currentTickets
-            : [archivedTicket, ...currentTickets]
+            : [archivedTicketForCache, ...currentTickets]
       );
+      void queryClient.invalidateQueries({
+        queryKey: ADMIN_ARCHIVED_TICKETS_QUERY_KEY,
+      });
       setSelectedTicket((currentTicket) =>
         currentTicket?.id === archivedTicket.id ? null : currentTicket
       );
@@ -632,6 +639,7 @@ export default function ManageTicket() {
   const handleTicketViewChange = (view: TicketView) => {
     setTicketView(view);
     setPage(1);
+    setStatusFilter("All");
     setSelectedTicket(null);
     setSheetOpen(false);
   };

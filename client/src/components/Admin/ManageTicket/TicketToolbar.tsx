@@ -33,7 +33,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { DatePicker } from '../DatePicker/DatePicker';
 
-const statusOptions: StatusFilter[] = ['All', 'Open', 'Ongoing', 'Resolved'];
+const activeStatusOptions: StatusFilter[] = ['All', 'Open', 'Ongoing', 'Resolved'];
 const typeOptions: TicketTypeFilter[] = ['All', 'Request', 'Report'];
 
 type TicketToolbarProps = {
@@ -85,6 +85,9 @@ export default function TicketToolbar({
 }: TicketToolbarProps) {
     const [openFilter, setOpenFilter] = useState<'status' | 'type' | null>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
+    const statusOptions: StatusFilter[] = ticketView === 'archived'
+        ? ['All', 'Archived']
+        : activeStatusOptions;
 
     const clearSearch = () => {
         onSearchQueryChange('');

@@ -1,4 +1,5 @@
 import {
+    Archive,
     Clock3,
     CircleDot,
     CheckCircle2,
@@ -18,6 +19,11 @@ export const statusConfig = {
     Resolved: {
         icon: CheckCircle2,
         className: "bg-green-100 text-green-700",
+    },
+
+    Archived: {
+        icon: Archive,
+        className: "bg-gray-100 text-gray-700",
     },
 };
 

@@ -1,4 +1,5 @@
 import {
+  Archive,
   Building2,
   CalendarDays,
   CheckCircle2,
@@ -43,6 +44,10 @@ const statusStyle: Record<Status, { icon: LucideIcon; className: string }> = {
   Resolved: {
     icon: CheckCircle2,
     className: "border-emerald-300 bg-emerald-100 text-emerald-700",
+  },
+  Archived: {
+    icon: Archive,
+    className: "border-gray-300 bg-gray-100 text-gray-700",
   },
 };
 
