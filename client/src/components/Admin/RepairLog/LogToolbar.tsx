@@ -27,6 +27,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { appToast } from "@/utils/appToast";
+import { exportTableWorkbook, formatExcelDate, getLocalDateStamp } from "@/utils/tabularExcel";
 
 import { DatePicker } from "../DatePicker/DatePicker";
 
@@ -62,15 +64,6 @@ const formatLabel = (text: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 
-const formatDate = (date: string) =>
-  new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
-
-const escapeCsvCell = (value: string) => `"${value.replace(/"/g, '""')}"`;
-
 export default function LogToolbar({
   repairLogs,
   isLoading = false,
@@ -93,7 +86,7 @@ export default function LogToolbar({
     searchInputRef.current?.focus();
   };
 
-  const exportRepairLogs = () => {
+  const exportRepairLogs = async () => {
     if (repairLogs.length === 0) {
       return;
     }
@@ -108,31 +101,29 @@ export default function LogToolbar({
       "Created",
     ];
 
-    const rows = repairLogs.map((repairLog) => [
-      repairLog.repairLogCode,
-      `${repairLog.ticket.reportedBy.firstName} ${repairLog.ticket.reportedBy.lastName}`,
-      `${repairLog.ticket.assignedTo.firstName} ${repairLog.ticket.assignedTo.lastName}`,
-      formatLabel(repairLog.ticket.type),
-      repairLog.title,
-      repairLog.repairNotes,
-      formatDate(repairLog.createdAt),
-    ]);
-
-    const csv = [headers, ...rows]
-      .map((row) => row.map(escapeCsvCell).join(","))
-      .join("\r\n");
-    const blob = new Blob([`\uFEFF${csv}`], {
-      type: "text/csv;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-    const downloadLink = document.createElement("a");
-
-    downloadLink.href = url;
-    downloadLink.download = `repair-logs-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    downloadLink.remove();
-    URL.revokeObjectURL(url);
+    try {
+      await exportTableWorkbook({
+        title: "iLabCICT Repair Logs",
+        subject: "Repair log export",
+        worksheetName: "Repair Logs",
+        filename: `iLabCICT_Repair_Logs_${getLocalDateStamp()}.xlsx`,
+        headers,
+        rows: repairLogs.map((repairLog) => [
+          repairLog.repairLogCode,
+          `${repairLog.ticket.reportedBy.firstName} ${repairLog.ticket.reportedBy.lastName}`.trim(),
+          `${repairLog.ticket.assignedTo.firstName} ${repairLog.ticket.assignedTo.lastName}`.trim(),
+          formatLabel(repairLog.ticket.type),
+          repairLog.title,
+          repairLog.repairNotes,
+          formatExcelDate(repairLog.createdAt),
+        ]),
+        columnWidths: [20, 24, 24, 16, 28, 42, 20],
+      });
+    } catch (error) {
+      appToast.error(
+        error instanceof Error ? error.message : "We couldn't export the repair logs."
+      );
+    }
   };
 
   return (
@@ -155,14 +146,14 @@ export default function LogToolbar({
               <AlertDialogTitle>Export Repair Logs?</AlertDialogTitle>
 
               <AlertDialogDescription>
-                This will download the current repair logs table as a CSV file.
+                This will download the current repair logs table as an Excel workbook.
               </AlertDialogDescription>
             </AlertDialogHeader>
 
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
 
-              <AlertDialogAction onClick={exportRepairLogs}>
+              <AlertDialogAction onClick={() => void exportRepairLogs()}>
                 Continue
               </AlertDialogAction>
             </AlertDialogFooter>

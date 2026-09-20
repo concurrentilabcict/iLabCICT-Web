@@ -26,6 +26,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { appToast } from "@/utils/appToast";
+import { exportTableWorkbook, formatExcelDate, getLocalDateStamp } from "@/utils/tabularExcel";
 
 import { DatePicker } from "../DatePicker/DatePicker";
 
@@ -52,15 +54,6 @@ const formatLabel = (text: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 
-const formatDate = (date: string) =>
-  new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
-
-const escapeCsvCell = (value: string) => `"${value.replace(/"/g, '""')}"`;
-
 export default function UserToolbar({
   users,
   isLoading = false,
@@ -80,7 +73,7 @@ export default function UserToolbar({
     searchInputRef.current?.focus();
   };
 
-  const exportUsers = () => {
+  const exportUsers = async () => {
     if (users.length === 0) {
       return;
     }
@@ -93,29 +86,27 @@ export default function UserToolbar({
       "Created",
     ];
 
-    const rows = users.map((user) => [
-      user.userCode,
-      `${user.firstName} ${user.lastName}`.trim() || user.username,
-      user.email,
-      formatLabel(user.role),
-      formatDate(user.createdAt),
-    ]);
-
-    const csv = [headers, ...rows]
-      .map((row) => row.map(escapeCsvCell).join(","))
-      .join("\r\n");
-    const blob = new Blob([`\uFEFF${csv}`], {
-      type: "text/csv;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-    const downloadLink = document.createElement("a");
-
-    downloadLink.href = url;
-    downloadLink.download = `users-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    downloadLink.remove();
-    URL.revokeObjectURL(url);
+    try {
+      await exportTableWorkbook({
+        title: "iLabCICT User Directory",
+        subject: "User directory export",
+        worksheetName: "Users",
+        filename: `iLabCICT_Users_${getLocalDateStamp()}.xlsx`,
+        headers,
+        rows: users.map((user) => [
+          user.userCode,
+          `${user.firstName} ${user.lastName}`.trim() || user.username,
+          user.email,
+          formatLabel(user.role),
+          formatExcelDate(user.createdAt),
+        ]),
+        columnWidths: [18, 28, 34, 18, 20],
+      });
+    } catch (error) {
+      appToast.error(
+        error instanceof Error ? error.message : "We couldn't export the users."
+      );
+    }
   };
 
   return (
@@ -138,14 +129,14 @@ export default function UserToolbar({
               <AlertDialogTitle>Export Users?</AlertDialogTitle>
 
               <AlertDialogDescription>
-                This will download the current users table as a CSV file.
+                This will download the current users table as an Excel workbook.
               </AlertDialogDescription>
             </AlertDialogHeader>
 
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
 
-              <AlertDialogAction onClick={exportUsers}>
+              <AlertDialogAction onClick={() => void exportUsers()}>
                 Continue
               </AlertDialogAction>
             </AlertDialogFooter>

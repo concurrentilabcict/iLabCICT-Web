@@ -1,7 +1,10 @@
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import type { EditRoomFormType, Room } from "@/types/room"
 import { Download, Plus } from "lucide-react"
-import RoomCsvImport from "./RoomCsvImport/RoomCsvImport"
+import { useState } from "react"
+import RoomExcelImport from "./RoomExcelImport/RoomExcelImport"
+import { appToast } from "@/utils/appToast"
+import { exportTableWorkbook, formatExcelDate, getLocalDateStamp } from "@/utils/tabularExcel"
 
 type ButtonGroupType = {
     rooms: Room[]
@@ -9,18 +12,6 @@ type ButtonGroupType = {
     setIsEditing: (open: boolean) => void,
     setSelectedRoom: (room: EditRoomFormType) => void
 }
-
-const formatDate = (date: string) =>
-  new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
-
-const escapeCsvCell = (value: unknown) => {
-    const text = value == null ? "" : String(value);
-    return `"${text.replace(/"/g, '""')}"`;
-};
 
 const getCustodian = (lastName: string | undefined, firstName: string | undefined) => {
     return lastName && firstName ? `${firstName} ${lastName}` : 'No Custodian';
@@ -31,6 +22,7 @@ export default function ButtonGroup({
     setIsEditing,
     setSelectedRoom
 }: ButtonGroupType){
+    const [isExporting, setIsExporting] = useState(false)
 
     const handleAddComputerClick = () => {
         setSelectedRoom({
@@ -46,7 +38,7 @@ export default function ButtonGroup({
         setSheetOpen(true)
     }
 
-    const exportRooms = () =>{
+    const exportRooms = async () =>{
         if(rooms.length === 0){
             return;
         }
@@ -66,39 +58,40 @@ export default function ButtonGroup({
             "Updated At"
         ];
 
-        const rows = rooms.map((room)=>[
-            room.id,
-            room.roomName,
-            room.floorNumber,
-            room.buildingName,
-            getCustodian(
-                room.assignedCustodian?.lastName,
-                room.assignedCustodian?.firstName
-            ),
-            room.assignedCustodian?.id ?? "",
-            room.assignedTechnician?.id ?? "",
-            room.computerCount,
-            room.activeIssuesCount,
-            room.status,
-            formatDate(room.createdAt),
-            formatDate(room.updatedAt)
-        ]);
-
-        const csv = [headers, ...rows]
-            .map((row) => row.map(escapeCsvCell).join(","))
-            .join("\r\n");
-        const blob = new Blob([`\uFEFF${csv}`], {
-        type: "text/csv;charset=utf-8",
-        });
-        const url = URL.createObjectURL(blob);
-        const downloadLink = document.createElement("a");
-        downloadLink.href = url;
-        downloadLink.download = `rooms-${new Date().toISOString().slice(0, 10)}.csv`;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        downloadLink.remove();
-        URL.revokeObjectURL(url);
-
+        setIsExporting(true)
+        try {
+            await exportTableWorkbook({
+                title: "iLabCICT Laboratory Directory",
+                subject: "Laboratory directory export",
+                worksheetName: "Laboratories",
+                filename: `iLabCICT_Laboratories_${getLocalDateStamp()}.xlsx`,
+                headers,
+                rows: rooms.map((room)=>[
+                    room.id,
+                    room.roomName,
+                    room.floorNumber,
+                    room.buildingName,
+                    getCustodian(
+                        room.assignedCustodian?.lastName,
+                        room.assignedCustodian?.firstName
+                    ),
+                    room.assignedCustodian?.id ?? null,
+                    room.assignedTechnician?.id ?? null,
+                    room.computerCount,
+                    room.activeIssuesCount,
+                    room.status,
+                    formatExcelDate(room.createdAt),
+                    formatExcelDate(room.updatedAt)
+                ]),
+                columnWidths: [14, 22, 16, 20, 28, 24, 25, 18, 16, 18, 20, 20],
+            })
+        } catch (error) {
+            appToast.error(
+                error instanceof Error ? error.message : "We couldn't export the laboratories."
+            )
+        } finally {
+            setIsExporting(false)
+        }
     }
 
 
@@ -123,15 +116,16 @@ export default function ButtonGroup({
 
                 <div className="flex gap-2.5">
 	                    <button
-	                        onClick={exportRooms}
+	                        onClick={() => void exportRooms()}
 	                        type="button"
+	                        disabled={isExporting || rooms.length === 0}
 	                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color hover:cursor-pointer hover:bg-gray-50"
 	                    >
                         <Download size={16}/>
-                        <span className={isMobile ? 'hidden' : ''} >Export</span>
+                        <span className={isMobile ? 'hidden' : ''} >{isExporting ? "Exporting..." : "Export"}</span>
                     </button>
 
-                    <RoomCsvImport
+                    <RoomExcelImport
                         showLabel={!isMobile}
                         className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color hover:cursor-pointer hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                     />

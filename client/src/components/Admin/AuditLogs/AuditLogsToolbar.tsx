@@ -13,7 +13,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { AuditLog } from "@/types/auditLog";
-import { escapeCsvCell, formatDateTime } from "./auditLogUtils";
+import { formatDateTime } from "./auditLogUtils";
+import { appToast } from "@/utils/appToast";
+import { exportTableWorkbook, getLocalDateStamp } from "@/utils/tabularExcel";
 
 type AuditLogsToolbarProps = {
   auditLogs: AuditLog[];
@@ -35,7 +37,7 @@ export default function AuditLogsToolbar({
     searchInputRef.current?.focus();
   };
 
-  const exportAuditLogs = () => {
+  const exportAuditLogs = async () => {
     if (auditLogs.length === 0) {
       return;
     }
@@ -49,30 +51,29 @@ export default function AuditLogsToolbar({
       "User Agent",
       "Created",
     ];
-    const rows = auditLogs.map((auditLog) => [
-      String(auditLog.id),
-      auditLog.performedBy,
-      auditLog.actionTitle,
-      auditLog.actionSummary,
-      auditLog.ipAddress,
-      auditLog.userAgent,
-      formatDateTime(auditLog.createdAt),
-    ]);
-    const csv = [headers, ...rows]
-      .map((row) => row.map(escapeCsvCell).join(","))
-      .join("\r\n");
-    const blob = new Blob([`\uFEFF${csv}`], {
-      type: "text/csv;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-    const downloadLink = document.createElement("a");
-
-    downloadLink.href = url;
-    downloadLink.download = `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    downloadLink.remove();
-    URL.revokeObjectURL(url);
+    try {
+      await exportTableWorkbook({
+        title: "iLabCICT Audit Logs",
+        subject: "Audit log export",
+        worksheetName: "Audit Logs",
+        filename: `iLabCICT_Audit_Logs_${getLocalDateStamp()}.xlsx`,
+        headers,
+        rows: auditLogs.map((auditLog) => [
+          auditLog.id,
+          auditLog.performedBy,
+          auditLog.actionTitle,
+          auditLog.actionSummary,
+          auditLog.ipAddress,
+          auditLog.userAgent,
+          formatDateTime(auditLog.createdAt),
+        ]),
+        columnWidths: [14, 24, 28, 44, 20, 48, 24],
+      });
+    } catch (error) {
+      appToast.error(
+        error instanceof Error ? error.message : "We couldn't export the audit logs."
+      );
+    }
   };
 
   return (
@@ -93,13 +94,13 @@ export default function AuditLogsToolbar({
           <AlertDialogHeader>
             <AlertDialogTitle>Export Audit Logs?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will download the current audit logs table as a CSV file.
+              This will download the current audit logs table as an Excel workbook.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={exportAuditLogs}>
+            <AlertDialogAction onClick={() => void exportAuditLogs()}>
               Continue
             </AlertDialogAction>
           </AlertDialogFooter>

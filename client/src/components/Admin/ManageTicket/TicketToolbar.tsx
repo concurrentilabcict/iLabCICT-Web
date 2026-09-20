@@ -2,6 +2,8 @@ import { Archive, ChevronDown, Download, Inbox, Search, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { StatusFilter, TicketTypeFilter } from '@/utils/ticket';
 import type { Ticket } from '@/types/ticket';
+import { appToast } from '@/utils/appToast';
+import { exportTableWorkbook, formatExcelDate, getLocalDateStamp } from '@/utils/tabularExcel';
 
 import {
     Popover,
@@ -59,16 +61,6 @@ const formatLabel = (text: string) =>
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
-const formatDate = (date: string) =>
-    new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-    }).format(new Date(date));
-
-const escapeCsvCell = (value: string) =>
-    `"${value.replace(/"/g, '""')}"`;
-
 export default function TicketToolbar({
     tickets,
     isLoading = false,
@@ -94,7 +86,7 @@ export default function TicketToolbar({
         searchInputRef.current?.focus();
     };
 
-    const exportTickets = () => {
+    const exportTickets = async () => {
         if (tickets.length === 0) {
             return;
         }
@@ -108,30 +100,33 @@ export default function TicketToolbar({
             'Created',
         ];
 
-        const rows = tickets.map((ticket) => [
-            ticket.ticketCode,
-            `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`,
-            `${ticket.assignedTo?.firstName} ${ticket.assignedTo?.lastName}`,
-            formatLabel(ticket.type),
-            formatLabel(ticket.status),
-            formatDate(ticket.createdAt),
-        ]);
-
-        const csv = [headers, ...rows]
-            .map((row) => row.map(escapeCsvCell).join(','))
-            .join('\r\n');
-        const blob = new Blob([`\uFEFF${csv}`], {
-            type: 'text/csv;charset=utf-8',
-        });
-        const url = URL.createObjectURL(blob);
-        const downloadLink = document.createElement('a');
-
-        downloadLink.href = url;
-        downloadLink.download = `tickets-${new Date().toISOString().slice(0, 10)}.csv`;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        downloadLink.remove();
-        URL.revokeObjectURL(url);
+        try {
+            await exportTableWorkbook({
+                title: 'iLabCICT Ticket Management',
+                subject: 'Ticket management export',
+                worksheetName: ticketView === 'archived' ? 'Archived Tickets' : 'Active Tickets',
+                filename: `iLabCICT_Tickets_${getLocalDateStamp()}.xlsx`,
+                headers,
+                rows: tickets.map((ticket) => [
+                    ticket.ticketCode,
+                    `${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`.trim(),
+                    ticket.assignedTo
+                        ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`.trim()
+                        : 'Unassigned',
+                    formatLabel(ticket.type),
+                    formatLabel(ticket.status),
+                    formatExcelDate(ticket.createdAt),
+                ]),
+                columnWidths: [20, 24, 24, 16, 16, 20],
+                metadata: [
+                    { label: 'View', value: ticketView === 'archived' ? 'Archived' : 'Active' },
+                ],
+            });
+        } catch (error) {
+            appToast.error(
+                error instanceof Error ? error.message : "We couldn't export the tickets."
+            );
+        }
     };
 
     return (
@@ -155,14 +150,14 @@ export default function TicketToolbar({
                                 <AlertDialogTitle>Export Tickets?</AlertDialogTitle>
 
                                 <AlertDialogDescription>
-                                    This will download the current tickets table as a CSV file.
+                                    This will download the current tickets table as an Excel workbook.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
 
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
 
-                                <AlertDialogAction onClick={exportTickets}>
+                                <AlertDialogAction onClick={() => void exportTickets()}>
                                     Continue
                                 </AlertDialogAction>
                             </AlertDialogFooter>
