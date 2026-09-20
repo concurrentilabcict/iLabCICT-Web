@@ -94,9 +94,6 @@ export const formatDateTime = (date: string) =>
     minute: "2-digit",
   }).format(new Date(date));
 
-export const escapeCsvCell = (value: string) =>
-  `"${value.replace(/"/g, '""')}"`;
-
 export const mapAuditLog = (auditLog: ApiAuditLog): AuditLog => ({
   id: auditLog.id,
   performedBy: formatPerformedBy(auditLog.performed_by),
