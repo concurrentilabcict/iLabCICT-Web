@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/sheet";
 import MaintenanceHistoryDetails from "./MaintenanceHistoryDetails";
 import { useState } from "react";
-import type { MaintenanceHistory, MaintenanceHistoryRepairLog } from "@/types/maintenanceHistory";
+import type { ApiMaintenanceHistory, MaintenanceHistory } from "@/types/maintenanceHistory";
+import { mapMaintenanceHistory } from "@/utils/maintenanceHistory";
 
 
 
@@ -60,18 +61,6 @@ type ApiComputerDetails = {
     message?: string;
 };
 
-type ApiMaintenanceHistory = {
-    id: number;
-    maintenance_history_code: string;
-    maintenance_type: string;
-    maintenance_notes: string;
-    performed_by: string;
-    computer: number;
-    technician: number;
-    date_performed: string;
-    repair_log: MaintenanceHistoryRepairLog;
-};
-
 type ComputerInformationData = {
     computer: Computer;
     maintenanceHistory: MaintenanceHistory[];
@@ -110,18 +99,6 @@ export default function ComputerInformation({
         upsStatus: computer.ups_status,
         createdAt: computer.created_at,
         updatedAt: computer.updated_at
-    });
-
-    const mapMaintenanceHistory = (history: ApiMaintenanceHistory): MaintenanceHistory => ({
-        id: history.id,
-        maintenanceHistoryCode: history.maintenance_history_code,
-        maintenanceType: history.maintenance_type,
-        maintenanceNotes: history.maintenance_notes,
-        performedBy: history.performed_by,
-        datePerformed: history.date_performed,
-        computerId: history.computer,
-        technicianId: history.technician,
-        repairLog: history.repair_log
     });
 
     const handleSheetOpenChange = (open: boolean) => {

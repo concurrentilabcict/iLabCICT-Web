@@ -77,7 +77,7 @@ export default function MaintenanceHistoryDetails({
             <h3>Performed By</h3>
           </div>
           <p className="min-w-0 break-words text-right">
-            {maintenanceHistory?.performedBy}
+            {maintenanceHistory?.performedBy || "Not recorded"}
           </p>
         </div>
 

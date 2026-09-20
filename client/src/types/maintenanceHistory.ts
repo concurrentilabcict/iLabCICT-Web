@@ -20,3 +20,21 @@ export type MaintenanceHistoryRepairLog = {
     repairLogCode: string,
     title: string,
 }
+
+export type MaintenanceHistoryTechnician = {
+    id: number,
+    first_name: string,
+    last_name: string,
+}
+
+export type ApiMaintenanceHistory = {
+    id: number,
+    maintenance_history_code: string,
+    maintenance_type: string,
+    maintenance_notes: string,
+    performed_by?: string | MaintenanceHistoryTechnician | null,
+    computer: number,
+    technician: number | MaintenanceHistoryTechnician,
+    date_performed: string,
+    repair_log: MaintenanceHistoryRepairLog,
+}

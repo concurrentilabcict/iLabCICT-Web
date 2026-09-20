@@ -1,9 +1,9 @@
 
-import type { MaintenanceHistory, MaintenanceHistoryRepairLog } from "@/types/maintenanceHistory";
+import type { ApiMaintenanceHistory, MaintenanceHistory } from "@/types/maintenanceHistory";
 import { useQuery } from "@tanstack/react-query";
 import { ClipboardClock } from "lucide-react";
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
-import { maintenanceTypeConfig, type MaintenanceTypes } from "@/utils/maintenanceHistory";
+import { maintenanceTypeConfig, mapMaintenanceHistory, type MaintenanceTypes } from "@/utils/maintenanceHistory";
 import { formatDateTime } from "@/utils/string";
 import { Fragment, useMemo } from "react";
 import MaintenanceHistorySkeleton from "@/components/MaintenanceHistorySkeleton/MaintenanceHistorySkeleton";
@@ -25,18 +25,6 @@ const formatLabel = (text: string) => {
         .join(" ")
 };
 
-type ApiMaintenanceHistory = {
-    id: number;
-    maintenance_history_code: string;
-    maintenance_type: string;
-    maintenance_notes: string;
-    performed_by: string;
-    computer: number;
-    technician: number;
-    date_performed: string;
-    repair_log: MaintenanceHistoryRepairLog;
-};
-
 const fallbackMaintenanceType = {
     icon: ClipboardClock,
     className: "bg-gray-100 text-gray-700",
@@ -50,18 +38,6 @@ export default function MaintenanceHistoryCard({
     maintenanceHistoryData,
     isLoadingOverride
 }: MaintenanceHistoryCardType){
-
-    const mapMaintenanceHistory = (maintenanceHistory: ApiMaintenanceHistory) : MaintenanceHistory=>({
-        id: maintenanceHistory.id,
-        maintenanceHistoryCode: maintenanceHistory.maintenance_history_code,
-        maintenanceType: maintenanceHistory.maintenance_type,
-        maintenanceNotes: maintenanceHistory.maintenance_notes,
-        performedBy: maintenanceHistory.performed_by,
-        datePerformed: maintenanceHistory.date_performed,
-        computerId: maintenanceHistory.computer,
-        technicianId: maintenanceHistory.technician,
-        repairLog: maintenanceHistory.repair_log
-    });
 
     const {data: queriedMaintenanceHistory = [], isLoading } = useQuery<MaintenanceHistory[]>({
         queryKey: ["maintenanceHistory", computerId],
