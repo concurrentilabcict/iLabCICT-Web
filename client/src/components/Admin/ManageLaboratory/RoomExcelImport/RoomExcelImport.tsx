@@ -11,9 +11,9 @@ import type {
   RoomStatus,
 } from "@/types/room";
 import { appToast } from "@/utils/appToast";
-import { getCsvCell, normalizeCsvHeader, parseCsv } from "@/utils/csv";
+import { readRoomWorkbook, type RoomExcelRecord } from "@/utils/roomExcel";
 
-type RoomCsvImportProps = {
+type RoomExcelImportProps = {
   showLabel: boolean;
   className: string;
 };
@@ -60,34 +60,29 @@ const getResponseMessage = (value: unknown) => {
   return null;
 };
 
-const parseOptionalId = (value: string) => {
+const parseOptionalId = (value: string, rowNumber: number) => {
   if (!value.trim()) {
     return null;
   }
 
   const id = Number(value);
-
   if (!Number.isInteger(id) || id <= 0) {
-    throw new Error("Assigned user IDs must be positive whole numbers.");
+    throw new Error(
+      `Row ${rowNumber}: assigned user IDs must be positive whole numbers.`
+    );
   }
 
   return id;
 };
 
 const createPayload = (
-  row: string[],
-  headerIndexes: Map<string, number>
+  record: RoomExcelRecord,
+  rowNumber: number
 ): RoomImportPayload => {
-  const roomName = getCsvCell(row, headerIndexes, "Room Name").trim();
-  const floorNumber = Number(getCsvCell(row, headerIndexes, "Floor Number"));
-  const buildingName = getCsvCell(row, headerIndexes, "Building Name")
-    .trim()
-    .toLowerCase();
-  const rawStatus =
-    getCsvCell(row, headerIndexes, "Status") ||
-    getCsvCell(row, headerIndexes, "Room Status");
-  const normalizedStatus = rawStatus
-    .trim()
+  const roomName = record["Room Name"].trim();
+  const floorNumber = Number(record["Floor Number"]);
+  const buildingName = record["Building Name"].trim().toLowerCase();
+  const normalizedStatus = record.Status.trim()
     .toLowerCase()
     .replace(/[_-]+/g, " ")
     .replace(/\s+/g, " ");
@@ -97,19 +92,23 @@ const createPayload = (
       : normalizedStatus;
 
   if (!roomName) {
-    throw new Error("Every CSV row requires a Room Name.");
+    throw new Error(`Row ${rowNumber}: Room Name is required.`);
   }
 
   if (!isFloorNumber(floorNumber)) {
-    throw new Error("Floor Number must be 1, 2, or 3.");
+    throw new Error(`Row ${rowNumber}: Floor Number must be 1, 2, or 3.`);
   }
 
   if (!isBuildingName(buildingName)) {
-    throw new Error(`Building Name must be: ${buildingNames.join(", ")}.`);
+    throw new Error(
+      `Row ${rowNumber}: Building Name must be ${buildingNames.join(", ")}.`
+    );
   }
 
   if (!isRoomStatus(roomStatus)) {
-    throw new Error(`Status must be: ${roomStatuses.join(", ")}.`);
+    throw new Error(
+      `Row ${rowNumber}: Status must be ${roomStatuses.join(", ")}.`
+    );
   }
 
   return {
@@ -118,10 +117,12 @@ const createPayload = (
     building_name: buildingName,
     room_status: roomStatus,
     assigned_custodian: parseOptionalId(
-      getCsvCell(row, headerIndexes, "Assigned Custodian ID")
+      record["Assigned Custodian ID"],
+      rowNumber
     ),
     assigned_technician: parseOptionalId(
-      getCsvCell(row, headerIndexes, "Assigned Technician ID")
+      record["Assigned Technician ID"],
+      rowNumber
     ),
   };
 };
@@ -158,46 +159,20 @@ const upsertRooms = (currentRooms: Room[], importedRooms: Room[]) => {
   const retainedRooms = currentRooms.filter(
     (room) => !importedById.has(room.id)
   );
-
   return [...importedRooms, ...retainedRooms];
 };
 
-export default function RoomCsvImport({
+export default function RoomExcelImport({
   showLabel,
   className,
-}: RoomCsvImportProps) {
+}: RoomExcelImportProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const importMutation = useMutation({
     mutationFn: async (file: File) => {
-      const rows = parseCsv(await file.text());
-      const [headers, ...dataRows] = rows;
-
-      if (!headers || dataRows.length === 0) {
-        throw new Error("The CSV file does not contain room records.");
-      }
-
-      const headerIndexes = new Map(
-        headers.map((header, index) => [normalizeCsvHeader(header), index])
-      );
-      const requiredHeaders = ["Room Name", "Floor Number", "Building Name"];
-      const hasStatusHeader =
-        headerIndexes.has(normalizeCsvHeader("Status")) ||
-        headerIndexes.has(normalizeCsvHeader("Room Status"));
-
-      if (
-        requiredHeaders.some(
-          (header) => !headerIndexes.has(normalizeCsvHeader(header))
-        ) ||
-        !hasStatusHeader
-      ) {
-        throw new Error(
-          `The CSV file must include: ${requiredHeaders.join(", ")}, and Status.`
-        );
-      }
-
-      const payloads = dataRows.map((row) =>
-        createPayload(row, headerIndexes)
+      const records = await readRoomWorkbook(file);
+      const payloads = records.map((record, index) =>
+        createPayload(record, index + 1)
       );
       const importedRooms: Room[] = [];
 
@@ -235,6 +210,9 @@ export default function RoomCsvImport({
           : "We couldn't import the rooms. Please try again."
       );
     },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
   });
 
   const importFile = (event: ChangeEvent<HTMLInputElement>) => {
@@ -253,6 +231,7 @@ export default function RoomCsvImport({
         onClick={() => inputRef.current?.click()}
         disabled={importMutation.isPending}
         className={className}
+        aria-label="Import laboratories from Excel"
       >
         <Upload size={16} />
         {showLabel && (
@@ -262,7 +241,7 @@ export default function RoomCsvImport({
       <input
         ref={inputRef}
         type="file"
-        accept=".csv,text/csv"
+        accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         onChange={importFile}
         className="sr-only"
       />
