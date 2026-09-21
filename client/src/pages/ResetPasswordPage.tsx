@@ -5,7 +5,7 @@ import { useEffect } from "react";
 export default function ResetPasswordPage() {
 
     useEffect(()=>{
-        document.title = "IlabCICT | Reset Password";
+        document.title = "ILabCICT | Reset Password";
     },[]);
 
     return (

@@ -85,8 +85,8 @@ export default function ResetPasswordForm() {
     if (!resetToken) {
         return (
             <div className="flex w-full flex-col items-center justify-center gap-4 px-5 text-center">
-                <img src={Logo} alt="IlabCICT logo" className="h-auto w-25" />
-                <h1 className="primary-text-color text-3xl font-bold tracking-wide">IlabCICT</h1>
+                <img src={Logo} alt="ILabCICT logo" className="h-auto w-25" />
+                <h1 className="primary-text-color text-3xl font-bold tracking-wide">ILabCICT</h1>
                 <h2 className="font-semibold">Reset session unavailable</h2>
                 <p className="max-w-sm text-sm secondary-text-color">
                     Request and verify a new password reset code to continue.
@@ -104,8 +104,8 @@ export default function ResetPasswordForm() {
 
     return (
         <div className="flex w-full flex-col items-center justify-center gap-y-1 px-5">
-            <img src={Logo} alt="IlabCICT logo" className="h-auto w-25" />
-            <h1 className="primary-text-color text-3xl font-bold tracking-wide">IlabCICT</h1>
+            <img src={Logo} alt="ILabCICT logo" className="h-auto w-25" />
+            <h1 className="primary-text-color text-3xl font-bold tracking-wide">ILabCICT</h1>
             <h2 className="mt-1 font-medium">Create a New Password</h2>
             <p className="max-w-sm text-center text-sm secondary-text-color">
                 Choose a secure password for your account.

@@ -8,7 +8,7 @@ import { useEffect } from "react";
 export default function RepairLogPage() {
 
     useEffect(() => {
-        document.title = "Repair Logs | IlabCICT"
+        document.title = "Repair Logs | ILabCICT"
     }, []);
 
     return(

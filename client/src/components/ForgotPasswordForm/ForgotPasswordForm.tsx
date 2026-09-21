@@ -142,8 +142,8 @@ export default function ForgotPasswordForm() {
 
     return (
         <div className="flex w-full flex-col items-center justify-center gap-y-1 px-5">
-            <img src={Logo} alt="IlabCICT logo" className="h-auto w-25" />
-            <h1 className="primary-text-color text-3xl font-bold tracking-wide">IlabCICT</h1>
+            <img src={Logo} alt="ILabCICT logo" className="h-auto w-25" />
+            <h1 className="primary-text-color text-3xl font-bold tracking-wide">ILabCICT</h1>
             <h2 className="mt-1 font-medium">
                 {step === "email" ? "Forgot Your Password?" : "Verify Your Email"}
             </h2>

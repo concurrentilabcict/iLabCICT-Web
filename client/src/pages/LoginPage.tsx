@@ -13,7 +13,7 @@ import { useEffect } from "react";
 export default function LoginPage() {
 
     useEffect(()=>{
-        document.title = "IlabCICT | Login";
+        document.title = "ILabCICT | Login";
     },[]);
 
     return (

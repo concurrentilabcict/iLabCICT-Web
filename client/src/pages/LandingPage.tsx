@@ -17,7 +17,7 @@ export default function LandingPage() {
     const [showTransition, setShowTransition] = useState(true);
 
     useEffect(() => {
-        document.title = "IlabCICT";
+        document.title = "ILabCICT";
 
         const timer = setTimeout(() => {
             setShowTransition(false);

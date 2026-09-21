@@ -8,7 +8,7 @@ import { useEffect } from "react";
 export default function DashboardPage() {
 
     useEffect(() => {
-        document.title = "Dashboard | IlabCICT"
+        document.title = "Dashboard | ILabCICT"
     }, []);
 
     return(

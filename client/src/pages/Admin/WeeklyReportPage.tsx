@@ -8,7 +8,7 @@ import WeeklyReport from "@/components/Admin/WeeklyReport/WeeklyReport";
 export default function WeeklyReportPage() {
 
     useEffect(() => {
-        document.title = "Weekly Report | IlabCICT"
+        document.title = "Weekly Report | ILabCICT"
     }, []);
 
     return(

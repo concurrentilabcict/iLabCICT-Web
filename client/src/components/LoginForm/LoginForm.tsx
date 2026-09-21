@@ -76,8 +76,8 @@ export default function LoginForm() {
         <>
             <div className="flex w-full flex-col items-center justify-center gap-y-1 px-5 lg:items-stretch lg:px-0">
                 <div className="flex flex-col items-center gap-y-1 lg:hidden">
-                    <img src={Logo} alt="IlabCICT logo" className="h-auto w-25" />
-                    <h1 className='primary-text-color text-3xl tracking-wide font-bold'>IlabCICT</h1>
+                    <img src={Logo} alt="ILabCICT logo" className="h-auto w-25" />
+                    <h1 className='primary-text-color text-3xl tracking-wide font-bold'>ILabCICT</h1>
                     <span>Welcome back, sign in to continue.</span>
                 </div>
 
@@ -85,7 +85,7 @@ export default function LoginForm() {
                     <p className="mb-2 text-sm font-semibold primary-text-color">WELCOME BACK</p>
                     <h2 className="text-4xl font-semibold text-zinc-950">Sign in to your account</h2>
                     <p className="mt-3 text-base secondary-text-color">
-                        Enter your account details to continue to IlabCICT.
+                        Enter your account details to continue to ILabCICT.
                     </p>
                 </div>
 

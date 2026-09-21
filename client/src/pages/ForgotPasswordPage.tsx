@@ -5,7 +5,7 @@ import { useEffect } from "react";
 export default function ForgotPasswordPage() {
 
     useEffect(()=>{
-        document.title = "IlabCICT | Forgot Password";
+        document.title = "ILabCICT | Forgot Password";
     },[]);
 
     return (

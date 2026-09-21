@@ -8,7 +8,7 @@ import { useEffect } from "react";
 export default function ManageTicketPage() {
 
     useEffect(() => {
-        document.title = "Manage Ticket | IlabCICT"
+        document.title = "Manage Ticket | ILabCICT"
     }, []);
 
     return(

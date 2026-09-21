@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 export default function AuditLogsPage() {
   useEffect(() => {
-    document.title = "Audit Logs | IlabCICT";
+    document.title = "Audit Logs | ILabCICT";
   }, []);
 
   return (

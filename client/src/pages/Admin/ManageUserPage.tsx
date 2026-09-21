@@ -8,7 +8,7 @@ import { useEffect } from "react";
 export default function ManageUserPage() {
 
     useEffect(() => {
-        document.title = "Manage User | IlabCICT"
+        document.title = "Manage User | ILabCICT"
     }, []);
 
     return(
