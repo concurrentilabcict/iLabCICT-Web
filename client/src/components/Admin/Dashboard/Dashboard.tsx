@@ -454,9 +454,9 @@ export default function Dashboard() {
             ...(isDashboardLoading || isDashboardError
                 ? unavailable
                 : {
-                    change: String(resolvedLastMonth.length),
+                    change: "Last month:",
                     changeStatus: "neutral" as const,
-                    caption: "resolved last month",
+                    caption: `${resolvedLastMonth.length} resolved`,
                 }),
             icon: CircleCheckBig,
         },
@@ -468,7 +468,7 @@ export default function Dashboard() {
                 : {
                     change: currentAverage === null
                         ? "No resolved tickets this month"
-                        : "Based on latest ticket update",
+                        : "Resolved this month",
                     changeStatus: "neutral" as const,
                     caption: "",
                 }),
