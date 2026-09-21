@@ -1,10 +1,23 @@
-import bulsuFooterUrl from "@/assets/weekly-report/bulsu-footer.png";
-import bulsuHeaderBaseUrl from "@/assets/weekly-report/bulsu-header-base.png";
-import cictSealUrl from "@/assets/weekly-report/cict-seal.png";
+import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import type {
   ApiWeeklyReport,
   WeeklyReport as WeeklyReportType,
 } from "@/types/weeklyReport";
+import { appToast } from "@/utils/appToast";
+
+type ApiPrintableTemplate = {
+  id: number;
+  name: string;
+  template_url: string;
+  is_active: boolean;
+  updated_at: string;
+};
+
+const configuredTemplateName =
+  import.meta.env.VITE_WEEKLY_REPORT_TEMPLATE_NAME?.trim();
+const weeklyReportTemplateNames = configuredTemplateName
+  ? [configuredTemplateName]
+  : ["report-header-footer", "weekly-report"];
 
 export const formatLabel = (text: string) =>
   text
@@ -78,8 +91,84 @@ const escapeHtml = (value: string) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 
-const getAssetUrl = (assetUrl: string) =>
-  new URL(assetUrl, window.location.origin).href;
+const getTemplateImageUrl = (templateUrl: string) => {
+  const url = new URL(templateUrl);
+
+  if (
+    !url.hostname.endsWith("cloudinary.com") ||
+    !url.pathname.toLowerCase().endsWith(".pdf") ||
+    !url.pathname.includes("/image/upload/")
+  ) {
+    throw new Error(
+      "The printable template must be a Cloudinary-hosted PDF."
+    );
+  }
+
+  url.pathname = url.pathname
+    .replace("/image/upload/", "/image/upload/f_png,pg_1,dn_150/")
+    .replace(/\.pdf$/i, ".png");
+
+  return url.href;
+};
+
+const getResponseMessage = (value: unknown) => {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  if ("detail" in value && typeof value.detail === "string") {
+    return value.detail;
+  }
+
+  return null;
+};
+
+const isPrintableTemplate = (value: unknown): value is ApiPrintableTemplate =>
+  typeof value === "object" &&
+  value !== null &&
+  "id" in value &&
+  typeof value.id === "number" &&
+  "name" in value &&
+  typeof value.name === "string" &&
+  "template_url" in value &&
+  typeof value.template_url === "string" &&
+  "is_active" in value &&
+  typeof value.is_active === "boolean" &&
+  "updated_at" in value &&
+  typeof value.updated_at === "string";
+
+const fetchWeeklyReportTemplate = async () => {
+  for (const [index, templateName] of weeklyReportTemplateNames.entries()) {
+    const response = await privateFetch(
+      buildApiUrl(`/api/templates/${encodeURIComponent(templateName)}/`)
+    );
+    const data: unknown = await response.json().catch(() => null);
+
+    if (response.ok) {
+      if (!isPrintableTemplate(data)) {
+        throw new Error("The printable template response is invalid.");
+      }
+
+      if (!data.is_active || !data.template_url) {
+        throw new Error("The Weekly Report printable template is inactive.");
+      }
+
+      return getTemplateImageUrl(data.template_url);
+    }
+
+    const canTryFallback =
+      response.status === 404 && index < weeklyReportTemplateNames.length - 1;
+    if (!canTryFallback) {
+      throw createApiError(
+        response.status,
+        getResponseMessage(data) ??
+          "Failed to retrieve the Weekly Report printable template."
+      );
+    }
+  }
+
+  throw new Error("Weekly Report printable template not found.");
+};
 
 const getReportPeriod = (title: string) => {
   const dates = title.match(/\d{4}-\d{2}-\d{2}/g);
@@ -153,7 +242,10 @@ const getPdfReportTitle = (title: string) => {
   return `Weekly Report — ${startMonthName} ${startDay}, ${startYear} – ${endMonthName} ${endDay}, ${endYear}`;
 };
 
-const buildPrintableReport = (report: WeeklyReportType) => {
+const buildPrintableReport = (
+  report: WeeklyReportType,
+  templateImageUrl: string
+) => {
   const totalRepairLogs = getTotalRepairLogs(report.repairLogSummary);
   const reportingPeriod = getReportPeriod(report.title);
   const pdfTitle = getPdfReportTitle(report.title);
@@ -164,9 +256,7 @@ const buildPrintableReport = (report: WeeklyReportType) => {
           /\s*–\s*/g,
           "-"
         )}`;
-  const headerBase = escapeHtml(getAssetUrl(bulsuHeaderBaseUrl));
-  const cictSeal = escapeHtml(getAssetUrl(cictSealUrl));
-  const footerArtwork = escapeHtml(getAssetUrl(bulsuFooterUrl));
+  const printableTemplate = escapeHtml(templateImageUrl);
   const rows = Object.entries(report.repairLogSummary)
     .sort(([firstDate], [secondDate]) => firstDate.localeCompare(secondDate))
     .map(
@@ -199,60 +289,13 @@ const buildPrintableReport = (report: WeeklyReportType) => {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
-          .official-header {
-            height: 56.6mm;
-            left: 0;
-            overflow: hidden;
-            position: absolute;
-            top: 0;
-            width: 210mm;
-            z-index: 1;
-          }
-          .official-header-base {
-            display: block;
-            height: 100%;
-            width: 100%;
-          }
-          .official-cict-seal {
-            height: 40.9%;
-            left: 15.64%;
-            object-fit: contain;
-            position: absolute;
-            top: 25.1%;
-            width: 11.03%;
-          }
-          .official-college-name {
-            color: #c00000;
-            font-family: "Arial Narrow", Arial, sans-serif;
-            font-size: 12.5pt;
-            font-weight: 700;
-            left: 39.77%;
-            line-height: 1;
-            position: absolute;
-            text-align: left;
-            top: 57.45%;
-            white-space: nowrap;
-            width: 60.23%;
-          }
-          .official-contact {
-            bottom: 43mm;
-            color: #111111;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 8.5pt;
-            left: 19mm;
-            line-height: 1.25;
-            position: absolute;
-            right: 19mm;
-            text-align: center;
-            z-index: 1;
-          }
-          .official-footer-art {
-            bottom: 0;
-            display: block;
-            height: 42mm;
+          .official-template {
+            height: 297mm;
             left: 0;
             object-fit: fill;
             position: absolute;
+            top: 0;
+            display: block;
             width: 210mm;
             z-index: 0;
           }
@@ -401,18 +444,7 @@ const buildPrintableReport = (report: WeeklyReportType) => {
       <body>
         <template id="report-page-template">
           <section class="report-page">
-            <header class="official-header" aria-hidden="true">
-              <img class="official-header-base" src="${headerBase}" alt="" />
-              <img class="official-cict-seal" src="${cictSeal}" alt="" />
-              <div class="official-college-name">COLLEGE OF INFORMATION AND COMMUNICATIONS TECHNOLOGY</div>
-            </header>
-
-            <div class="official-contact" aria-hidden="true">
-              <div>OfficeoftheDean.CICT@BulSU.edu.ph | (044) 919 7800 Local 1102</div>
-              <div>McArthur Highway, City of Malolos 3000</div>
-              <div>Bulacan, Philippines</div>
-            </div>
-            <img class="official-footer-art" src="${footerArtwork}" alt="" aria-hidden="true" />
+            <img class="official-template" src="${printableTemplate}" alt="" aria-hidden="true" />
             <main class="page-content document"></main>
           </section>
         </template>
@@ -623,23 +655,29 @@ const buildPrintableReport = (report: WeeklyReportType) => {
 
 const printWhenAssetsAreReady = (
   targetWindow: Window,
-  onAfterPrint?: () => void
+  onAfterPrint?: () => void,
+  onAssetError?: () => void
 ) => {
   const images = Array.from(targetWindow.document.images);
   const imageLoads = images.map(
     (image) =>
-      new Promise<void>((resolve) => {
+      new Promise<boolean>((resolve) => {
         if (image.complete) {
-          resolve();
+          resolve(image.naturalWidth > 0);
           return;
         }
 
-        image.addEventListener("load", () => resolve(), { once: true });
-        image.addEventListener("error", () => resolve(), { once: true });
+        image.addEventListener("load", () => resolve(true), { once: true });
+        image.addEventListener("error", () => resolve(false), { once: true });
       })
   );
 
-  void Promise.all(imageLoads).then(() => {
+  void Promise.all(imageLoads).then((results) => {
+    if (results.some((didLoad) => !didLoad)) {
+      onAssetError?.();
+      return;
+    }
+
     if (onAfterPrint) {
       let hasCleanedUp = false;
       const cleanUp = () => {
@@ -660,41 +698,66 @@ const printWhenAssetsAreReady = (
   });
 };
 
-export const exportReportToPdf = (report: WeeklyReportType) => {
-  const printableReport = buildPrintableReport(report);
+export const exportReportToPdf = async (report: WeeklyReportType) => {
   const printWindow = window.open("", "_blank");
+  let iframe: HTMLIFrameElement | null = null;
+  let targetWindow = printWindow;
 
-  if (printWindow) {
-    printWindow.document.open();
-    printWindow.document.write(printableReport);
-    printWindow.document.close();
-    printWhenAssetsAreReady(printWindow);
+  if (!targetWindow) {
+    iframe = document.createElement("iframe");
+
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+
+    document.body.appendChild(iframe);
+    targetWindow = iframe.contentWindow;
+  }
+
+  if (!targetWindow) {
+    iframe?.remove();
+    appToast.error("The PDF export window could not be opened.");
     return;
   }
 
-  const iframe = document.createElement("iframe");
+  targetWindow.document.open();
+  targetWindow.document.write(
+    "<!doctype html><title>Preparing Weekly Report</title><p style='font-family:Arial;padding:24px'>Preparing Weekly Report...</p>"
+  );
+  targetWindow.document.close();
 
-  iframe.style.position = "fixed";
-  iframe.style.right = "0";
-  iframe.style.bottom = "0";
-  iframe.style.width = "0";
-  iframe.style.height = "0";
-  iframe.style.border = "0";
+  try {
+    const templateImageUrl = await fetchWeeklyReportTemplate();
+    const printableReport = buildPrintableReport(report, templateImageUrl);
 
-  document.body.appendChild(iframe);
-
-  const iframeDocument = iframe.contentWindow?.document;
-
-  if (!iframeDocument) {
-    iframe.remove();
-    return;
-  }
-
-  iframeDocument.open();
-  iframeDocument.write(printableReport);
-  iframeDocument.close();
-
-  if (iframe.contentWindow) {
-    printWhenAssetsAreReady(iframe.contentWindow, () => iframe.remove());
+    targetWindow.document.open();
+    targetWindow.document.write(printableReport);
+    targetWindow.document.close();
+    printWhenAssetsAreReady(
+      targetWindow,
+      iframe ? () => iframe?.remove() : undefined,
+      () => {
+        if (printWindow) {
+          printWindow.close();
+        }
+        iframe?.remove();
+        appToast.error(
+          "The Weekly Report template could not be loaded. Please try again."
+        );
+      }
+    );
+  } catch (error) {
+    if (printWindow) {
+      printWindow.close();
+    }
+    iframe?.remove();
+    appToast.error(
+      error instanceof Error
+        ? error.message
+        : "We couldn't prepare the Weekly Report PDF."
+    );
   }
 };
