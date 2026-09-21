@@ -1,7 +1,18 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, RefreshCw, Upload } from "lucide-react";
+import { FileText, RefreshCw, Trash2, Upload } from "lucide-react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,10 +37,7 @@ type ApiPrintableTemplate = {
   updated_at: string;
 };
 
-const TEMPLATE_QUERY_KEY = [
-  "printable-template",
-  WEEKLY_REPORT_TEMPLATE_NAME,
-] as const;
+const TEMPLATE_QUERY_KEY = ["printable-templates"] as const;
 
 const isPrintableTemplate = (value: unknown): value is ApiPrintableTemplate =>
   typeof value === "object" &&
@@ -84,31 +92,23 @@ export default function TemplateUploadDialog() {
   const inputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
-  const templateQuery = useQuery<ApiPrintableTemplate | null>({
+  const templateQuery = useQuery<ApiPrintableTemplate[]>({
     queryKey: TEMPLATE_QUERY_KEY,
     enabled: open,
     retry: false,
     queryFn: async () => {
-      const response = await privateFetch(
-        buildApiUrl(
-          `/api/templates/${encodeURIComponent(WEEKLY_REPORT_TEMPLATE_NAME)}/`
-        )
-      );
+      const response = await privateFetch(buildApiUrl("/api/templates/"));
       const data: unknown = await response.json().catch(() => null);
-
-      if (response.status === 404) {
-        return null;
-      }
 
       if (!response.ok) {
         throw createApiError(
           response.status,
-          getResponseMessage(data) ?? "Failed to retrieve the current template."
+          getResponseMessage(data) ?? "Failed to retrieve printable templates."
         );
       }
 
-      if (!isPrintableTemplate(data)) {
-        throw new Error("The printable template response is invalid.");
+      if (!Array.isArray(data) || !data.every(isPrintableTemplate)) {
+        throw new Error("The printable templates response is invalid.");
       }
 
       return data;
@@ -144,7 +144,13 @@ export default function TemplateUploadDialog() {
       return data;
     },
     onSuccess: (template) => {
-      queryClient.setQueryData(TEMPLATE_QUERY_KEY, template);
+      queryClient.setQueryData<ApiPrintableTemplate[]>(
+        TEMPLATE_QUERY_KEY,
+        (templates = []) => [
+          template,
+          ...templates.filter((item) => item.name !== template.name),
+        ]
+      );
       appToast.success("Weekly Report template updated successfully.");
       setSelectedFile(null);
       setOpen(false);
@@ -158,12 +164,54 @@ export default function TemplateUploadDialog() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const response = await privateFetch(
+        buildApiUrl(
+          `/api/templates/${encodeURIComponent(WEEKLY_REPORT_TEMPLATE_NAME)}/delete/`
+        ),
+        { method: "DELETE" }
+      );
+
+      if (!response.ok) {
+        const data: unknown = await response.json().catch(() => null);
+
+        throw createApiError(
+          response.status,
+          getResponseMessage(data) ?? "Failed to remove the printable template."
+        );
+      }
+    },
+    onSuccess: () => {
+      queryClient.setQueryData<ApiPrintableTemplate[]>(
+        TEMPLATE_QUERY_KEY,
+        (templates = []) =>
+          templates.filter(
+            (template) => template.name !== WEEKLY_REPORT_TEMPLATE_NAME
+          )
+      );
+      appToast.success("Weekly Report template removed successfully.");
+    },
+    onError: (error) => {
+      appToast.error(
+        error instanceof Error
+          ? error.message
+          : "We couldn't remove the Weekly Report template."
+      );
+    },
+  });
+
+  const currentTemplate = templateQuery.data?.find(
+    (template) => template.name === WEEKLY_REPORT_TEMPLATE_NAME
+  );
+
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
 
     if (!nextOpen) {
       setSelectedFile(null);
       uploadMutation.reset();
+      deleteMutation.reset();
     }
   };
 
@@ -222,23 +270,68 @@ export default function TemplateUploadDialog() {
               <p className="mt-2 text-sm text-red-600">
                 Current template information could not be loaded.
               </p>
-            ) : templateQuery.data ? (
+            ) : currentTemplate ? (
               <div className="mt-2 flex min-w-0 items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate font-medium">{templateQuery.data.name}</p>
+                  <p className="truncate font-medium">{currentTemplate.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    Updated {formatUpdatedAt(templateQuery.data.updated_at)}
+                    Updated {formatUpdatedAt(currentTemplate.updated_at)}
                   </p>
                 </div>
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
-                    templateQuery.data.is_active
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {templateQuery.data.is_active ? "Active" : "Inactive"}
-                </span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                      currentTemplate.is_active
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {currentTemplate.is_active ? "Active" : "Inactive"}
+                  </span>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                        aria-label="Remove Weekly Report template"
+                      >
+                        <Trash2 />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remove Template?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          The current Weekly Report printable template will be
+                          permanently removed.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleteMutation.isPending}>
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteMutation.mutate()}
+                          disabled={deleteMutation.isPending}
+                        >
+                          {deleteMutation.isPending ? (
+                            <>
+                              <Spinner className="size-4" />
+                              Removing...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 />
+                              Remove
+                            </>
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             ) : (
               <p className="mt-2 text-sm text-muted-foreground">
