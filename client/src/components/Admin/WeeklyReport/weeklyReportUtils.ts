@@ -17,7 +17,10 @@ const configuredTemplateName =
   import.meta.env.VITE_WEEKLY_REPORT_TEMPLATE_NAME?.trim();
 const weeklyReportTemplateNames = configuredTemplateName
   ? [configuredTemplateName]
-  : ["report-header-footer", "weekly-report"];
+  : ["weekly-report", "report-header-footer"];
+
+export const WEEKLY_REPORT_TEMPLATE_NAME =
+  configuredTemplateName || "weekly-report";
 
 export const formatLabel = (text: string) =>
   text

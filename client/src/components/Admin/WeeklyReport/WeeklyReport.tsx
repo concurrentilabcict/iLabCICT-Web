@@ -22,6 +22,7 @@ import { getPaginationWindow } from "@/utils/pagination";
 import WeeklyReportDetails from "./WeeklyReportDetails";
 import WeeklyReportSchedule from "./WeeklyReportSchedule";
 import WeeklyReportTable from "./WeeklyReportTable";
+import TemplateUploadDialog from "./TemplateUploadDialog/TemplateUploadDialog";
 import {
   exportReportToPdf,
   formatDate,
@@ -131,6 +132,7 @@ export default function WeeklyReport() {
               {filteredReports.length === 1 ? "" : "s"} found
             </p>
             <WeeklyReportSchedule />
+            <TemplateUploadDialog />
           </div>
 
           <div className="relative w-full md:w-[320px]">
