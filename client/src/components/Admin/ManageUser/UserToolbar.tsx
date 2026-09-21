@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { appToast } from "@/utils/appToast";
-import { exportTableWorkbook, formatExcelDate, getLocalDateStamp } from "@/utils/tabularExcel";
+import { exportTablePdf, formatPdfDate, getLocalDateStamp } from "@/utils/tabularPdf";
 
 import { DatePicker } from "../DatePicker/DatePicker";
 
@@ -87,18 +87,17 @@ export default function UserToolbar({
     ];
 
     try {
-      await exportTableWorkbook({
+      exportTablePdf({
         title: "iLabCICT User Directory",
         subject: "User directory export",
-        worksheetName: "Users",
-        filename: `iLabCICT_Users_${getLocalDateStamp()}.xlsx`,
+        filename: `iLabCICT_Users_${getLocalDateStamp()}.pdf`,
         headers,
         rows: users.map((user) => [
           user.userCode,
           `${user.firstName} ${user.lastName}`.trim() || user.username,
           user.email,
           formatLabel(user.role),
-          formatExcelDate(user.createdAt),
+          formatPdfDate(user.createdAt),
         ]),
         columnWidths: [18, 28, 34, 18, 20],
       });
@@ -129,7 +128,7 @@ export default function UserToolbar({
               <AlertDialogTitle>Export Users?</AlertDialogTitle>
 
               <AlertDialogDescription>
-                This will download the current users table as an Excel workbook.
+                This will prepare the current users table as a legal-size PDF.
               </AlertDialogDescription>
             </AlertDialogHeader>
 

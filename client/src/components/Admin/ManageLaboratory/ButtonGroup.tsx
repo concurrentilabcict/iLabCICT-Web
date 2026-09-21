@@ -4,7 +4,7 @@ import { Download, Plus } from "lucide-react"
 import { useState } from "react"
 import RoomExcelImport from "./RoomExcelImport/RoomExcelImport"
 import { appToast } from "@/utils/appToast"
-import { exportTableWorkbook, formatExcelDate, getLocalDateStamp } from "@/utils/tabularExcel"
+import { exportTablePdf, formatPdfDate, getLocalDateStamp } from "@/utils/tabularPdf"
 
 type ButtonGroupType = {
     rooms: Room[]
@@ -60,11 +60,10 @@ export default function ButtonGroup({
 
         setIsExporting(true)
         try {
-            await exportTableWorkbook({
+            exportTablePdf({
                 title: "iLabCICT Laboratory Directory",
                 subject: "Laboratory directory export",
-                worksheetName: "Laboratories",
-                filename: `iLabCICT_Laboratories_${getLocalDateStamp()}.xlsx`,
+                filename: `iLabCICT_Laboratories_${getLocalDateStamp()}.pdf`,
                 headers,
                 rows: rooms.map((room)=>[
                     room.id,
@@ -80,8 +79,8 @@ export default function ButtonGroup({
                     room.computerCount,
                     room.activeIssuesCount,
                     room.status,
-                    formatExcelDate(room.createdAt),
-                    formatExcelDate(room.updatedAt)
+                    formatPdfDate(room.createdAt),
+                    formatPdfDate(room.updatedAt)
                 ]),
                 columnWidths: [14, 22, 16, 20, 28, 24, 25, 18, 16, 18, 20, 20],
             })

@@ -15,7 +15,7 @@ import {
 import type { AuditLog } from "@/types/auditLog";
 import { formatDateTime } from "./auditLogUtils";
 import { appToast } from "@/utils/appToast";
-import { exportTableWorkbook, getLocalDateStamp } from "@/utils/tabularExcel";
+import { exportTablePdf, getLocalDateStamp } from "@/utils/tabularPdf";
 
 type AuditLogsToolbarProps = {
   auditLogs: AuditLog[];
@@ -52,11 +52,10 @@ export default function AuditLogsToolbar({
       "Created",
     ];
     try {
-      await exportTableWorkbook({
+      exportTablePdf({
         title: "iLabCICT Audit Logs",
         subject: "Audit log export",
-        worksheetName: "Audit Logs",
-        filename: `iLabCICT_Audit_Logs_${getLocalDateStamp()}.xlsx`,
+        filename: `iLabCICT_Audit_Logs_${getLocalDateStamp()}.pdf`,
         headers,
         rows: auditLogs.map((auditLog) => [
           auditLog.id,
@@ -94,7 +93,7 @@ export default function AuditLogsToolbar({
           <AlertDialogHeader>
             <AlertDialogTitle>Export Audit Logs?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will download the current audit logs table as an Excel workbook.
+              This will prepare the current audit logs table as a legal-size PDF.
             </AlertDialogDescription>
           </AlertDialogHeader>
 

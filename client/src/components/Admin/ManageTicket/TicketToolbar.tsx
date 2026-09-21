@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import type { StatusFilter, TicketTypeFilter } from '@/utils/ticket';
 import type { Ticket } from '@/types/ticket';
 import { appToast } from '@/utils/appToast';
-import { exportTableWorkbook, formatExcelDate, getLocalDateStamp } from '@/utils/tabularExcel';
+import { exportTablePdf, formatPdfDate, getLocalDateStamp } from '@/utils/tabularPdf';
 
 import {
     Popover,
@@ -101,11 +101,10 @@ export default function TicketToolbar({
         ];
 
         try {
-            await exportTableWorkbook({
+            exportTablePdf({
                 title: 'iLabCICT Ticket Management',
                 subject: 'Ticket management export',
-                worksheetName: ticketView === 'archived' ? 'Archived Tickets' : 'Active Tickets',
-                filename: `iLabCICT_Tickets_${getLocalDateStamp()}.xlsx`,
+                filename: `iLabCICT_Tickets_${getLocalDateStamp()}.pdf`,
                 headers,
                 rows: tickets.map((ticket) => [
                     ticket.ticketCode,
@@ -115,7 +114,7 @@ export default function TicketToolbar({
                         : 'Unassigned',
                     formatLabel(ticket.type),
                     formatLabel(ticket.status),
-                    formatExcelDate(ticket.createdAt),
+                    formatPdfDate(ticket.createdAt),
                 ]),
                 columnWidths: [20, 24, 24, 16, 16, 20],
                 metadata: [
@@ -150,7 +149,7 @@ export default function TicketToolbar({
                                 <AlertDialogTitle>Export Tickets?</AlertDialogTitle>
 
                                 <AlertDialogDescription>
-                                    This will download the current tickets table as an Excel workbook.
+                                    This will prepare the current tickets table as a legal-size PDF.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
 

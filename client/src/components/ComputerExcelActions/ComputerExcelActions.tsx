@@ -5,7 +5,7 @@ import ComputerExcelImport from "@/components/ComputerExcelImport/ComputerExcelI
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ComputerCardType } from "@/types/computer";
 import { appToast } from "@/utils/appToast";
-import { exportComputerInventoryWorkbook } from "@/utils/computerExcel";
+import { exportComputerInventoryPdf } from "@/utils/computerExcel";
 
 type ComputerExcelActionsProps = {
   roomId: number | null;
@@ -31,7 +31,7 @@ export default function ComputerExcelActions({
     setIsExporting(true);
 
     try {
-      await exportComputerInventoryWorkbook({
+      exportComputerInventoryPdf({
         roomName,
         buildingName,
         floorNumber,
@@ -55,7 +55,7 @@ export default function ComputerExcelActions({
         onClick={() => void exportComputers()}
         disabled={isExporting || computers.length === 0}
         className={buttonClassName}
-        aria-label="Export computers to Excel"
+        aria-label="Export computers to PDF"
       >
         <Download size={16} />
         {!isMobile && <span>{isExporting ? "Exporting..." : "Export"}</span>}

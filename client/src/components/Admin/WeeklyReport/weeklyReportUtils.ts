@@ -278,7 +278,7 @@ const buildPrintableReport = (
       <head>
         <title>${escapeHtml(exportDocumentTitle)}</title>
         <style>
-          @page { size: A4; margin: 0; }
+          @page { size: 8.5in 14in; margin: 0; }
           * { box-sizing: border-box; }
           html { background: #ffffff; }
           body {
@@ -293,13 +293,13 @@ const buildPrintableReport = (
             print-color-adjust: exact;
           }
           .official-template {
-            height: 297mm;
+            height: 14in;
             left: 0;
             object-fit: fill;
             position: absolute;
             top: 0;
             display: block;
-            width: 210mm;
+            width: 8.5in;
             z-index: 0;
           }
           .document {
@@ -309,11 +309,11 @@ const buildPrintableReport = (
           #report-source { display: none; }
           .report-page {
             background: #ffffff;
-            height: 297mm;
+            height: 14in;
             margin: 0 auto 8mm;
             overflow: hidden;
             position: relative;
-            width: 210mm;
+            width: 8.5in;
           }
           .page-content {
             bottom: 58mm;
