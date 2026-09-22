@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { LucideIcon } from "lucide-react";
+import { ArrowDown, ArrowUp, Minus, type LucideIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type SummaryCardProps = {
@@ -10,6 +10,12 @@ type SummaryCardProps = {
   caption?: string;
   icon: LucideIcon;
   isLoading?: boolean;
+  trend?: {
+    value: string;
+    label: string;
+    direction: "up" | "down" | "flat";
+    status: "good" | "bad" | "neutral";
+  };
 };
 
 const COUNT_ANIMATION_DURATION = 900;
@@ -36,13 +42,13 @@ export default function SummaryCard({
   caption = "from last month",
   icon: Icon,
   isLoading = false,
+  trend,
 }: SummaryCardProps) {
   const [animationProgress, setAnimationProgress] = useState(1);
   const shouldAnimateValue = useMemo(() => hasNumber(value), [value]);
 
   useEffect(() => {
     if (!shouldAnimateValue) {
-      setAnimationProgress(1);
       return;
     }
 
@@ -51,16 +57,14 @@ export default function SummaryCard({
     ).matches;
 
     if (reduceMotion) {
-      setAnimationProgress(1);
       return;
     }
 
     let animationFrame = 0;
-    const startedAt = performance.now();
-
-    setAnimationProgress(0);
+    let startedAt: number | null = null;
 
     const animateValue = (time: number) => {
+      startedAt ??= time;
       const elapsed = time - startedAt;
       const nextProgress = Math.min(elapsed / COUNT_ANIMATION_DURATION, 1);
       const easedProgress = 1 - Math.pow(1 - nextProgress, 3);
@@ -86,6 +90,18 @@ export default function SummaryCard({
     bad: "text-red-500",
     neutral: "text-zinc-500",
   }[changeStatus];
+
+  const trendColor = {
+    good: "bg-green-200 text-green-800",
+    bad: "bg-red-100 text-red-700",
+    neutral: "bg-zinc-100 text-zinc-600",
+  }[trend?.status ?? "neutral"];
+
+  const TrendIcon = trend?.direction === "up"
+    ? ArrowUp
+    : trend?.direction === "down"
+      ? ArrowDown
+      : Minus;
 
   return (
     <div
@@ -133,16 +149,33 @@ export default function SummaryCard({
         />
       </div>
 
-      {isLoading ? (
-        <Skeleton className="h-9 w-20" />
-      ) : (
-        <h2
-          aria-label={value}
-          className="wrap-break-word text-2xl font-medium tracking-tight text-zinc-800 sm:text-3xl"
-        >
-          {displayValue}
-        </h2>
-      )}
+      <div className="space-y-2">
+        {isLoading ? (
+          <>
+            <Skeleton className="h-9 w-20" />
+            <Skeleton className="h-6 w-36 rounded-full" />
+          </>
+        ) : (
+          <>
+            <h2
+              aria-label={value}
+              className="wrap-break-word text-2xl font-medium tracking-tight text-zinc-800 sm:text-3xl"
+            >
+              {displayValue}
+            </h2>
+
+            {trend && (
+              <div
+                className={`inline-flex max-w-full items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${trendColor}`}
+              >
+                <TrendIcon aria-hidden="true" className="size-3.5 shrink-0" />
+                <span className="shrink-0">{trend.value}</span>
+                <span className="truncate font-normal">{trend.label}</span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

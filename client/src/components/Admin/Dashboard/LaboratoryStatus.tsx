@@ -5,41 +5,70 @@ import type { Ticket } from "@/types/ticket";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type LaboratoryAvailability = Room & {
-    workingCount: number;
-    unavailableCount: number;
-    availability: number;
+    operationalCount: number;
+    totalCount: number;
+    availability: number | null;
+    inventoryIsLoading: boolean;
+    inventoryIsError: boolean;
 };
 
-function getAvailability(rooms: Room[], tickets: Ticket[]) {
-    const unresolvedTicketsByRoom = tickets.reduce<Record<number, number>>(
-        (roomCounts, ticket) => {
-            if (ticket.status.trim().toLowerCase() === "resolved") {
-                return roomCounts;
-            }
+type ComputerInventoryStatus = {
+    computers: Array<{
+        id: number;
+        status: string;
+    }>;
+    isLoading: boolean;
+    isError: boolean;
+};
 
-            const roomId = ticket.room.id;
-            roomCounts[roomId] = (roomCounts[roomId] ?? 0) + 1;
+function getAvailability(
+    rooms: Room[],
+    tickets: Ticket[],
+    computerInventoryByRoom: Record<number, ComputerInventoryStatus>
+) {
+    const computersWithActiveTicketsByRoom = tickets.reduce<
+        Record<number, Set<number>>
+    >((roomComputers, ticket) => {
+        const ticketStatus = ticket.status.trim().toLowerCase();
+        const computerId = ticket.computer?.id;
 
-            return roomCounts;
-        },
-        {}
-    );
+        if (
+            ticketStatus === "resolved" ||
+            computerId === undefined ||
+            computerId <= 0
+        ) {
+            return roomComputers;
+        }
+
+        const roomId = ticket.room.id;
+        const computerIds = roomComputers[roomId] ?? new Set<number>();
+        computerIds.add(computerId);
+        roomComputers[roomId] = computerIds;
+
+        return roomComputers;
+    }, {});
 
     return rooms.map<LaboratoryAvailability>((room) => {
-        const unavailableCount = Math.min(
-            unresolvedTicketsByRoom[room.id] ?? 0,
-            room.computerCount
-        );
-        const workingCount = Math.max(room.computerCount - unavailableCount, 0);
-        const availability = room.computerCount === 0
-            ? 0
-            : Math.round((workingCount / room.computerCount) * 100);
+        const inventory = computerInventoryByRoom[room.id];
+        const computers = inventory?.computers ?? [];
+        const computersWithActiveTickets =
+            computersWithActiveTicketsByRoom[room.id] ?? new Set<number>();
+        const totalCount = computers.length;
+        const operationalCount = computers.filter((computer) => (
+            computer.status.trim().toLowerCase() === "active" &&
+            !computersWithActiveTickets.has(computer.id)
+        )).length;
+        const availability = totalCount === 0
+            ? null
+            : Math.round((operationalCount / totalCount) * 100);
 
         return {
             ...room,
-            workingCount,
-            unavailableCount,
+            operationalCount,
+            totalCount,
             availability,
+            inventoryIsLoading: inventory?.isLoading ?? true,
+            inventoryIsError: inventory?.isError ?? false,
         };
     });
 }
@@ -47,6 +76,7 @@ function getAvailability(rooms: Room[], tickets: Ticket[]) {
 type LaboratoryStatusProps = {
     rooms: Room[];
     tickets: Ticket[];
+    computerInventoryByRoom: Record<number, ComputerInventoryStatus>;
     isLoading: boolean;
     isError: boolean;
 };
@@ -54,12 +84,13 @@ type LaboratoryStatusProps = {
 export default function LaboratoryStatus({
     rooms,
     tickets,
+    computerInventoryByRoom,
     isLoading,
     isError,
 }: LaboratoryStatusProps) {
     const laboratories = useMemo(
-        () => getAvailability(rooms, tickets),
-        [rooms, tickets]
+        () => getAvailability(rooms, tickets, computerInventoryByRoom),
+        [rooms, tickets, computerInventoryByRoom]
     );
 
     return (
@@ -83,29 +114,49 @@ export default function LaboratoryStatus({
                                 <h3 className="truncate text-sm font-semibold text-zinc-800">
                                     {room.roomName}
                                 </h3>
-                                <p className="mt-0.5 text-xs text-zinc-500">
-                                    {room.workingCount}/{room.computerCount} working
-                                </p>
+                                {room.inventoryIsLoading ? (
+                                    <Skeleton className="mt-1 h-3 w-24" />
+                                ) : (
+                                    <p className="mt-0.5 text-xs text-zinc-500">
+                                        {room.inventoryIsError
+                                            ? "Inventory unavailable"
+                                            : room.totalCount === 0
+                                                ? "No computers"
+                                                : `${room.operationalCount}/${room.totalCount} operational`}
+                                    </p>
+                                )}
                             </div>
 
-                            <span className="shrink-0 text-sm font-semibold text-zinc-800">
-                                {room.availability}%
-                            </span>
+                            {room.inventoryIsLoading ? (
+                                <Skeleton className="h-4 w-10" />
+                            ) : (
+                                <span className="shrink-0 text-sm font-semibold text-zinc-800">
+                                    {room.inventoryIsError || room.availability === null
+                                        ? "—"
+                                        : `${room.availability}%`}
+                                </span>
+                            )}
                         </div>
 
-                        <div
-                            className="mt-2 h-2 overflow-hidden rounded-full bg-[#bf3419]/15"
-                            aria-label={`${room.roomName} availability`}
-                            role="progressbar"
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-valuenow={room.availability}
-                        >
+                        {room.inventoryIsLoading ? (
+                            <Skeleton className="mt-2 h-2 w-full rounded-full" />
+                        ) : room.availability === null || room.inventoryIsError ? (
+                            <div className="mt-2 h-2 rounded-full bg-zinc-100" />
+                        ) : (
                             <div
-                                className="h-full rounded-full bg-[#bf3419] transition-all duration-500"
-                                style={{ width: `${room.availability}%` }}
-                            />
-                        </div>
+                                className="mt-2 h-2 overflow-hidden rounded-full bg-[#bf3419]/15"
+                                aria-label={`${room.roomName} operational availability`}
+                                role="progressbar"
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                aria-valuenow={room.availability}
+                            >
+                                <div
+                                    className="h-full rounded-full bg-[#bf3419] transition-all duration-500"
+                                    style={{ width: `${room.availability}%` }}
+                                />
+                            </div>
+                        )}
                     </article>
                 ))}
 

@@ -5,7 +5,7 @@ import {
     Wrench,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import SummaryCard from "./SummaryCard";
 import TicketChart from "./TicketChart";
@@ -19,6 +19,7 @@ import {
     type ApiRoom,
 } from "./dashboardData";
 import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
+import { fetchRoomComputers } from "@/lib/roomComputers";
 import type { User } from "@/types/manageUser";
 import type { Room } from "@/types/room";
 import type { ApiTicket, Ticket } from "@/types/ticket";
@@ -158,6 +159,59 @@ function ticketsInMonth(
     });
 }
 
+function ticketsInRollingDays(
+    tickets: Ticket[],
+    field: "createdAt" | "updatedAt",
+    dayOffset: number
+) {
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    end.setDate(end.getDate() - dayOffset * 7);
+
+    const start = new Date(end);
+    start.setDate(start.getDate() - 7);
+
+    return tickets.filter((ticket) => {
+        const date = new Date(ticket[field]);
+        return date > start && date <= end;
+    });
+}
+
+function getCountTrend(current: number, previous: number) {
+    const difference = current - previous;
+
+    return {
+        value: difference > 0 ? `+${difference}` : String(difference),
+        direction: difference > 0
+            ? "up" as const
+            : difference < 0
+                ? "down" as const
+                : "flat" as const,
+    };
+}
+
+function getPercentageTrend(current: number | null, previous: number | null) {
+    if (current === null || previous === null || previous === 0) {
+        return {
+            value: "—",
+            direction: "flat" as const,
+            hasComparison: false,
+        };
+    }
+
+    const percentage = Math.round(((current - previous) / previous) * 100);
+
+    return {
+        value: percentage > 0 ? `+${percentage}%` : `${percentage}%`,
+        direction: percentage > 0
+            ? "up" as const
+            : percentage < 0
+                ? "down" as const
+                : "flat" as const,
+        hasComparison: true,
+    };
+}
+
 function averageResolutionMs(tickets: Ticket[]) {
     const durations = tickets
         .map((ticket) => (
@@ -237,6 +291,32 @@ export default function Dashboard() {
         queryFn: fetchDashboardUsers,
         staleTime: 60_000,
     });
+    const roomComputerQueries = useQueries({
+        queries: rooms.map((room) => ({
+            queryKey: ["admin-dashboard-room-computers", room.id] as const,
+            queryFn: () => fetchRoomComputers(String(room.id)),
+            staleTime: 60_000,
+            refetchOnWindowFocus: true,
+        })),
+    });
+    const computerInventoryByRoom = Object.fromEntries(
+        rooms.map((room, index) => {
+            const query = roomComputerQueries[index];
+            const computers = query?.data?.computers ?? [];
+
+            return [
+                room.id,
+                {
+                    computers: computers.map((computer) => ({
+                        id: computer.id,
+                        status: computer.computer_status,
+                    })),
+                    isLoading: query?.isPending ?? true,
+                    isError: query?.isError ?? false,
+                },
+            ];
+        })
+    );
 
     const isTicketsLoading = isTicketsPending || !hasInitialTickets;
     const isRoomsLoading = isRoomsPending || !hasInitialRooms;
@@ -416,6 +496,32 @@ export default function Dashboard() {
     const resolvedLastMonth = ticketsInMonth(resolvedTickets, "updatedAt", -1);
 
     const currentAverage = averageResolutionMs(resolvedThisMonth);
+    const previousAverage = averageResolutionMs(resolvedLastMonth);
+    const incomingThisWeek = ticketsInRollingDays(tickets, "createdAt", 0).length;
+    const incomingLastWeek = ticketsInRollingDays(tickets, "createdAt", 1).length;
+    const ongoingActivityThisWeek = ticketsInRollingDays(
+        ongoingTickets,
+        "updatedAt",
+        0
+    ).length;
+    const ongoingActivityLastWeek = ticketsInRollingDays(
+        ongoingTickets,
+        "updatedAt",
+        1
+    ).length;
+    const incomingTrend = getCountTrend(incomingThisWeek, incomingLastWeek);
+    const ongoingTrend = getCountTrend(
+        ongoingActivityThisWeek,
+        ongoingActivityLastWeek
+    );
+    const resolvedTrend = getPercentageTrend(
+        resolvedThisMonth.length,
+        resolvedLastMonth.length
+    );
+    const resolutionTimeTrend = getPercentageTrend(
+        currentAverage,
+        previousAverage
+    );
 
     const unavailable = {
         change: isDashboardLoading ? "Loading" : "Unavailable",
@@ -435,6 +541,13 @@ export default function Dashboard() {
                     caption: "",
                 }),
             icon: Inbox,
+            trend: isDashboardLoading || isDashboardError
+                ? undefined
+                : {
+                    ...incomingTrend,
+                    label: "new tickets vs last week",
+                    status: "bad" as const,
+                },
         },
         {
             title: "Ongoing Repairs",
@@ -447,6 +560,13 @@ export default function Dashboard() {
                     caption: "",
                 }),
             icon: Wrench,
+            trend: isDashboardLoading || isDashboardError
+                ? undefined
+                : {
+                    ...ongoingTrend,
+                    label: "active updates vs last week",
+                    status: "bad" as const,
+                },
         },
         {
             title: "Resolved This Month",
@@ -459,6 +579,20 @@ export default function Dashboard() {
                     caption: `${resolvedLastMonth.length} resolved`,
                 }),
             icon: CircleCheckBig,
+            trend: isDashboardLoading || isDashboardError
+                ? undefined
+                : {
+                    value: resolvedTrend.value,
+                    direction: resolvedTrend.direction,
+                    label: resolvedTrend.hasComparison
+                        ? "vs last month"
+                        : "no prior-month baseline",
+                    status: resolvedTrend.direction === "down"
+                        ? "good" as const
+                        : resolvedTrend.direction === "up"
+                            ? "bad" as const
+                            : "neutral" as const,
+                },
         },
         {
             title: "Est. Resolution Time",
@@ -473,6 +607,20 @@ export default function Dashboard() {
                     caption: "",
                 }),
             icon: Clock3,
+            trend: isDashboardLoading || isDashboardError
+                ? undefined
+                : {
+                    value: resolutionTimeTrend.value,
+                    direction: resolutionTimeTrend.direction,
+                    label: resolutionTimeTrend.hasComparison
+                        ? "vs last month"
+                        : "no prior-month baseline",
+                    status: resolutionTimeTrend.direction === "down"
+                        ? "good" as const
+                        : resolutionTimeTrend.direction === "up"
+                            ? "bad" as const
+                            : "neutral" as const,
+                },
         },
     ];
 
@@ -497,8 +645,9 @@ export default function Dashboard() {
                 <LaboratoryStatus
                     rooms={rooms}
                     tickets={tickets}
-                    isLoading={isDashboardLoading}
-                    isError={isDashboardError}
+                    computerInventoryByRoom={computerInventoryByRoom}
+                    isLoading={isRoomsLoading}
+                    isError={isRoomsError}
                 />
             </div>
 
