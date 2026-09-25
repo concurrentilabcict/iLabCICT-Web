@@ -12,7 +12,7 @@ import {
     buildWebSocketUrl,
     getFreshAccessToken,
 } from "@/lib/api";
-import { fetchRoomComputers, getComputerArchiveEvent, removeComputerTicketsFromCache } from "@/lib/roomComputers";
+import { fetchRoomComputers, getComputerArchiveEvent, recentComputerArchiveKey, removeComputerTicketsFromCache } from "@/lib/roomComputers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
@@ -258,6 +258,9 @@ export default function ComputerList({
                     }
                     if (archiveEvent.event === "computer_archived" && archiveEvent.id !== null) {
                         removeComputerTicketsFromCache(queryClient, archiveEvent.id);
+                    } else if (archiveEvent.event === "computer_unarchived" &&
+                        queryClient.getQueryData<ComputerCardType | null>(recentComputerArchiveKey(roomId))?.id === archiveEvent.id) {
+                        queryClient.setQueryData(recentComputerArchiveKey(roomId), null);
                     }
                     void queryClient.invalidateQueries({ queryKey: ["request-history", roomId] });
                     return;
@@ -389,7 +392,7 @@ export default function ComputerList({
 
     return(
         <>
-            <ComputerRestoreNotice roomId={roomId} queryKey={queryKey} />
+            <ComputerRestoreNotice roomId={roomId} queryKey={queryKey} computers={computers} />
             <div className={`flex items-center w-full flex-col gap-3 px-3 py-3
             sm:grid sm:grid-cols-2 mb-3`}>
 

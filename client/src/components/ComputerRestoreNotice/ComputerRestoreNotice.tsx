@@ -9,9 +9,10 @@ import type { ComputerCardType } from "@/types/computer";
 type Props = {
   roomId: string;
   queryKey: readonly string[];
+  computers: ComputerCardType[];
 };
 
-export default function ComputerRestoreNotice({ roomId, queryKey }: Props) {
+export default function ComputerRestoreNotice({ roomId, queryKey, computers }: Props) {
   const queryClient = useQueryClient();
   const archiveKey = recentComputerArchiveKey(roomId);
   const { data: computer } = useQuery<ComputerCardType | null>({
@@ -48,10 +49,10 @@ export default function ComputerRestoreNotice({ roomId, queryKey }: Props) {
     onError: (error: Error) => appToast.error(error.message),
   });
 
-  if (!computer) return null;
+  if (!computer || !computers.some((item) => item.id === computer.id && item.isArchived)) return null;
 
   return (
-    <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+    <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white px-4 py-3 text-sm shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
       <span>{computer.computerCode} was archived.</span>
       <button type="button" disabled={restore.isPending} onClick={() => restore.mutate(computer)}
         className="inline-flex items-center gap-2 font-semibold primary-text-color disabled:opacity-50">

@@ -278,10 +278,12 @@ export default function ManageTicket({ ticketView, onTicketViewChange, statusFil
 
   useEffect(() => {
     let socket: WebSocket | null = null;
-    const connectSocket = window.setTimeout(async () => {
+    let reconnectTimer: number | undefined;
+    let shouldReconnect = true;
+    const connectSocket = async () => {
       const accessToken = await getFreshAccessToken();
 
-      if (!accessToken) {
+      if (!accessToken || !shouldReconnect) {
         return;
       }
 
@@ -359,10 +361,17 @@ export default function ManageTicket({ ticketView, onTicketViewChange, statusFil
             upsertTicket(currentTickets, parsedMessage.ticket)
         );
       });
-    }, 0);
+      socket.addEventListener("close", () => {
+        if (shouldReconnect) reconnectTimer = window.setTimeout(connectSocket, 1_500);
+      });
+    };
+
+    const connectTimer = window.setTimeout(connectSocket, 0);
 
     return () => {
-      window.clearTimeout(connectSocket);
+      shouldReconnect = false;
+      window.clearTimeout(connectTimer);
+      if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer);
       socket?.close();
 
       if (ticketSocketRef.current === socket) {
