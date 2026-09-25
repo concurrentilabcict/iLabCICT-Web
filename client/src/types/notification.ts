@@ -27,7 +27,8 @@ export type Notification = {
     title: string;
     activitySummary: NotificationActivitySummary;
     ticket: NotificationTicket;
-    status: string;
+    isRead: boolean;
+    isArchived: boolean;
     createdAt: string;
     recipientId: number | null;
 }

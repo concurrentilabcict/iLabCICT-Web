@@ -2,7 +2,9 @@ import type { Notification } from "@/types/notification";
 import NotificationCard from "./NotificationCard";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMarkNotificationAsRead } from "./useNotifications";
+import { appToast } from "@/utils/appToast";
+import { getNotificationPath } from "@/utils/notification";
+import { useArchiveNotification, useMarkNotificationAsRead } from "./useNotifications";
 
 type MobileNotificationProps = {
     notifications: Notification[];
@@ -16,6 +18,7 @@ export default function MobileNotification({ notifications }: MobileNotification
     const [selectedFilter, setSelectedFilter] = useState<NotificationFilter>("All");
     const navigate = useNavigate();
     const markNotificationAsRead = useMarkNotificationAsRead();
+    const archiveNotification = useArchiveNotification();
 
     const filteredNotifications = useMemo(() => {
         if (selectedFilter === "All") {
@@ -23,20 +26,20 @@ export default function MobileNotification({ notifications }: MobileNotification
         }
 
         return notifications.filter((notification) => {
-            const status = notification.status.toLowerCase();
-
             return selectedFilter === "Unread"
-                ? status === "unread"
-                : status === "read";
+                ? !notification.isRead
+                : notification.isRead;
         });
     }, [notifications, selectedFilter]);
 
     const handleNotificationClick = (notification: Notification) => {
-        if (notification.status.toLowerCase() === "unread") {
-            markNotificationAsRead.mutate(notification.id);
+        if (!notification.isRead) {
+            markNotificationAsRead.mutate(notification.id, {
+                onError: () => appToast.error("We couldn't mark this notification as read. Please try again."),
+            });
         }
 
-        navigate(`/manage-ticket?ticket=${notification.entityId}`);
+        navigate(getNotificationPath(notification));
     };
 
     return (
@@ -69,6 +72,9 @@ export default function MobileNotification({ notifications }: MobileNotification
                                 key={notification.id}
                                 notification={notification}
                                 onClick={() => handleNotificationClick(notification)}
+                                onArchive={() => archiveNotification.mutate(notification.id, {
+                                    onError: () => appToast.error("We couldn't archive this notification. Please try again."),
+                                })}
                             />
                         ))
                     ) : (

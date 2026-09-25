@@ -71,7 +71,8 @@ export const mapNotification = (notification: unknown): Notification => {
             reportedBy: mapNotificationUser(reportedBy, actor, ""),
             assignedTo: assignedTo ? mapNotificationUser(assignedTo, "Unassigned", "Technician") : null,
         },
-        status: getString(source, "status") ?? "read",
+        isRead: source.is_read === true || source.isRead === true,
+        isArchived: source.is_archived === true || source.isArchived === true,
         createdAt: getString(source, "created_at") ?? getString(source, "createdAt") ?? new Date().toISOString(),
         recipientId: getNumber(source, "recipient_id") ?? getNumber(source, "recipientId") ?? null,
     };
@@ -82,3 +83,8 @@ export const sortNotificationsByNewest = (notifications: Notification[]) => {
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 };
+
+export const getNotificationPath = (notification: Notification) =>
+    notification.entityType === "weekly-report"
+        ? "/weekly-reports"
+        : `/manage-ticket?ticket=${notification.entityId}`;

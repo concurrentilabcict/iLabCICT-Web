@@ -8,6 +8,7 @@ import type { Notification } from "@/types/notification";
 import { mapNotification, sortNotificationsByNewest } from "@/utils/notification";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { appToast } from "@/utils/appToast";
 
 type InitialNotificationsMessage = {
     event: "initial_notifications";
@@ -16,7 +17,7 @@ type InitialNotificationsMessage = {
 };
 
 type NotificationCreatedMessage = {
-    event: "notification_created";
+    event: "notification_created" | "notification_updated";
     notification: unknown;
 };
 
@@ -53,13 +54,18 @@ const isNotificationWebSocketMessage = (
         return typeof value.notification === "number";
     }
 
-    return value.event === "notification_created" && isRecord(value.notification);
+    return (value.event === "notification_created" || value.event === "notification_updated")
+        && isRecord(value.notification);
 };
 
 const upsertNotification = (
     notifications: Notification[],
     nextNotification: Notification
 ) => {
+    if (nextNotification.isArchived) {
+        return notifications.filter((notification) => notification.id !== nextNotification.id);
+    }
+
     const exists = notifications.some(
         (notification) => notification.id === nextNotification.id
     );
@@ -84,7 +90,7 @@ export const useMarkNotificationAsRead = () => {
             (currentNotifications = []) =>
                 currentNotifications.map((notification) =>
                     notification.id === notificationId
-                        ? { ...notification, status: "read" }
+                        ? { ...notification, isRead: true }
                         : notification
                 )
         );
@@ -93,15 +99,15 @@ export const useMarkNotificationAsRead = () => {
     return useMutation({
         mutationFn: async (notificationId: number) => {
             const response = await privateFetch(
-                buildApiUrl(`/api/notifications/${notificationId}/`),
+                buildApiUrl(`/api/notifications/${notificationId}/read/`),
                 {
-                    method: "PATCH",
-                    body: JSON.stringify({ status: "read" }),
+                    method: "POST",
+                    body: JSON.stringify({}),
                 }
             );
 
             if (!response.ok) {
-                throw new Error("Failed to update notification status");
+                throw new Error("Failed to mark notification as read.");
             }
         },
         onMutate: async (notificationId) => {
@@ -114,16 +120,46 @@ export const useMarkNotificationAsRead = () => {
 
             return { previousNotifications };
         },
-        onSuccess: (_data, notificationId) => {
-            setNotificationAsRead(notificationId);
-        },
         onError: (_error, _notificationId, context) => {
             if (context?.previousNotifications) {
-                queryClient.setQueryData(
+                queryClient.setQueryData<Notification[]>(
                     NOTIFICATIONS_QUERY_KEY,
-                    context.previousNotifications
+                    (currentNotifications = []) => currentNotifications.map((notification) => {
+                        const previous = context.previousNotifications?.find(
+                            (item) => item.id === notification.id
+                        );
+                        return notification.id === _notificationId && previous
+                            ? { ...notification, isRead: previous.isRead }
+                            : notification;
+                    })
                 );
             }
+        },
+    });
+};
+
+export const useArchiveNotification = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (notificationId: number) => {
+            const response = await privateFetch(
+                buildApiUrl(`/api/notifications/${notificationId}/archive/`),
+                { method: "POST", body: JSON.stringify({}) }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to archive notification.");
+            }
+        },
+        onSuccess: (_data, notificationId) => {
+            queryClient.setQueryData<Notification[]>(
+                NOTIFICATIONS_QUERY_KEY,
+                (currentNotifications = []) => currentNotifications.filter(
+                    (notification) => notification.id !== notificationId
+                )
+            );
+            appToast.success("Notification archived successfully.");
         },
     });
 };
@@ -188,7 +224,9 @@ export const useNotifications = () => {
                     queryClient.setQueryData<Notification[]>(
                         NOTIFICATIONS_QUERY_KEY,
                         sortNotificationsByNewest(
-                            parsedMessage.notification.map(mapNotification)
+                            parsedMessage.notification.map(mapNotification).filter(
+                                (notification) => !notification.isArchived
+                            )
                         )
                     );
                     return;

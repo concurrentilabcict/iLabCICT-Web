@@ -1,12 +1,15 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Ticket } from "lucide-react";
+import { Archive, Ticket } from "lucide-react";
+import { appToast } from "@/utils/appToast";
 
 import type { Notification as NotificationType } from "@/types/notification";
 import {
   useMarkNotificationAsRead,
+  useArchiveNotification,
   useNotifications,
 } from "@/components/Technician/Notification/useNotifications";
+import { getNotificationPath } from "@/utils/notification";
 import { formatDateTime } from "@/utils/string";
 import NotificationSkeleton from "@/components/NotificationSkeleton/NotificationSkeleton";
 
@@ -19,6 +22,7 @@ export default function Notification() {
   const { notifications, isLoading, isError } = useNotifications();
   const navigate = useNavigate();
   const markNotificationAsRead = useMarkNotificationAsRead();
+  const archiveNotification = useArchiveNotification();
 
   const filteredNotifications = useMemo(() => {
     if (selectedFilter === "All") {
@@ -26,18 +30,18 @@ export default function Notification() {
     }
 
     return notifications.filter((notification) => {
-      const status = notification.status.toLowerCase();
-
-      return selectedFilter === "Unread" ? status === "unread" : status === "read";
+      return selectedFilter === "Unread" ? !notification.isRead : notification.isRead;
     });
   }, [notifications, selectedFilter]);
 
   const handleNotificationClick = (notification: NotificationType) => {
-    if (notification.status.toLowerCase() === "unread") {
-      markNotificationAsRead.mutate(notification.id);
+    if (!notification.isRead) {
+      markNotificationAsRead.mutate(notification.id, {
+        onError: () => appToast.error("We couldn't mark this notification as read. Please try again."),
+      });
     }
 
-    navigate(`/manage-ticket?ticket=${notification.entityId}`);
+    navigate(getNotificationPath(notification));
   };
 
   if (isLoading) {
@@ -82,6 +86,9 @@ export default function Notification() {
               key={notification.id}
               notification={notification}
               onClick={() => handleNotificationClick(notification)}
+              onArchive={() => archiveNotification.mutate(notification.id, {
+                onError: () => appToast.error("We couldn't archive this notification. Please try again."),
+              })}
             />
           ))
         ) : (
@@ -97,32 +104,36 @@ export default function Notification() {
 function FacultyNotificationCard({
   notification,
   onClick,
+  onArchive,
 }: {
   notification: NotificationType;
   onClick: () => void;
+  onArchive: () => void;
 }) {
   const displayUser = notification.ticket.assignedTo;
   const displayName = displayUser
     ? `${displayUser.firstName} ${displayUser.lastName}`.trim()
     : "Unassigned technician";
-  const isUnread = notification.status.toLowerCase() === "unread";
+  const isUnread = !notification.isRead;
   const summaryName = notification.activitySummary?.actor ?? displayName;
   const summaryTitle = notification.activitySummary?.entityTitle ?? notification.ticket.title;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`relative flex w-full cursor-pointer items-start gap-4 rounded-xl bg-white px-4 py-4 text-left shadow-[0_4px_14px_rgba(15,23,42,0.08)] transition hover:shadow-[0_8px_18px_rgba(15,23,42,0.10)] ${
+    <div className={`relative flex w-full items-start gap-4 rounded-xl bg-white px-4 py-4 text-left shadow-[0_4px_14px_rgba(15,23,42,0.08)] ${
         isUnread ? "ring-1 ring-orange-200" : ""
       }`}
-      aria-label={`Open ticket: ${notification.ticket.title}`}
     >
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+      <button
+        type="button"
+        onClick={onClick}
+        className="absolute inset-0 cursor-pointer rounded-xl"
+        aria-label={`Open notification: ${notification.title}`}
+      />
+      <div className="pointer-events-none flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
         <Ticket size={18} />
       </div>
 
-      <div className="min-w-0 flex-1 pr-4">
+      <div className="pointer-events-none min-w-0 flex-1 pr-4">
         <h2 className="truncate text-base font-bold leading-snug text-zinc-950">
           {notification.title}
         </h2>
@@ -140,7 +151,16 @@ function FacultyNotificationCard({
       {isUnread && (
         <span className="absolute right-3.5 top-4 size-2.5 rounded-full bg-orange-500" />
       )}
-    </button>
+      <button
+        type="button"
+        onClick={onArchive}
+        className="absolute bottom-3 right-3 cursor-pointer rounded p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
+        aria-label={`Archive notification: ${notification.title}`}
+        title="Archive notification"
+      >
+        <Archive className="size-4" />
+      </button>
+    </div>
   );
 }
 

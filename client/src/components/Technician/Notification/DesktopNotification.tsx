@@ -17,7 +17,7 @@ export default function DesktopNotification() {
     const { notifications, isLoading, isError } = useNotifications();
 
     const unreadCount = notifications.filter(
-        (notification) => notification.status.toLowerCase() === "unread"
+        (notification) => !notification.isRead
     ).length;
 
     return (
