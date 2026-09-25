@@ -1,4 +1,4 @@
-import { Archive } from "lucide-react";
+import { Archive, type LucideIcon } from "lucide-react";
 
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -18,6 +18,9 @@ type ArchiveTicketDialogProps = {
     onArchive: () => void;
     isPending: boolean;
     description?: string;
+    title?: string;
+    actionLabel?: string;
+    actionIcon?: LucideIcon;
 };
 
 export default function ArchiveTicketDialog({
@@ -26,12 +29,15 @@ export default function ArchiveTicketDialog({
     onArchive,
     isPending,
     description = "This ticket will move out of the active queue and remain available in Archived Tickets.",
+    title = "Archive Ticket?",
+    actionLabel = "Archive",
+    actionIcon: ActionIcon = Archive,
 }: ArchiveTicketDialogProps) {
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Archive Ticket?</AlertDialogTitle>
+                    <AlertDialogTitle>{title}</AlertDialogTitle>
                     <AlertDialogDescription>
                         {description}
                     </AlertDialogDescription>
@@ -49,8 +55,8 @@ export default function ArchiveTicketDialog({
                             </>
                         ) : (
                             <>
-                                <Archive />
-                                Archive
+                                <ActionIcon />
+                                {actionLabel}
                             </>
                         )}
                     </AlertDialogAction>

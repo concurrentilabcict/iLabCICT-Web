@@ -60,7 +60,7 @@ export default function AssignTechnicianDialog({
                     </div>
                     <DialogTitle>Assign Technician</DialogTitle>
                     <DialogDescription>
-                        Select a technician for {ticketCode ?? "this ticket"}. Its status will change to ongoing.
+                        Select a technician for {ticketCode ?? "this ticket"}.
                     </DialogDescription>
                 </DialogHeader>
 

@@ -17,7 +17,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 import ArchiveTicketDialog from "@/components/Admin/ManageTicket/ArchiveTicketDialog/ArchiveTicketDialog";
 import { appToast } from "@/utils/appToast";
-import { RotateCcw } from "lucide-react";
+import { CircleX, RotateCcw } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 type ManageTicketProps = {
@@ -200,7 +200,7 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
       );
       setRecentlyArchivedTicket(ticket);
       setTicketToArchive(null);
-      appToast.success("Ticket archived successfully.");
+      appToast.success("Ticket canceled successfully.");
     },
     onError: (error: Error) => appToast.error(error.message),
   });
@@ -220,7 +220,7 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
     onSuccess: () => {
       setRecentlyArchivedTicket(null);
       void queryClient.invalidateQueries({ queryKey: FACULTY_TICKETS_QUERY_KEY });
-      appToast.success("Ticket unarchived successfully.");
+      appToast.success("Ticket resubmitted successfully.");
     },
     onError: (error: Error) => appToast.error(error.message),
   });
@@ -361,11 +361,11 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
     <>
       {recentlyArchivedTicket && (
         <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
-          <span>{recentlyArchivedTicket.ticketCode} was archived.</span>
+          <span>{recentlyArchivedTicket.ticketCode} was canceled.</span>
           <button type="button" disabled={unarchiveTicketMutation.isPending}
             onClick={() => unarchiveTicketMutation.mutate(recentlyArchivedTicket)}
             className="inline-flex items-center gap-2 font-semibold primary-text-color disabled:opacity-50">
-            <RotateCcw size={16} /> Unarchive
+            <RotateCcw size={16} /> Resubmit
           </button>
         </div>
       )}
@@ -424,7 +424,10 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
           if (ticketToArchive) archiveTicketMutation.mutate(ticketToArchive);
         }}
         isPending={archiveTicketMutation.isPending}
-        description="This open ticket will be archived along with its related history."
+        title="Cancel Ticket?"
+        actionLabel="Cancel Ticket"
+        actionIcon={CircleX}
+        description="This open ticket and its related history will be archived. You can resubmit it afterward."
       />
     </>
   );

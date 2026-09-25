@@ -2,6 +2,7 @@ import {
   Archive,
   Building2,
   CalendarDays,
+  CircleX,
   CheckCircle2,
   CircleDot,
   ClipboardList,
@@ -145,8 +146,8 @@ export default function ManageTicketCard({
           }}
           className="flex w-fit items-center gap-2 self-end rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
         >
-          <Archive size={16} />
-          Archive Ticket
+          <CircleX size={16} />
+          Cancel Ticket
         </button>
       )}
 
