@@ -9,6 +9,7 @@ import {
   Clock3,
   Layers3,
   Monitor,
+  RotateCcw,
   User,
   Wrench,
   type LucideIcon,
@@ -32,6 +33,8 @@ type ManageTicketCardProps = {
   date: string;
   onClick?: () => void;
   onArchive?: () => void;
+  onResubmit?: () => void;
+  isResubmitting?: boolean;
 };
 
 const statusStyle: Record<Status, { icon: LucideIcon; className: string }> = {
@@ -68,6 +71,8 @@ export default function ManageTicketCard({
   date,
   onClick,
   onArchive,
+  onResubmit,
+  isResubmitting = false,
 }: ManageTicketCardProps) {
   const currentStatus = statusStyle[status];
   const StatusIcon = currentStatus.icon;
@@ -94,7 +99,7 @@ export default function ManageTicketCard({
           className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold ${currentStatus.className}`}
         >
           <StatusIcon className="shrink-0" size={14} />
-          <span>{status}</span>
+          <span>{status === "Archived" ? "Canceled" : status}</span>
         </div>
       </div>
 
@@ -148,6 +153,14 @@ export default function ManageTicketCard({
         >
           <CircleX size={16} />
           Cancel Ticket
+        </button>
+      )}
+
+      {onResubmit && (
+        <button type="button" disabled={isResubmitting}
+          onClick={(event) => { event.stopPropagation(); onResubmit(); }}
+          className="flex w-fit items-center gap-2 self-end rounded-lg px-3 py-1.5 text-sm font-medium primary-text-color hover:bg-red-50 disabled:opacity-50">
+          <RotateCcw size={16} /> Resubmit
         </button>
       )}
 

@@ -36,6 +36,7 @@ export default function ManageTicketPage() {
             />
             <ManageTicket
               statusFilter={statusFilter}
+              onStatusChange={setStatusFilter}
               typeFilter={typeFilter}
               searchQuery={searchQuery}
             />

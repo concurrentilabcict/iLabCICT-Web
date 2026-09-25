@@ -72,6 +72,7 @@ export type ApiTicket = {
     complaint_description: string;
     issue_image: string | null;
     status: "open" | "ongoing" | "resolved" | "archived";
+    is_archived?: boolean;
     created_at: string;
     updated_at: string;
 }

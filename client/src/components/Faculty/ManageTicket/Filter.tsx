@@ -5,7 +5,7 @@ type FilterProps = {
   onStatusChange: (status: StatusFilter) => void;
 };
 
-const statusOptions: StatusFilter[] = ["All", "Open", "Ongoing", "Resolved"];
+const statusOptions: StatusFilter[] = ["All", "Open", "Ongoing", "Resolved", "Archived"];
 
 export default function Filter({ selectedStatus, onStatusChange }: FilterProps) {
   return (
@@ -24,7 +24,7 @@ export default function Filter({ selectedStatus, onStatusChange }: FilterProps) 
 	                : "bg-white text-gray-500 shadow-[0_3px_10px_rgba(15,23,42,0.10)] hover:bg-gray-50"
 	            }`}
           >
-            {status}
+            {status === "Archived" ? "Canceled" : status}
           </button>
         );
       })}

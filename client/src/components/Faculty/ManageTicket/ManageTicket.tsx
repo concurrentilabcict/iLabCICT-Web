@@ -17,17 +17,19 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 import ArchiveTicketDialog from "@/components/Admin/ManageTicket/ArchiveTicketDialog/ArchiveTicketDialog";
 import { appToast } from "@/utils/appToast";
-import { CircleX, RotateCcw } from "lucide-react";
+import { CircleX } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 type ManageTicketProps = {
   statusFilter: StatusFilter;
+  onStatusChange: (status: StatusFilter) => void;
   typeFilter: TicketTypeFilter;
   searchQuery: string;
 };
 
 const ITEMS_PER_PAGE = 10;
 const FACULTY_TICKETS_QUERY_KEY = ["tickets"] as const;
+const facultyArchivedTicketsKey = (facultyId: number) => ["faculty-archived-tickets", facultyId] as const;
 const TICKETS_WS_ENDPOINT = "/ws/tickets/";
 
 type TicketWebSocketMessage =
@@ -138,6 +140,9 @@ const isTicketWebSocketMessage = (
 };
 
 const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
+  if (apiTicket.status === "archived" || apiTicket.is_archived === true) {
+    return tickets.filter((ticket) => ticket.id !== apiTicket.id);
+  }
   const ticket = mapTicket(apiTicket);
   const ticketExists = tickets.some(
     (currentTicket) => currentTicket.id === ticket.id
@@ -152,17 +157,19 @@ const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
   );
 };
 
-export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: ManageTicketProps) {
+export default function ManageTicket({ statusFilter, onStatusChange, typeFilter, searchQuery }: ManageTicketProps) {
   const queryClient = useQueryClient();
   const ticketSocketRef = useRef<WebSocket | null>(null);
+  const locallyArchivedIds = useRef(new Set<number>());
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [ticketToArchive, setTicketToArchive] = useState<Ticket | null>(null);
-  const [recentlyArchivedTicket, setRecentlyArchivedTicket] = useState<Ticket | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [searchParams, setSearchParams] = useSearchParams();
   const notificationTicketId = searchParams.get("ticket");
+  const facultyId = Number(localStorage.getItem("id"));
+  const archivedQueryKey = useMemo(() => facultyArchivedTicketsKey(facultyId), [facultyId]);
 
   const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
     queryKey: FACULTY_TICKETS_QUERY_KEY,
@@ -174,8 +181,39 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
         throw createApiError(res.status, data.message || "Failed to fetch tickets.");
       }
 
-      return (data as ApiTicket[]).map(mapTicket);
+      return (data as ApiTicket[])
+        .filter((ticket) =>
+          ticket.status !== "archived" && ticket.is_archived !== true &&
+          !locallyArchivedIds.current.has(ticket.id)
+        )
+        .map(mapTicket);
     },
+  });
+
+  const {
+    data: archivedTickets = [],
+    isLoading: archivedTicketsAreLoading,
+    isError: archivedTicketsHaveError,
+    refetch: refetchArchivedTickets,
+  } = useQuery<Ticket[]>({
+    queryKey: archivedQueryKey,
+    queryFn: async () => {
+      const response = await privateFetch(buildApiUrl("/api/tickets/archive/"));
+      const body: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        const message = isRecord(body) && typeof body.detail === "string"
+          ? body.detail : "Failed to load canceled tickets.";
+        throw createApiError(response.status, message);
+      }
+      const items = Array.isArray(body) ? body
+        : isRecord(body) && Array.isArray(body.results) ? body.results : null;
+      if (!items) throw createApiError(response.status, "Invalid canceled tickets response.");
+      return (items as ApiTicket[])
+        .filter((ticket) => ticket.reported_by.id === facultyId)
+        .map((ticket) => mapTicket({ ...ticket, status: "archived" }));
+    },
+    enabled: statusFilter === "Archived" && Number.isInteger(facultyId) && facultyId > 0,
+    staleTime: 30_000,
   });
 
   const archiveTicketMutation = useMutation({
@@ -194,11 +232,13 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
       return ticket;
     },
     onSuccess: (ticket) => {
+      locallyArchivedIds.current.add(ticket.id);
       queryClient.setQueryData<Ticket[]>(
         FACULTY_TICKETS_QUERY_KEY,
         (currentTickets = []) => currentTickets.filter((item) => item.id !== ticket.id)
       );
-      setRecentlyArchivedTicket(ticket);
+      void queryClient.invalidateQueries({ queryKey: archivedQueryKey });
+      onStatusChange("Archived");
       setTicketToArchive(null);
       appToast.success("Ticket canceled successfully.");
     },
@@ -217,9 +257,13 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
         throw createApiError(response.status, detail);
       }
     },
-    onSuccess: () => {
-      setRecentlyArchivedTicket(null);
+    onSuccess: (_, ticket) => {
+      locallyArchivedIds.current.delete(ticket.id);
+      queryClient.setQueryData<Ticket[]>(archivedQueryKey,
+        (items = []) => items.filter((item) => item.id !== ticket.id));
       void queryClient.invalidateQueries({ queryKey: FACULTY_TICKETS_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: archivedQueryKey });
+      onStatusChange("All");
       appToast.success("Ticket resubmitted successfully.");
     },
     onError: (error: Error) => appToast.error(error.message),
@@ -255,7 +299,12 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
         if (parsedMessage.event === "initial_tickets") {
           queryClient.setQueryData<Ticket[]>(
             FACULTY_TICKETS_QUERY_KEY,
-            parsedMessage.ticket.map(mapTicket)
+            parsedMessage.ticket
+              .filter((ticket) =>
+                ticket.status !== "archived" && ticket.is_archived !== true &&
+                !locallyArchivedIds.current.has(ticket.id)
+              )
+              .map(mapTicket)
           );
           return;
         }
@@ -271,6 +320,7 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
             (currentTickets = []) =>
               currentTickets.filter((ticket) => ticket.id !== archivedTicketId)
           );
+          void queryClient.invalidateQueries({ queryKey: archivedQueryKey });
           setSelectedTicketId(null);
           setSheetOpen(false);
           return;
@@ -278,6 +328,11 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
 
         if (parsedMessage.event === "ticket_unarchived") {
           const restoredTicket = parsedMessage.ticket;
+          const restoredTicketId = restoredTicket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
+          if (restoredTicketId !== undefined) locallyArchivedIds.current.delete(restoredTicketId);
+          queryClient.setQueryData<Ticket[]>(archivedQueryKey,
+            (items = []) => items.filter((item) => item.id !== restoredTicketId));
+          void queryClient.invalidateQueries({ queryKey: archivedQueryKey });
           if (restoredTicket) {
             queryClient.setQueryData<Ticket[]>(
               FACULTY_TICKETS_QUERY_KEY,
@@ -288,6 +343,8 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
           }
           return;
         }
+
+        if (locallyArchivedIds.current.has(parsedMessage.ticket.id)) return;
 
         queryClient.setQueryData<Ticket[]>(
           FACULTY_TICKETS_QUERY_KEY,
@@ -305,12 +362,12 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
         ticketSocketRef.current = null;
       }
     };
-  }, [queryClient]);
+  }, [queryClient, archivedQueryKey]);
 
   const filteredTickets = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return [...tickets]
+    return [...(statusFilter === "Archived" ? archivedTickets : tickets)]
       .sort(sortTickets)
       .filter((ticket) => {
         const status = formatLabel(ticket.status) as Status;
@@ -323,16 +380,17 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
           status, type,
         ].join(" ").toLowerCase();
 
-        return (statusFilter === "All" || status === statusFilter)
+        return (statusFilter === "All" || statusFilter === "Archived" || status === statusFilter)
           && (typeFilter === "All" || type === typeFilter)
           && (normalizedQuery === "" || searchableText.includes(normalizedQuery));
       });
-  }, [tickets, statusFilter, typeFilter, searchQuery]);
+  }, [tickets, archivedTickets, statusFilter, typeFilter, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredTickets.length / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const paginatedTickets = filteredTickets.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-  const manuallySelectedTicket = tickets.find((ticket) => ticket.id === selectedTicketId) ?? null;
+  const manuallySelectedTicket = (statusFilter === "Archived" ? archivedTickets : tickets)
+    .find((ticket) => ticket.id === selectedTicketId) ?? null;
   const notificationTicket = useMemo(() => {
     const ticketId = Number(notificationTicketId);
 
@@ -340,8 +398,9 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
       return null;
     }
 
-    return tickets.find((ticket) => ticket.id === ticketId) ?? null;
-  }, [notificationTicketId, tickets]);
+    return (statusFilter === "Archived" ? archivedTickets : tickets)
+      .find((ticket) => ticket.id === ticketId) ?? null;
+  }, [notificationTicketId, tickets, archivedTickets, statusFilter]);
   const selectedTicket = notificationTicket ?? manuallySelectedTicket;
 
   const openTicket = (ticket: Ticket) => {
@@ -359,20 +418,18 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
 
   return (
     <>
-      {recentlyArchivedTicket && (
-        <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
-          <span>{recentlyArchivedTicket.ticketCode} was canceled.</span>
-          <button type="button" disabled={unarchiveTicketMutation.isPending}
-            onClick={() => unarchiveTicketMutation.mutate(recentlyArchivedTicket)}
-            className="inline-flex items-center gap-2 font-semibold primary-text-color disabled:opacity-50">
-            <RotateCcw size={16} /> Resubmit
-          </button>
-        </div>
-      )}
       <div className="flex w-full flex-col gap-3 px-3 pt-3 pb-10 sm:grid sm:grid-cols-2">
-        {isLoading && <ManageTicketSkeleton />}
-        {!isLoading && paginatedTickets.length === 0 && <p className="col-span-full py-8 text-center secondary-text-color">No tickets found.</p>}
-        {!isLoading && paginatedTickets.map((ticket) => {
+        {(statusFilter === "Archived" ? archivedTicketsAreLoading : isLoading) && <ManageTicketSkeleton />}
+        {statusFilter === "Archived" && archivedTicketsHaveError && (
+          <div className="col-span-full flex flex-col items-center gap-2 py-8 text-center text-red-600">
+            <p>Failed to load canceled tickets.</p>
+            <button type="button" onClick={() => void refetchArchivedTickets()}
+              className="rounded-lg border border-red-200 px-3 py-1.5 font-semibold hover:bg-red-50">Retry</button>
+          </div>
+        )}
+        {!(statusFilter === "Archived" ? archivedTicketsAreLoading || archivedTicketsHaveError : isLoading) && paginatedTickets.length === 0 &&
+          <p className="col-span-full py-8 text-center secondary-text-color">No {statusFilter === "Archived" ? "canceled" : "active"} tickets found.</p>}
+        {!(statusFilter === "Archived" ? archivedTicketsAreLoading || archivedTicketsHaveError : isLoading) && paginatedTickets.map((ticket) => {
           const status = formatLabel(ticket.status) as Status;
           const type = formatLabel(ticket.type) as TicketType;
           return (
@@ -391,9 +448,11 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
 	              computerCode={ticket.computer?.computerCode || "No Computer"}
 	              date={ticket.createdAt}
               onClick={() => openTicket(ticket)}
-              onArchive={ticket.status.toLowerCase() === "open"
+              onArchive={statusFilter !== "Archived" && ticket.status.toLowerCase() === "open"
                 ? () => setTicketToArchive(ticket)
                 : undefined}
+              onResubmit={statusFilter === "Archived" ? () => unarchiveTicketMutation.mutate(ticket) : undefined}
+              isResubmitting={unarchiveTicketMutation.isPending && unarchiveTicketMutation.variables?.id === ticket.id}
             />
           );
         })}
