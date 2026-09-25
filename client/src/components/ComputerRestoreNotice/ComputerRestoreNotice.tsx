@@ -34,7 +34,9 @@ export default function ComputerRestoreNotice({ roomId, queryKey }: Props) {
     },
     onSuccess: (item) => {
       queryClient.setQueryData<ComputerCardType[]>(queryKey, (items = []) =>
-        items.some((computer) => computer.id === item.id) ? items : [item, ...items]
+        items.some((computer) => computer.id === item.id)
+          ? items.map((computer) => computer.id === item.id ? { ...computer, isArchived: false } : computer)
+          : [{ ...item, isArchived: false }, ...items]
       );
       queryClient.setQueryData(archiveKey, null);
       void queryClient.invalidateQueries({ queryKey });

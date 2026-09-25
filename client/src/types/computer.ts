@@ -7,6 +7,7 @@ export type Computer = {
         floorNumber: number
     },
     computerCode: string,
+    computerNumber?: string | number | null,
     operatingSystem: string,
     gpu: string,
     cpu: string,
@@ -42,6 +43,8 @@ export type ComputerCardType = {
     id: number,
     room: number
     computerCode: string,
+    computerNumber?: string | number | null,
+    isArchived?: boolean,
     operatingSystem: string,
     gpu: string,
     cpu: string,
@@ -61,6 +64,8 @@ export type ComputerCardType = {
 export type ApiComputerCard = {
     id: number,
     computer_code: string,
+    computer_number?: string | number | null,
+    is_archived?: boolean,
     room: number,
     operating_system: string,
     gpu: string,

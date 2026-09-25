@@ -56,6 +56,7 @@ type RoomComputersWebSocketEvent =
     };
 
 const ROOM_COMPUTERS_QUERY_KEY = "technician-room-computers";
+const EMPTY_COMPUTERS: ComputerCardType[] = [];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null;
@@ -132,6 +133,8 @@ export default function ComputerList({
     const mapComputerCard = (computerCard: ApiComputerCard): ComputerCardType => ({
         id:computerCard.id,
         computerCode: computerCard.computer_code,
+        computerNumber: computerCard.computer_number,
+        isArchived: computerCard.is_archived === true,
         room: computerCard.room,
         operatingSystem: computerCard.operating_system,
         gpu: computerCard.gpu,
@@ -167,7 +170,7 @@ export default function ComputerList({
         );
     }, []);
 
-    const { data: computers = [], isLoading, isError } = useQuery<ComputerCardType[]>({
+    const { data: queriedComputers, isLoading, isError } = useQuery<ComputerCardType[]>({
         queryKey,
         queryFn: async () => {
             const data = await fetchRoomComputers(roomId);
@@ -201,9 +204,13 @@ export default function ComputerList({
         onLoadStateChange(isLoading ? "loading" : isError ? "error" : "success");
     }, [isError, isLoading, onLoadStateChange]);
 
+    const computers = queriedComputers ?? EMPTY_COMPUTERS;
+    const activeComputers = useMemo(() =>
+        computers.filter((computer) => !computer.isArchived), [computers]);
+
     useEffect(() => {
-        setComputers(computers);
-    }, [computers, setComputers]);
+        setComputers(activeComputers);
+    }, [activeComputers, setComputers]);
 
     useEffect(() => {
         let socket: WebSocket | null = null;
@@ -238,7 +245,7 @@ export default function ComputerList({
                 if (archiveEvent) {
                     if (archiveEvent.event === "computer_archived" && archiveEvent.id !== null) {
                         queryClient.setQueryData<ComputerCardType[]>(queryKey,
-                            (items = []) => items.filter((item) => item.id !== archiveEvent.id));
+                            (items = []) => items.map((item) => item.id === archiveEvent.id ? { ...item, isArchived: true } : item));
                         removeComputerTicketsFromCache(queryClient, archiveEvent.id);
                     } else {
                         void queryClient.invalidateQueries({ queryKey });
@@ -329,11 +336,13 @@ export default function ComputerList({
                 .filter((computer)=> {
                     const status = formatLabel(computer.computerStatus) as Status
 
-                    const matchesStatus =
-                        statusFilter === "All" || status === statusFilter;
+                    const matchesStatus = statusFilter === "Archived"
+                        ? computer.isArchived === true
+                        : !computer.isArchived && (statusFilter === "All" || status === statusFilter);
 
                     const searchableText = [
                         computer.computerCode,
+                        computer.computerNumber,
                         computer.computerStatus
                     ]
                         .join(" ")

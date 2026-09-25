@@ -1,4 +1,4 @@
-import { Cpu, HardDrive, LaptopMinimal, MemoryStick, SquarePen, type LucideIcon } from "lucide-react";
+import { Archive, Cpu, HardDrive, Hash, LaptopMinimal, MemoryStick, SquarePen, type LucideIcon } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { statusConfig, type Status } from "@/utils/computer";
 import type { ComputerCardType } from "@/types/computer";
@@ -33,7 +33,7 @@ export default function ComputerCard({
         }
 
     const statusData = statusConfig[formatLabel(computer.computerStatus) as Status];
-    const StatusIcon = statusData.icon
+    const StatusIcon = computer.isArchived ? Archive : statusData.icon
 
     const {room} = useParams()
     const navigate = useNavigate()
@@ -47,14 +47,17 @@ export default function ComputerCard({
                         <h1 className="truncate text-lg font-bold leading-snug text-zinc-950">{computer.computerCode}</h1>
                     </div>
                     <div
-                        className={`inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${statusData.className}`}
+                        className={`inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${computer.isArchived ? "bg-zinc-100 text-zinc-600" : statusData.className}`}
                     >
                         <StatusIcon size={14} />
-                        <span>{formatLabel(computer.computerStatus)}</span>
+                        <span>{computer.isArchived ? "Archived" : formatLabel(computer.computerStatus)}</span>
                     </div>                    
                 </div>
 
                 <div className="grid gap-3">
+                    {computer.computerNumber !== null && computer.computerNumber !== undefined && String(computer.computerNumber).trim() !== "" && (
+                        <InfoTile icon={Hash} label="Computer No." value={String(computer.computerNumber)} highlight />
+                    )}
                     <InfoTile icon={Cpu} label="CPU" value={computer.cpu} />
                     <InfoTile icon={HardDrive} label="GPU" value={computer.gpu} />
                     <InfoTile icon={MemoryStick} label="Memory" value={`${computer.ramSizeInstalled}GB RAM`} />
@@ -71,7 +74,7 @@ export default function ComputerCard({
                         <HardDrive size={17}/> View Specifications
                     </button>
 
-                    <button
+                    {!computer.isArchived && <button
                         onClick={()=>handleEditComputerClick(computer)}
                         type="button"
                         title="Edit computer"
@@ -79,7 +82,7 @@ export default function ComputerCard({
                         className="grid h-9 w-10 shrink-0 place-items-center rounded-xl border primary-border-color bg-white text-zinc-500 hover:cursor-pointer hover:bg-gray-50"
                     >
                         <SquarePen size={17}/>
-                    </button>
+                    </button>}
                     <ComputerArchiveAction computer={computer} queryKey={["admin-room-computers", room ?? ""]} />
 
                 </div>
@@ -91,16 +94,17 @@ type InfoTileProps = {
     icon: LucideIcon;
     label: string;
     value: string;
+    highlight?: boolean;
 };
 
-function InfoTile({ icon: Icon, label, value }: InfoTileProps) {
+function InfoTile({ icon: Icon, label, value, highlight = false }: InfoTileProps) {
     return (
-        <div className="flex min-w-0 items-center gap-2.5 rounded-xl border border-gray-100 bg-zinc-50 p-3">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-400">
+        <div className={`flex min-w-0 items-center gap-2.5 rounded-xl border p-3 ${highlight ? "border-red-100 bg-red-50/40" : "border-gray-100 bg-zinc-50"}`}>
+            <div className={`flex size-8 shrink-0 items-center justify-center rounded-lg bg-white ${highlight ? "primary-text-color" : "text-zinc-400"}`}>
                 <Icon size={16} />
             </div>
             <div className="min-w-0">
-                <p className="text-[0.65rem] font-bold uppercase tracking-[0.12em] text-zinc-400">{label}</p>
+                <p className={`text-[0.65rem] font-bold uppercase tracking-[0.12em] ${highlight ? "primary-text-color" : "text-zinc-400"}`}>{label}</p>
                 <p className="mt-0.5 truncate text-sm font-bold text-zinc-800">{value}</p>
             </div>
         </div>

@@ -43,5 +43,4 @@ export type Status =
 export type PeripheralStatus = 
     keyof typeof peripheralStatusConfig
 
-export type StatusFilter = "All" | Status
-
+export type StatusFilter = "All" | Status | "Archived"

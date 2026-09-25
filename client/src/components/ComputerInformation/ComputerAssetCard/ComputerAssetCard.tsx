@@ -14,6 +14,7 @@ import { statusConfig } from "@/utils/computer";
 
 type ComputerAssetCardProps = {
     computerCode: string;
+    computerNumber?: string | number | null;
     buildingName: string;
     roomName: string;
     floorNumber: number;
@@ -25,6 +26,7 @@ const formatFloor = (floorNumber: number) => `Floor ${floorNumber}`;
 
 export default function ComputerAssetCard({
     computerCode,
+    computerNumber,
     buildingName,
     roomName,
     floorNumber,
@@ -89,6 +91,9 @@ export default function ComputerAssetCard({
                     <h1 className="mt-4 break-all text-xl font-bold leading-tight min-[360px]:text-2xl md:mt-5 md:break-normal md:text-3xl">
                         {computerCode}
                     </h1>
+                    {computerNumber !== null && computerNumber !== undefined && String(computerNumber).trim() !== "" && (
+                        <p className="mt-1 text-sm font-semibold text-white/85">Computer No. {computerNumber}</p>
+                    )}
 
                     <div className="mt-4 grid gap-2 text-sm font-semibold text-white/90 sm:grid-cols-3 md:mt-5 md:grid-cols-1 md:gap-3">
                         <div className="flex min-w-0 items-center gap-2">

@@ -16,7 +16,7 @@ type SearchFilterProps = {
     onStatusChange: (type: StatusFilter) => void;
 };
 
-const statusOptions: StatusFilter[] = ["All", "Active", "Broken", "Fixing"];
+const statusOptions: StatusFilter[] = ["All", "Active", "Broken", "Fixing", "Archived"];
 
 export default function SearchFilter({
     searchQuery,

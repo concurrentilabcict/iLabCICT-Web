@@ -38,6 +38,7 @@ const formatLabel = (text: string) => {
 type ApiComputerDetails = {
     id: number;
     computer_code: string;
+    computer_number?: string | number | null;
     room: {
         id: number;
         room_name: string;
@@ -79,6 +80,7 @@ export default function ComputerInformation({
     const mapComputer = (computer: ApiComputerDetails): Computer => ({
         id:computer.id,
         computerCode: computer.computer_code,
+        computerNumber: computer.computer_number,
         room: {
             id: computer.room.id,
             roomName: computer.room.room_name,
@@ -156,6 +158,7 @@ export default function ComputerInformation({
                 <div className="min-w-0 max-w-full space-y-3">
                     <ComputerAssetCard
                         computerCode={computer.computerCode}
+                        computerNumber={computer.computerNumber}
                         buildingName={formatLabel(computer.room.buildingName)}
                         roomName={computer.room.roomName}
                         floorNumber={computer.room.floorNumber}
