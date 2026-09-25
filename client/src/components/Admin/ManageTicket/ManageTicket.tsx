@@ -955,12 +955,14 @@ export default function ManageTicket() {
                           </DropdownMenuItem>
                           {ticketView === "active" && (
                             <>
-                              <DropdownMenuItem
-                                onClick={() => handleAssignTechnician(ticket)}
-                              >
-                                <UserRoundCog className="size-4" />
-                                Assign Technician
-                              </DropdownMenuItem>
+                              {(["open", "ongoing"].includes(ticket.status.toLowerCase())) && (
+                                <DropdownMenuItem
+                                  onClick={() => handleAssignTechnician(ticket)}
+                                >
+                                  <UserRoundCog className="size-4" />
+                                  Assign Technician
+                                </DropdownMenuItem>
+                              )}
                               {ticket.status.toLowerCase() === "open" && (
                                 <>
                                   <div className="my-1 h-px w-full bg-border" />
