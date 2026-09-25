@@ -1,6 +1,6 @@
 import { useAuth } from "@/auth/useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
-import PlaceHolder from "@/assets/profile-placeholder.png"
+import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
 import { getAppNavIcon } from "@/components/Technician/navigation";
 import DesktopNotification from "@/components/Technician/Notification/DesktopNotification";
 import { createElement } from "react";
@@ -33,7 +33,7 @@ export default function MobileHeader({ title }: MobileHeaderProps) {
                 <div className="h-6 w-px bg-gray-300" />
 
                 <button onClick={() => navigate("/profile")} className="cursor-pointer">
-                    <img src={profilePicture || PlaceHolder} alt="User Profile" className="h-9 w-9 rounded-full object-cover" />
+                    <ProfileAvatar src={profilePicture} alt="User Profile" className="h-9 w-9 rounded-full object-cover" />
                 </button>
             </div>
         </div>

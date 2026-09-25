@@ -5,5 +5,5 @@
         name: string;
         email: string;
         role: string;
-        profilePicture: string;
+        profilePicture: string | null;
     }

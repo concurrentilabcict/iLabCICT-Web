@@ -11,7 +11,7 @@ import {
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { capitalize } from "@/utils/string";
 import { EllipsisVertical, LogOut, User } from "lucide-react";
-import placeholderPicture from "@/assets/profile-placeholder.png"
+import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
 
 import { useNavigate } from "react-router-dom";
 
@@ -34,8 +34,8 @@ export default function ProfileFooter() {
   "
                     >
                         <div className="flex items-center gap-3 min-w-[32px] w-full">
-                            <img
-                                src={profilePicture || placeholderPicture}
+                            <ProfileAvatar
+                                src={profilePicture}
                                 alt="Profile"
                                 className="size-8 rounded-full object-cover flex-shrink-0"
                             />
@@ -68,8 +68,8 @@ export default function ProfileFooter() {
                     <DropdownMenuLabel>
 
                         <div className="flex gap-x-3">
-                            <img
-                                src={profilePicture || placeholderPicture}
+                            <ProfileAvatar
+                                src={profilePicture}
                                 alt="Profile"
                                 className="h-8 w-8 shrink-0 mt-0.5 rounded-full object-cover"
                             />

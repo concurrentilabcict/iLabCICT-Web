@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Image } from "lucide-react";
 
-import placeholderPicture from "@/assets/profile-placeholder.png";
+import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
 import { useAuth } from "@/auth/useAuth";
 import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
@@ -28,7 +28,6 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
 
     const userId = localStorage.getItem("id");
     const hasProfilePicture = hasUploadedProfilePicture(profilePicture);
-    const displayedProfilePicture = hasProfilePicture ? profilePicture! : placeholderPicture;
 
     const syncProfilePicture = (profileImage: string | null) => {
         setProfilePicture(profileImage);
@@ -125,7 +124,7 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
 
     return (
         <div className={`flex items-start gap-x-4 ${isMobile ? "px-3" : ""}`}>
-            <img src={displayedProfilePicture} alt="" className="w-15 h-15 sm:w-20 sm:h-20 lg:w-25 lg:h-25 rounded-full" />
+            <ProfileAvatar src={profilePicture} alt="" className="w-15 h-15 sm:w-20 sm:h-20 lg:w-25 lg:h-25 rounded-full object-cover" />
 
             <div className="flex flex-col gap-y-2">
                 <div className="flex text-sm gap-x-2">

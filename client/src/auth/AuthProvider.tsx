@@ -16,7 +16,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     const [profilePicture, setProfilePicture] = useState<string | null>(
-        localStorage.getItem("profilePicture")
+        (() => {
+            const stored = localStorage.getItem("profilePicture");
+            return stored && stored !== "null" && stored !== "undefined" ? stored : null;
+        })()
     );
 
     const login = ({ id, accessToken, refreshToken, name, email, role, profilePicture }: LoginProps) => {
@@ -26,7 +29,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("name", name);
         localStorage.setItem("email", email);
         localStorage.setItem("role", role);
-        localStorage.setItem("profilePicture", profilePicture);
+        if (profilePicture) {
+            localStorage.setItem("profilePicture", profilePicture);
+        } else {
+            localStorage.removeItem("profilePicture");
+        }
         setName(name);
         setRole(role);
         setProfilePicture(profilePicture);
