@@ -8,7 +8,7 @@ import {
     buildWebSocketUrl,
     getFreshAccessToken,
 } from "@/lib/api";
-import { fetchRoomComputers } from "@/lib/roomComputers";
+import { fetchRoomComputers, getComputerArchiveEvent, removeComputerTicketsFromCache } from "@/lib/roomComputers";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 type ComputerListProps = {
@@ -180,6 +180,18 @@ export default function ComputerList({
                 try {
                     parsedMessage = JSON.parse(event.data);
                 } catch {
+                    return;
+                }
+
+                const archiveEvent = getComputerArchiveEvent(parsedMessage);
+                if (archiveEvent) {
+                    if (archiveEvent.event === "computer_archived" && archiveEvent.id !== null) {
+                        queryClient.setQueryData<ComputerCardType[]>(["computers", roomId],
+                            (items = []) => items.filter((item) => item.id !== archiveEvent.id));
+                        removeComputerTicketsFromCache(queryClient, archiveEvent.id);
+                    } else {
+                        void queryClient.invalidateQueries({ queryKey: ["computers", roomId] });
+                    }
                     return;
                 }
 

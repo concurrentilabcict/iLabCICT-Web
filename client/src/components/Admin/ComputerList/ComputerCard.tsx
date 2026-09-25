@@ -2,6 +2,7 @@ import { Cpu, HardDrive, LaptopMinimal, MemoryStick, SquarePen, type LucideIcon 
 import { useNavigate, useParams } from "react-router-dom";
 import { statusConfig, type Status } from "@/utils/computer";
 import type { ComputerCardType } from "@/types/computer";
+import ComputerArchiveAction from "@/components/ComputerArchiveAction/ComputerArchiveAction";
 
 type CompCardType = {
     computer: ComputerCardType
@@ -73,10 +74,13 @@ export default function ComputerCard({
                     <button
                         onClick={()=>handleEditComputerClick(computer)}
                         type="button"
+                        title="Edit computer"
+                        aria-label={`Edit ${computer.computerCode}`}
                         className="grid h-9 w-10 shrink-0 place-items-center rounded-xl border primary-border-color bg-white text-zinc-500 hover:cursor-pointer hover:bg-gray-50"
                     >
                         <SquarePen size={17}/>
                     </button>
+                    <ComputerArchiveAction computer={computer} queryKey={["admin-room-computers", room ?? ""]} />
 
                 </div>
              </article>

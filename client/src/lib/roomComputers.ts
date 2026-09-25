@@ -1,5 +1,32 @@
 import type { ApiRoomComputers } from "@/types/computer";
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
+import type { QueryClient } from "@tanstack/react-query";
+import type { Ticket } from "@/types/ticket";
+
+export const recentComputerArchiveKey = (roomId: string) => ["recent-computer-archive", roomId] as const;
+
+export const removeComputerTicketsFromCache = (queryClient: QueryClient, computerId: number) => {
+    for (const key of ["tickets", "technician-tickets", "admin-tickets", "admin-dashboard-tickets"]) {
+        queryClient.setQueryData<Ticket[]>([key], (items) =>
+            items?.filter((ticket) => ticket.computer?.id !== computerId)
+        );
+    }
+    void queryClient.invalidateQueries({ queryKey: ["admin-archived-tickets"] });
+    void queryClient.invalidateQueries({ queryKey: ["request-history"] });
+    void queryClient.invalidateQueries({ queryKey: ["admin-repair-logs"] });
+    void queryClient.invalidateQueries({ queryKey: ["repairLogs"] });
+};
+
+export const getComputerArchiveEvent = (value: unknown) => {
+    if (typeof value !== "object" || value === null || !("event" in value)) return null;
+    if (value.event !== "computer_archived" && value.event !== "computer_unarchived") return null;
+    const payload = value as Record<string, unknown>;
+    const computer = payload.computer;
+    const id = typeof computer === "number" ? computer
+        : typeof computer === "object" && computer !== null && "id" in computer ? computer.id
+        : payload.computer_id ?? payload.id;
+    return { event: value.event, id: typeof id === "number" ? id : null };
+};
 
 type ApiErrorPayload = {
     detail?: string;

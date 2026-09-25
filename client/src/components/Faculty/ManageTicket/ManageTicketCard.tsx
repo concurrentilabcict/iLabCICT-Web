@@ -30,6 +30,7 @@ type ManageTicketCardProps = {
   computerCode: string;
   date: string;
   onClick?: () => void;
+  onArchive?: () => void;
 };
 
 const statusStyle: Record<Status, { icon: LucideIcon; className: string }> = {
@@ -65,6 +66,7 @@ export default function ManageTicketCard({
   computerCode,
   date,
   onClick,
+  onArchive,
 }: ManageTicketCardProps) {
   const currentStatus = statusStyle[status];
   const StatusIcon = currentStatus.icon;
@@ -133,6 +135,20 @@ export default function ManageTicketCard({
       </div>
 
       <div className="mt-auto h-px w-full bg-gray-100" />
+
+      {onArchive && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onArchive();
+          }}
+          className="flex w-fit items-center gap-2 self-end rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+        >
+          <Archive size={16} />
+          Archive Ticket
+        </button>
+      )}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-zinc-400">

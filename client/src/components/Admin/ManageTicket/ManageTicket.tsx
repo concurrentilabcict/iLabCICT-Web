@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, Eye, MoreHorizontal, UserRoundCog } from "lucide-react";
+import { Archive, Eye, MoreHorizontal, RotateCcw, UserRoundCog } from "lucide-react";
 
 import AssignTechnicianDialog, {
   type AssignableTechnician,
@@ -74,10 +74,18 @@ type TicketArchivedMessage = {
   id?: number;
 };
 
+type TicketUnarchivedMessage = {
+  event: "ticket_unarchived";
+  ticket?: ApiTicket;
+  ticket_id?: number;
+  id?: number;
+};
+
 type TicketWebSocketMessage =
   | InitialTicketsMessage
   | TicketChangeMessage
-  | TicketArchivedMessage;
+  | TicketArchivedMessage
+  | TicketUnarchivedMessage;
 
 type ApiTechnician = {
   id: number;
@@ -195,7 +203,7 @@ const isTicketWebSocketMessage = (
     return Array.isArray(value.ticket);
   }
 
-  if (value.event === "ticket_archived") {
+  if (value.event === "ticket_archived" || value.event === "ticket_unarchived") {
     return (
       ("ticket" in value && isRecord(value.ticket)) ||
       typeof value.ticket_id === "number" ||
@@ -210,8 +218,7 @@ const isTicketWebSocketMessage = (
   );
 };
 
-const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
-  const ticket = mapTicket(apiTicket);
+const upsertMappedTicket = (tickets: Ticket[], ticket: Ticket) => {
   const existingTicket = tickets.some((currentTicket) =>
     currentTicket.id === ticket.id
   );
@@ -224,6 +231,9 @@ const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
     currentTicket.id === ticket.id ? ticket : currentTicket
   );
 };
+
+const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) =>
+  upsertMappedTicket(tickets, mapTicket(apiTicket));
 
 const getStatusClasses = (status: string) => {
   switch (status.toLowerCase()) {
@@ -385,7 +395,6 @@ export default function ManageTicket() {
                       lastName: technician.lastName,
                     }
                   : ticket.assignedTo,
-                status: "ongoing",
               }
             : ticket
         );
@@ -474,6 +483,46 @@ export default function ManageTicket() {
     },
   });
 
+  const unarchiveTicketMutation = useMutation({
+    mutationFn: async (ticket: Ticket) => {
+      const response = await privateFetch(
+        buildApiUrl(`/api/tickets/${ticket.id}/unarchive/`),
+        { method: "POST", body: JSON.stringify({}) }
+      );
+
+      if (!response.ok) {
+        const data: unknown = await response.json().catch(() => null);
+        throw createApiError(
+          response.status,
+          getResponseMessage(data) ?? "Failed to unarchive ticket."
+        );
+      }
+
+      return ticket;
+    },
+    onSuccess: (ticket) => {
+      queryClient.setQueryData<Ticket[]>(
+        ADMIN_ARCHIVED_TICKETS_QUERY_KEY,
+        (currentTickets = []) => currentTickets.filter((item) => item.id !== ticket.id)
+      );
+      queryClient.setQueryData<Ticket[]>(
+        ADMIN_TICKETS_QUERY_KEY,
+        (currentTickets = []) => upsertMappedTicket(currentTickets, { ...ticket, status: "open" })
+      );
+      queryClient.setQueryData<Ticket[]>(
+        ["admin-dashboard-tickets"],
+        (currentTickets = []) => upsertMappedTicket(currentTickets, { ...ticket, status: "open" })
+      );
+      void queryClient.invalidateQueries({ queryKey: ADMIN_ARCHIVED_TICKETS_QUERY_KEY });
+      setSelectedTicket(null);
+      setSheetOpen(false);
+      appToast.success("Ticket unarchived successfully.");
+    },
+    onError: (error: ApiError) => {
+      appToast.error(error.message || "We couldn't unarchive the ticket. Please try again.");
+    },
+  });
+
   useEffect(() => {
     let socket: WebSocket | null = null;
     const connectSocket = window.setTimeout(async () => {
@@ -489,7 +538,7 @@ export default function ManageTicket() {
 
       ticketSocketRef.current = socket;
 
-      socket.addEventListener("message", (event: MessageEvent<string>) => {
+      socket.addEventListener("message", async (event: MessageEvent<string>) => {
         let parsedMessage: unknown;
 
         try {
@@ -557,6 +606,51 @@ export default function ManageTicket() {
             setSheetOpen(false);
             return null;
           });
+          return;
+        }
+
+        if (parsedMessage.event === "ticket_unarchived") {
+          const ticketId = parsedMessage.ticket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
+          if (ticketId === undefined) return;
+
+          const cachedTicket = queryClient.getQueryData<Ticket[]>(
+            ADMIN_ARCHIVED_TICKETS_QUERY_KEY
+          )?.find((ticket) => ticket.id === ticketId);
+          const restoredTicket = parsedMessage.ticket
+            ? mapTicket(parsedMessage.ticket)
+            : cachedTicket
+              ? { ...cachedTicket, status: "open" }
+              : null;
+
+          queryClient.setQueryData<Ticket[]>(
+            ADMIN_ARCHIVED_TICKETS_QUERY_KEY,
+            (currentTickets = []) => currentTickets.filter((ticket) => ticket.id !== ticketId)
+          );
+          void queryClient.invalidateQueries({ queryKey: ADMIN_ARCHIVED_TICKETS_QUERY_KEY });
+
+          if (restoredTicket) {
+            queryClient.setQueryData<Ticket[]>(
+              ADMIN_TICKETS_QUERY_KEY,
+              (currentTickets = []) => upsertMappedTicket(currentTickets, restoredTicket)
+            );
+            queryClient.setQueryData<Ticket[]>(
+              ["admin-dashboard-tickets"],
+              (currentTickets = []) => upsertMappedTicket(currentTickets, restoredTicket)
+            );
+          } else {
+            const response = await privateFetch(buildApiUrl(`/api/tickets/${ticketId}/`));
+            if (response.ok) {
+              const ticket = mapTicket(await response.json() as ApiTicket);
+              queryClient.setQueryData<Ticket[]>(
+                ADMIN_TICKETS_QUERY_KEY,
+                (currentTickets = []) => upsertMappedTicket(currentTickets, ticket)
+              );
+              queryClient.setQueryData<Ticket[]>(
+                ["admin-dashboard-tickets"],
+                (currentTickets = []) => upsertMappedTicket(currentTickets, ticket)
+              );
+            }
+          }
           return;
         }
 
@@ -867,15 +961,28 @@ export default function ManageTicket() {
                                 <UserRoundCog className="size-4" />
                                 Assign Technician
                               </DropdownMenuItem>
-                              <div className="my-1 h-px w-full bg-border" />
-                              <DropdownMenuItem
-                                onClick={() => setTicketToArchive(ticket)}
-                                className="text-red-600 focus:bg-red-50 focus:text-red-700"
-                              >
-                                <Archive className="size-4" />
-                                Archive Ticket
-                              </DropdownMenuItem>
+                              {ticket.status.toLowerCase() === "open" && (
+                                <>
+                                  <div className="my-1 h-px w-full bg-border" />
+                                  <DropdownMenuItem
+                                    onClick={() => setTicketToArchive(ticket)}
+                                    className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                  >
+                                    <Archive className="size-4" />
+                                    Archive Ticket
+                                  </DropdownMenuItem>
+                                </>
+                              )}
                             </>
+                          )}
+                          {ticketView === "archived" && (
+                            <DropdownMenuItem
+                              onClick={() => unarchiveTicketMutation.mutate(ticket)}
+                              disabled={unarchiveTicketMutation.isPending}
+                            >
+                              <RotateCcw className="size-4" />
+                              Unarchive Ticket
+                            </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>

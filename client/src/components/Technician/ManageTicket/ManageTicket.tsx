@@ -60,6 +60,12 @@ type TicketWebSocketMessage =
         ticket?: ApiTicket;
         ticket_id?: number;
         id?: number;
+    }
+    | {
+        event: "ticket_unarchived";
+        ticket?: ApiTicket;
+        ticket_id?: number;
+        id?: number;
     };
 
 const TICKETS_QUERY_KEY = ["technician-tickets"] as const;
@@ -86,7 +92,7 @@ const isTicketWebSocketMessage = (
         return Array.isArray(value.ticket);
     }
 
-    if (value.event === "ticket_archived") {
+    if (value.event === "ticket_archived" || value.event === "ticket_unarchived") {
         return (
             ("ticket" in value && isRecord(value.ticket)) ||
             typeof value.ticket_id === "number" ||
@@ -236,7 +242,7 @@ export default function ManageTicket({
 
             ticketSocketRef.current = socket;
 
-            socket.addEventListener("message", (event: MessageEvent<string>) => {
+            socket.addEventListener("message", async (event: MessageEvent<string>) => {
                 let parsedMessage: unknown;
 
                 try {
@@ -279,17 +285,21 @@ export default function ManageTicket({
                     return;
                 }
 
-                if (
-                    parsedMessage.event === "ticket_reassigned" &&
-                    parsedMessage.ticket.assigned_to?.id !== technicianId
-                ) {
-                    queryClient.setQueryData<Ticket[]>(
-                        TICKETS_QUERY_KEY,
-                        (currentTickets = []) =>
-                            currentTickets.filter(
-                                (ticket) => ticket.id !== parsedMessage.ticket.id
-                            )
+                if (parsedMessage.event === "ticket_unarchived") {
+                    const ticketId = parsedMessage.ticket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
+                    if (ticketId === undefined) return;
+                    const response = parsedMessage.ticket
+                        ? null
+                        : await privateFetch(buildApiUrl(`/api/tickets/${ticketId}/`));
+                    const apiTicket = parsedMessage.ticket ?? (
+                        response?.ok ? await response.json() as ApiTicket : null
                     );
+                    if (apiTicket?.assigned_to?.id === technicianId) {
+                        queryClient.setQueryData<Ticket[]>(
+                            TICKETS_QUERY_KEY,
+                            (currentTickets = []) => upsertTicket(currentTickets, apiTicket)
+                        );
+                    }
                     return;
                 }
 
@@ -321,7 +331,6 @@ export default function ManageTicket({
                 method: "PATCH",
                 body: JSON.stringify({
                     assigned_to: technicianId,
-                    status: "ongoing",
                 }),
             });
 
@@ -501,7 +510,8 @@ export default function ManageTicket({
                     const isAssignedToAnother =
                         (ticket.assignedTo?.id ?? 0) > 0 && !isAssignedToCurrentUser;
                     const canAssignToMe =
-                        ticket.status !== "resolved" && !isAssignedToCurrentUser;
+                        (ticket.status === "open" || ticket.status === "ongoing") &&
+                        !isAssignedToCurrentUser;
                     const canResolveRequest =
                         isAssignedToCurrentUser &&
                         ticket.status === "ongoing" &&
@@ -560,7 +570,7 @@ export default function ManageTicket({
                         <TicketDetails
                             ticket={selectedTicket}
                             canAssignToMe={
-                                selectedTicket.status !== "resolved" &&
+                                (selectedTicket.status === "open" || selectedTicket.status === "ongoing") &&
                                 selectedTicket.assignedTo?.id !== technicianId
                             }
                             isAssigning={assignToMeMutation.isPending && assignToMeMutation.variables === selectedTicket.id}

@@ -12,10 +12,11 @@ import {
     buildWebSocketUrl,
     getFreshAccessToken,
 } from "@/lib/api";
-import { fetchRoomComputers } from "@/lib/roomComputers";
+import { fetchRoomComputers, getComputerArchiveEvent, removeComputerTicketsFromCache } from "@/lib/roomComputers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
+import ComputerRestoreNotice from "@/components/ComputerRestoreNotice/ComputerRestoreNotice";
 
 import {
     Sheet,
@@ -233,6 +234,19 @@ export default function ComputerList({
                     return;
                 }
 
+                const archiveEvent = getComputerArchiveEvent(parsedMessage);
+                if (archiveEvent) {
+                    if (archiveEvent.event === "computer_archived" && archiveEvent.id !== null) {
+                        queryClient.setQueryData<ComputerCardType[]>(queryKey,
+                            (items = []) => items.filter((item) => item.id !== archiveEvent.id));
+                        removeComputerTicketsFromCache(queryClient, archiveEvent.id);
+                    } else {
+                        void queryClient.invalidateQueries({ queryKey });
+                    }
+                    void queryClient.invalidateQueries({ queryKey: ["request-history", roomId] });
+                    return;
+                }
+
                 if (!isRoomComputersWebSocketEvent(parsedMessage)) {
                     return;
                 }
@@ -357,6 +371,7 @@ export default function ComputerList({
 
     return(
         <>
+            <ComputerRestoreNotice roomId={roomId} queryKey={queryKey} />
             <div className={`flex items-center w-full flex-col gap-3 px-3 py-3
             sm:grid sm:grid-cols-2 mb-3`}>
 

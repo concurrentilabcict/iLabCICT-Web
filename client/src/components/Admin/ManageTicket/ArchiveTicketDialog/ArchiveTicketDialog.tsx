@@ -17,6 +17,7 @@ type ArchiveTicketDialogProps = {
     onOpenChange: (open: boolean) => void;
     onArchive: () => void;
     isPending: boolean;
+    description?: string;
 };
 
 export default function ArchiveTicketDialog({
@@ -24,6 +25,7 @@ export default function ArchiveTicketDialog({
     onOpenChange,
     onArchive,
     isPending,
+    description = "This ticket will move out of the active queue and remain available in Archived Tickets.",
 }: ArchiveTicketDialogProps) {
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -31,7 +33,7 @@ export default function ArchiveTicketDialog({
                 <AlertDialogHeader>
                     <AlertDialogTitle>Archive Ticket?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This ticket will move out of the active queue and remain available in Archived Tickets.
+                        {description}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 

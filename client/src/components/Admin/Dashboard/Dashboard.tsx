@@ -18,7 +18,7 @@ import {
     mapDashboardTicket,
     type ApiRoom,
 } from "./dashboardData";
-import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
+import { buildApiUrl, buildWebSocketUrl, getFreshAccessToken, privateFetch } from "@/lib/api";
 import { fetchRoomComputers } from "@/lib/roomComputers";
 import type { User } from "@/types/manageUser";
 import type { Room } from "@/types/room";
@@ -37,6 +37,12 @@ type DashboardTicketEvent =
     }
     | {
         event: "ticket_archived";
+        ticket?: ApiTicket;
+        ticket_id?: number;
+        id?: number;
+    }
+    | {
+        event: "ticket_unarchived";
         ticket?: ApiTicket;
         ticket_id?: number;
         id?: number;
@@ -78,7 +84,7 @@ const isDashboardTicketEvent = (
         return Array.isArray(value.ticket);
     }
 
-    if (value.event === "ticket_archived") {
+    if (value.event === "ticket_archived" || value.event === "ticket_unarchived") {
         return (
             ("ticket" in value && isRecord(value.ticket)) ||
             typeof value.ticket_id === "number" ||
@@ -341,7 +347,7 @@ export default function Dashboard() {
 
             ticketSocketRef.current = socket;
 
-            socket.addEventListener("message", (event: MessageEvent<string>) => {
+            socket.addEventListener("message", async (event: MessageEvent<string>) => {
                 let parsedMessage: unknown;
 
                 try {
@@ -384,6 +390,24 @@ export default function Dashboard() {
                                 (ticket) => ticket.id !== archivedTicketId
                             )
                     );
+                    return;
+                }
+
+                if (parsedMessage.event === "ticket_unarchived") {
+                    const ticketId = parsedMessage.ticket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
+                    if (ticketId === undefined) return;
+                    const response = parsedMessage.ticket
+                        ? null
+                        : await privateFetch(buildApiUrl(`/api/tickets/${ticketId}/`));
+                    const apiTicket = parsedMessage.ticket ?? (
+                        response?.ok ? await response.json() as ApiTicket : null
+                    );
+                    if (apiTicket) {
+                        queryClient.setQueryData<Ticket[]>(
+                            DASHBOARD_TICKETS_QUERY_KEY,
+                            (currentTickets = []) => upsertTicket(currentTickets, apiTicket)
+                        );
+                    }
                     return;
                 }
 

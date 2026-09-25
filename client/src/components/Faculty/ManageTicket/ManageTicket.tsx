@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   buildApiUrl,
   buildWebSocketUrl,
@@ -15,6 +15,9 @@ import ManageTicketSkeleton from "@/components/ManageTicketSkeleton/ManageTicket
 import TicketDetails from "./TicketDetails";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
+import ArchiveTicketDialog from "@/components/Admin/ManageTicket/ArchiveTicketDialog/ArchiveTicketDialog";
+import { appToast } from "@/utils/appToast";
+import { RotateCcw } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 type ManageTicketProps = {
@@ -39,6 +42,12 @@ type TicketWebSocketMessage =
   }
   | {
     event: "ticket_archived";
+    ticket?: ApiTicket;
+    ticket_id?: number;
+    id?: number;
+  }
+  | {
+    event: "ticket_unarchived";
     ticket?: ApiTicket;
     ticket_id?: number;
     id?: number;
@@ -113,7 +122,7 @@ const isTicketWebSocketMessage = (
     return Array.isArray(value.ticket);
   }
 
-  if (value.event === "ticket_archived") {
+  if (value.event === "ticket_archived" || value.event === "ticket_unarchived") {
     return (
       ("ticket" in value && isRecord(value.ticket)) ||
       typeof value.ticket_id === "number" ||
@@ -148,6 +157,8 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
   const ticketSocketRef = useRef<WebSocket | null>(null);
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+  const [ticketToArchive, setTicketToArchive] = useState<Ticket | null>(null);
+  const [recentlyArchivedTicket, setRecentlyArchivedTicket] = useState<Ticket | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -165,6 +176,53 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
 
       return (data as ApiTicket[]).map(mapTicket);
     },
+  });
+
+  const archiveTicketMutation = useMutation({
+    mutationFn: async (ticket: Ticket) => {
+      const response = await privateFetch(
+        buildApiUrl(`/api/tickets/${ticket.id}/archive/`),
+        { method: "POST", body: JSON.stringify({}) }
+      );
+      if (!response.ok) {
+        const body: unknown = await response.json().catch(() => null);
+        const detail = isRecord(body) && typeof body.detail === "string"
+          ? body.detail
+          : "We couldn't archive the ticket. Please try again.";
+        throw createApiError(response.status, detail);
+      }
+      return ticket;
+    },
+    onSuccess: (ticket) => {
+      queryClient.setQueryData<Ticket[]>(
+        FACULTY_TICKETS_QUERY_KEY,
+        (currentTickets = []) => currentTickets.filter((item) => item.id !== ticket.id)
+      );
+      setRecentlyArchivedTicket(ticket);
+      setTicketToArchive(null);
+      appToast.success("Ticket archived successfully.");
+    },
+    onError: (error: Error) => appToast.error(error.message),
+  });
+
+  const unarchiveTicketMutation = useMutation({
+    mutationFn: async (ticket: Ticket) => {
+      const response = await privateFetch(buildApiUrl(`/api/tickets/${ticket.id}/unarchive/`), {
+        method: "POST", body: JSON.stringify({}),
+      });
+      if (!response.ok) {
+        const body: unknown = await response.json().catch(() => null);
+        const detail = isRecord(body) && typeof body.detail === "string"
+          ? body.detail : "We couldn't unarchive the ticket. Please try again.";
+        throw createApiError(response.status, detail);
+      }
+    },
+    onSuccess: () => {
+      setRecentlyArchivedTicket(null);
+      void queryClient.invalidateQueries({ queryKey: FACULTY_TICKETS_QUERY_KEY });
+      appToast.success("Ticket unarchived successfully.");
+    },
+    onError: (error: Error) => appToast.error(error.message),
   });
 
   useEffect(() => {
@@ -215,6 +273,19 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
           );
           setSelectedTicketId(null);
           setSheetOpen(false);
+          return;
+        }
+
+        if (parsedMessage.event === "ticket_unarchived") {
+          const restoredTicket = parsedMessage.ticket;
+          if (restoredTicket) {
+            queryClient.setQueryData<Ticket[]>(
+              FACULTY_TICKETS_QUERY_KEY,
+              (currentTickets = []) => upsertTicket(currentTickets, restoredTicket)
+            );
+          } else {
+            void queryClient.invalidateQueries({ queryKey: FACULTY_TICKETS_QUERY_KEY });
+          }
           return;
         }
 
@@ -288,6 +359,16 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
 
   return (
     <>
+      {recentlyArchivedTicket && (
+        <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm">
+          <span>{recentlyArchivedTicket.ticketCode} was archived.</span>
+          <button type="button" disabled={unarchiveTicketMutation.isPending}
+            onClick={() => unarchiveTicketMutation.mutate(recentlyArchivedTicket)}
+            className="inline-flex items-center gap-2 font-semibold primary-text-color disabled:opacity-50">
+            <RotateCcw size={16} /> Unarchive
+          </button>
+        </div>
+      )}
       <div className="flex w-full flex-col gap-3 px-3 pt-3 pb-10 sm:grid sm:grid-cols-2">
         {isLoading && <ManageTicketSkeleton />}
         {!isLoading && paginatedTickets.length === 0 && <p className="col-span-full py-8 text-center secondary-text-color">No tickets found.</p>}
@@ -310,6 +391,9 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
 	              computerCode={ticket.computer?.computerCode || "No Computer"}
 	              date={ticket.createdAt}
               onClick={() => openTicket(ticket)}
+              onArchive={ticket.status.toLowerCase() === "open"
+                ? () => setTicketToArchive(ticket)
+                : undefined}
             />
           );
         })}
@@ -331,6 +415,17 @@ export default function ManageTicket({ statusFilter, typeFilter, searchQuery }: 
           {selectedTicket && <TicketDetails ticket={selectedTicket} />}
         </SheetContent>
       </Sheet>
+      <ArchiveTicketDialog
+        open={ticketToArchive !== null}
+        onOpenChange={(open) => {
+          if (!open && !archiveTicketMutation.isPending) setTicketToArchive(null);
+        }}
+        onArchive={() => {
+          if (ticketToArchive) archiveTicketMutation.mutate(ticketToArchive);
+        }}
+        isPending={archiveTicketMutation.isPending}
+        description="This open ticket will be archived along with its related history."
+      />
     </>
   );
 }
