@@ -6,7 +6,7 @@ import UserDetails from "./UserDetails";
 import UserForm from "./UserForm";
 import UserToolbar, { type RoleFilter } from "./UserToolbar";
 import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
-import placeholderPicture from "@/assets/profile-placeholder.png";
+import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -255,10 +255,6 @@ export default function ManageUser() {
               paginatedUsers.map((user) => {
                 const name =
                   `${user.firstName} ${user.lastName}`.trim() || user.username;
-                const displayedProfilePicture = user.profileImage?.trim()
-                  ? user.profileImage
-                  : placeholderPicture;
-
                 return (
                   <TableRow
                     key={user.id}
@@ -278,8 +274,8 @@ export default function ManageUser() {
                     </TableCell>
                     <TableCell>
                       <div className="flex min-w-0 items-center gap-3">
-                        <img
-                          src={displayedProfilePicture}
+                        <ProfileAvatar
+                          src={user.profileImage}
                           alt={name}
                           className="h-8 w-8 shrink-0 rounded-full object-cover"
                         />

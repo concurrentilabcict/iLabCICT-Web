@@ -9,7 +9,7 @@ import ArchiveTicketDialog from "./ArchiveTicketDialog/ArchiveTicketDialog";
 import ConfirmTicketReassignment from "@/components/ConfirmTicketReassignment/ConfirmTicketReassignment";
 import TicketDetails from "./TicketDetails";
 import TicketToolbar from "./TicketToolbar";
-import placeholderPicture from "@/assets/profile-placeholder.png";
+import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -248,9 +248,6 @@ const getStatusClasses = (status: string) => {
       return "bg-gray-100 text-gray-700";
   }
 };
-
-const getProfilePicture = (profileImage?: string) =>
-  profileImage?.trim() ? profileImage : placeholderPicture;
 
 export default function ManageTicket() {
   const queryClient = useQueryClient();
@@ -918,8 +915,8 @@ export default function ManageTicket() {
                     </TableCell>
                     <TableCell>
                       <div className="flex min-w-0 items-center gap-3">
-                        <img
-                          src={getProfilePicture(ticket.reportedBy.profileImage)}
+                        <ProfileAvatar
+                          src={ticket.reportedBy.profileImage ?? null}
                           alt={faculty}
                           className="h-8 w-8 shrink-0 rounded-full object-cover"
                         />
@@ -928,8 +925,8 @@ export default function ManageTicket() {
                     </TableCell>
                     <TableCell>
                       <div className="flex min-w-0 items-center gap-3">
-                        <img
-                          src={getProfilePicture(ticket.assignedTo?.profileImage)}
+                        <ProfileAvatar
+                          src={ticket.assignedTo?.profileImage ?? null}
                           alt={technician || ""}
                           className="h-8 w-8 shrink-0 rounded-full object-cover"
                         />

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { ChevronDown, Eye, MoreHorizontal, Search, X } from "lucide-react";
 
 import UserDetails from "../ManageUser/UserDetails";
-import placeholderPicture from "@/assets/profile-placeholder.png";
+import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
 import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -233,10 +233,6 @@ export default function RecentUser({
                 recentUsers.map((user) => {
                   const name =
                     `${user.firstName} ${user.lastName}`.trim() || user.username;
-                  const displayedProfilePicture = user.profileImage?.trim()
-                    ? user.profileImage
-                    : placeholderPicture;
-
                   return (
                     <TableRow
                       key={user.id}
@@ -256,8 +252,8 @@ export default function RecentUser({
                       </TableCell>
                       <TableCell>
                         <div className="flex min-w-0 items-center gap-3">
-                          <img
-                            src={displayedProfilePicture}
+                          <ProfileAvatar
+                            src={user.profileImage}
                             alt={name}
                             className="h-8 w-8 shrink-0 rounded-full object-cover"
                           />

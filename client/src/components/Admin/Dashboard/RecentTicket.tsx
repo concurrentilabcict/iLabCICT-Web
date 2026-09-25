@@ -3,7 +3,7 @@ import { ChevronDown, Eye, MoreHorizontal, Search, X } from "lucide-react";
 
 import TicketDetails from "./TicketDetails";
 import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
-import placeholderPicture from "@/assets/profile-placeholder.png";
+import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -64,9 +64,6 @@ const getStatusClasses = (status: string) => {
 
 const sortByLatestUpdate = (firstTicket: Ticket, secondTicket: Ticket) =>
   Date.parse(secondTicket.updatedAt) - Date.parse(firstTicket.updatedAt);
-
-const getProfilePicture = (profileImage?: string) =>
-  profileImage?.trim() ? profileImage : placeholderPicture;
 
 type RecentTicketProps = {
   tickets: Ticket[];
@@ -276,8 +273,8 @@ export default function RecentTicket({
                       </TableCell>
                       <TableCell>
                         <div className="flex min-w-0 items-center gap-3">
-                          <img
-                            src={getProfilePicture(ticket.reportedBy.profileImage)}
+                          <ProfileAvatar
+                            src={ticket.reportedBy.profileImage ?? null}
                             alt={faculty}
                             className="h-8 w-8 shrink-0 rounded-full object-cover"
                           />

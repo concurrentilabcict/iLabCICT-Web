@@ -11,7 +11,7 @@ import {
   IdCard,
   ShieldCheck,
 } from "lucide-react";
-import placeholderPicture from "@/assets/profile-placeholder.png";
+import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
 import type { User as ManageUser } from "@/types/manageUser";
 import { formatDateTime } from "@/utils/string";
 
@@ -30,10 +30,6 @@ const formatLabel = (text: string) =>
 export default function UserDetails({ user }: UserDetailsProps) {
   const name =
     `${user.firstName} ${user.lastName}`.trim() || user.username;
-  const displayedProfilePicture = user.profileImage?.trim()
-    ? user.profileImage
-    : placeholderPicture;
-
   return (
     <>
       <SheetHeader>
@@ -61,8 +57,8 @@ export default function UserDetails({ user }: UserDetailsProps) {
 
       <div className="flex flex-1 flex-col gap-6 px-4">
         <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed bg-muted/30 p-4">
-          <img
-            src={displayedProfilePicture}
+          <ProfileAvatar
+            src={user.profileImage}
             alt={name}
             className="h-24 w-24 rounded-full object-cover"
           />
