@@ -29,6 +29,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { appToast } from "@/utils/appToast";
+import ConfirmTicketReassignment from "@/components/ConfirmTicketReassignment/ConfirmTicketReassignment";
 
 type ManageTicketProps = {
     statusFilter: StatusFilter;
@@ -176,6 +177,7 @@ export default function ManageTicket({
 
     const isMobile = useMediaQuery("(max-width: 767px)");
     const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+    const [ticketToReassign, setTicketToReassign] = useState<Ticket | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
     const ticketSocketRef = useRef<WebSocket | null>(null);
 
@@ -354,11 +356,20 @@ export default function ManageTicket({
             );
 
             appToast.success("You're now assigned to this ticket.");
+            setTicketToReassign(null);
         },
         onError: () => {
             appToast.error("We couldn't assign the ticket. Please try again.");
         },
     });
+
+    const handleAssignToMe = (ticket: Ticket) => {
+        if ((ticket.assignedTo?.id ?? 0) > 0 && ticket.assignedTo?.id !== technicianId) {
+            setTicketToReassign(ticket);
+            return;
+        }
+        assignToMeMutation.mutate(ticket.id);
+    };
 
     const resolveRequestMutation = useMutation({
         mutationFn: async (ticketId: number) => {
@@ -532,7 +543,7 @@ export default function ManageTicket({
                                 date={ticket.createdAt}
                                 canAssignToMe={canAssignToMe}
                                 isAssigning={assignToMeMutation.isPending && assignToMeMutation.variables === ticket.id}
-                                onAssignToMe={() => assignToMeMutation.mutate(ticket.id)}
+                                onAssignToMe={() => handleAssignToMe(ticket)}
                                 canResolveRequest={canResolveRequest}
                                 isResolvingRequest={resolveRequestMutation.isPending && resolveRequestMutation.variables === ticket.id}
                                 onResolveRequest={() => resolveRequestMutation.mutate(ticket.id)}
@@ -574,7 +585,7 @@ export default function ManageTicket({
                                 selectedTicket.assignedTo?.id !== technicianId
                             }
                             isAssigning={assignToMeMutation.isPending && assignToMeMutation.variables === selectedTicket.id}
-                            onAssignToMe={() => assignToMeMutation.mutate(selectedTicket.id)}
+                            onAssignToMe={() => handleAssignToMe(selectedTicket)}
                             canResolveRequest={
                                 selectedTicket.assignedTo?.id === technicianId &&
                                 selectedTicket.status === "ongoing" &&
@@ -587,6 +598,20 @@ export default function ManageTicket({
                     )}
                 </SheetContent>
             </Sheet>
+
+            <ConfirmTicketReassignment
+                open={ticketToReassign !== null}
+                onOpenChange={(open) => { if (!open) setTicketToReassign(null); }}
+                onConfirm={() => {
+                    if (ticketToReassign) assignToMeMutation.mutate(ticketToReassign.id);
+                }}
+                isPending={assignToMeMutation.isPending}
+                ticketCode={ticketToReassign?.ticketCode}
+                currentTechnician={ticketToReassign?.assignedTo
+                    ? `${ticketToReassign.assignedTo.firstName} ${ticketToReassign.assignedTo.lastName}`.trim()
+                    : undefined}
+                nextTechnician="you"
+            />
         </>
     );
 }   

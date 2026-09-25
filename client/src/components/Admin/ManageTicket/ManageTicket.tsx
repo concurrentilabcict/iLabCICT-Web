@@ -6,6 +6,7 @@ import AssignTechnicianDialog, {
   type AssignableTechnician,
 } from "./AssignTechnicianDialog/AssignTechnicianDialog";
 import ArchiveTicketDialog from "./ArchiveTicketDialog/ArchiveTicketDialog";
+import ConfirmTicketReassignment from "@/components/ConfirmTicketReassignment/ConfirmTicketReassignment";
 import TicketDetails from "./TicketDetails";
 import TicketToolbar from "./TicketToolbar";
 import placeholderPicture from "@/assets/profile-placeholder.png";
@@ -265,6 +266,10 @@ export default function ManageTicket() {
   const [dateFilter, setDateFilter] = useState<Date>();
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [assignmentTicket, setAssignmentTicket] = useState<Ticket | null>(null);
+  const [pendingReassignment, setPendingReassignment] = useState<{
+    ticket: Ticket;
+    technicianId: number;
+  } | null>(null);
   const [selectedTechnicianId, setSelectedTechnicianId] = useState<
     number | null
   >(null);
@@ -413,6 +418,7 @@ export default function ManageTicket() {
           : currentTicket
       );
       setAssignmentTicket(null);
+      setPendingReassignment(null);
       setSelectedTechnicianId(null);
       appToast.success("Technician assigned successfully.");
     },
@@ -781,6 +787,13 @@ export default function ManageTicket() {
       return;
     }
 
+    if ((assignmentTicket.assignedTo?.id ?? 0) > 0 &&
+      assignmentTicket.assignedTo?.id !== selectedTechnicianId) {
+      setPendingReassignment({ ticket: assignmentTicket, technicianId: selectedTechnicianId });
+      setAssignmentTicket(null);
+      return;
+    }
+
     assignTechnicianMutation.mutate({
       ticketId: assignmentTicket.id,
       technicianId: selectedTechnicianId,
@@ -800,6 +813,10 @@ export default function ManageTicket() {
 
     archiveTicketMutation.mutate(ticketToArchive);
   };
+
+  const reassignmentTechnician = technicians.find(
+    (user) => user.id === pendingReassignment?.technicianId
+  );
 
   const paginatedTickets = filteredTickets.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -1048,6 +1065,25 @@ export default function ManageTicket() {
         isLoading={techniciansAreLoading}
         isError={techniciansHaveError}
         isPending={assignTechnicianMutation.isPending}
+      />
+
+      <ConfirmTicketReassignment
+        open={pendingReassignment !== null}
+        onOpenChange={(open) => { if (!open) setPendingReassignment(null); }}
+        onConfirm={() => {
+          if (pendingReassignment) assignTechnicianMutation.mutate({
+            ticketId: pendingReassignment.ticket.id,
+            technicianId: pendingReassignment.technicianId,
+          });
+        }}
+        isPending={assignTechnicianMutation.isPending}
+        ticketCode={pendingReassignment?.ticket.ticketCode}
+        currentTechnician={pendingReassignment
+          ? `${pendingReassignment.ticket.assignedTo?.firstName ?? ""} ${pendingReassignment.ticket.assignedTo?.lastName ?? ""}`.trim()
+          : undefined}
+        nextTechnician={reassignmentTechnician
+          ? `${reassignmentTechnician.firstName} ${reassignmentTechnician.lastName}`.trim()
+          : undefined}
       />
 
       <ArchiveTicketDialog

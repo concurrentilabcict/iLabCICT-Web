@@ -11,23 +11,26 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ApiTicket, Ticket } from "@/types/ticket";
 import type { Status, StatusFilter, TicketType, TicketTypeFilter } from "@/utils/ticket";
 import ManageTicketCard from "./ManageTicketCard";
+import type { FacultyTicketView } from "./Filter";
 import ManageTicketSkeleton from "@/components/ManageTicketSkeleton/ManageTicketSkeleton";
 import TicketDetails from "./TicketDetails";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 import ArchiveTicketDialog from "@/components/Admin/ManageTicket/ArchiveTicketDialog/ArchiveTicketDialog";
 import { appToast } from "@/utils/appToast";
-import { CircleX } from "lucide-react";
+import { CircleX, RotateCcw } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 type ManageTicketProps = {
+  ticketView: FacultyTicketView;
+  onTicketViewChange: (view: FacultyTicketView) => void;
   statusFilter: StatusFilter;
-  onStatusChange: (status: StatusFilter) => void;
   typeFilter: TicketTypeFilter;
   searchQuery: string;
 };
 
 const ITEMS_PER_PAGE = 10;
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const FACULTY_TICKETS_QUERY_KEY = ["tickets"] as const;
 const facultyArchivedTicketsKey = (facultyId: number) => ["faculty-archived-tickets", facultyId] as const;
 const TICKETS_WS_ENDPOINT = "/ws/tickets/";
@@ -157,15 +160,18 @@ const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
   );
 };
 
-export default function ManageTicket({ statusFilter, onStatusChange, typeFilter, searchQuery }: ManageTicketProps) {
+export default function ManageTicket({ ticketView, onTicketViewChange, statusFilter, typeFilter, searchQuery }: ManageTicketProps) {
   const queryClient = useQueryClient();
   const ticketSocketRef = useRef<WebSocket | null>(null);
   const locallyArchivedIds = useRef(new Set<number>());
   const isMobile = useMediaQuery("(max-width: 767px)");
+  const [viewOpenedAt] = useState(() => Date.now());
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [ticketToArchive, setTicketToArchive] = useState<Ticket | null>(null);
+  const [ticketToResubmit, setTicketToResubmit] = useState<Ticket | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [page, setPage] = useState(1);
+  const filterKey = JSON.stringify([ticketView, statusFilter, typeFilter, searchQuery]);
+  const [pagination, setPagination] = useState({ page: 1, filterKey });
   const [searchParams, setSearchParams] = useSearchParams();
   const notificationTicketId = searchParams.get("ticket");
   const facultyId = Number(localStorage.getItem("id"));
@@ -212,7 +218,7 @@ export default function ManageTicket({ statusFilter, onStatusChange, typeFilter,
         .filter((ticket) => ticket.reported_by.id === facultyId)
         .map((ticket) => mapTicket({ ...ticket, status: "archived" }));
     },
-    enabled: statusFilter === "Archived" && Number.isInteger(facultyId) && facultyId > 0,
+    enabled: ticketView === "Archived" && Number.isInteger(facultyId) && facultyId > 0,
     staleTime: 30_000,
   });
 
@@ -238,7 +244,7 @@ export default function ManageTicket({ statusFilter, onStatusChange, typeFilter,
         (currentTickets = []) => currentTickets.filter((item) => item.id !== ticket.id)
       );
       void queryClient.invalidateQueries({ queryKey: archivedQueryKey });
-      onStatusChange("Archived");
+      onTicketViewChange("Archived");
       setTicketToArchive(null);
       appToast.success("Ticket canceled successfully.");
     },
@@ -258,12 +264,13 @@ export default function ManageTicket({ statusFilter, onStatusChange, typeFilter,
       }
     },
     onSuccess: (_, ticket) => {
+      setTicketToResubmit(null);
       locallyArchivedIds.current.delete(ticket.id);
       queryClient.setQueryData<Ticket[]>(archivedQueryKey,
         (items = []) => items.filter((item) => item.id !== ticket.id));
       void queryClient.invalidateQueries({ queryKey: FACULTY_TICKETS_QUERY_KEY });
       void queryClient.invalidateQueries({ queryKey: archivedQueryKey });
-      onStatusChange("All");
+      onTicketViewChange(Date.now() - Date.parse(ticket.createdAt) < SEVEN_DAYS_MS ? "Recent" : "Older");
       appToast.success("Ticket resubmitted successfully.");
     },
     onError: (error: Error) => appToast.error(error.message),
@@ -366,8 +373,9 @@ export default function ManageTicket({ statusFilter, onStatusChange, typeFilter,
 
   const filteredTickets = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
+    const cutoff = viewOpenedAt - SEVEN_DAYS_MS;
 
-    return [...(statusFilter === "Archived" ? archivedTickets : tickets)]
+    return [...(ticketView === "Archived" ? archivedTickets : tickets)]
       .sort(sortTickets)
       .filter((ticket) => {
         const status = formatLabel(ticket.status) as Status;
@@ -380,16 +388,22 @@ export default function ManageTicket({ statusFilter, onStatusChange, typeFilter,
           status, type,
         ].join(" ").toLowerCase();
 
-        return (statusFilter === "All" || statusFilter === "Archived" || status === statusFilter)
+        const isRecent = Date.parse(ticket.createdAt) > cutoff;
+        const matchesView = ticketView === "Archived" ||
+          (ticketView === "Recent" ? isRecent : !isRecent);
+
+        return matchesView
+          && (statusFilter === "All" || status === statusFilter)
           && (typeFilter === "All" || type === typeFilter)
           && (normalizedQuery === "" || searchableText.includes(normalizedQuery));
       });
-  }, [tickets, archivedTickets, statusFilter, typeFilter, searchQuery]);
+  }, [tickets, archivedTickets, ticketView, statusFilter, typeFilter, searchQuery, viewOpenedAt]);
 
   const totalPages = Math.max(1, Math.ceil(filteredTickets.length / ITEMS_PER_PAGE));
-  const currentPage = Math.min(page, totalPages);
+  const currentPage = pagination.filterKey === filterKey
+    ? Math.min(pagination.page, totalPages) : 1;
   const paginatedTickets = filteredTickets.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-  const manuallySelectedTicket = (statusFilter === "Archived" ? archivedTickets : tickets)
+  const manuallySelectedTicket = (ticketView === "Archived" ? archivedTickets : tickets)
     .find((ticket) => ticket.id === selectedTicketId) ?? null;
   const notificationTicket = useMemo(() => {
     const ticketId = Number(notificationTicketId);
@@ -398,9 +412,9 @@ export default function ManageTicket({ statusFilter, onStatusChange, typeFilter,
       return null;
     }
 
-    return (statusFilter === "Archived" ? archivedTickets : tickets)
+    return (ticketView === "Archived" ? archivedTickets : tickets)
       .find((ticket) => ticket.id === ticketId) ?? null;
-  }, [notificationTicketId, tickets, archivedTickets, statusFilter]);
+  }, [notificationTicketId, tickets, archivedTickets, ticketView]);
   const selectedTicket = notificationTicket ?? manuallySelectedTicket;
 
   const openTicket = (ticket: Ticket) => {
@@ -419,17 +433,17 @@ export default function ManageTicket({ statusFilter, onStatusChange, typeFilter,
   return (
     <>
       <div className="flex w-full flex-col gap-3 px-3 pt-3 pb-10 sm:grid sm:grid-cols-2">
-        {(statusFilter === "Archived" ? archivedTicketsAreLoading : isLoading) && <ManageTicketSkeleton />}
-        {statusFilter === "Archived" && archivedTicketsHaveError && (
+        {(ticketView === "Archived" ? archivedTicketsAreLoading : isLoading) && <ManageTicketSkeleton />}
+        {ticketView === "Archived" && archivedTicketsHaveError && (
           <div className="col-span-full flex flex-col items-center gap-2 py-8 text-center text-red-600">
             <p>Failed to load canceled tickets.</p>
             <button type="button" onClick={() => void refetchArchivedTickets()}
               className="rounded-lg border border-red-200 px-3 py-1.5 font-semibold hover:bg-red-50">Retry</button>
           </div>
         )}
-        {!(statusFilter === "Archived" ? archivedTicketsAreLoading || archivedTicketsHaveError : isLoading) && paginatedTickets.length === 0 &&
-          <p className="col-span-full py-8 text-center secondary-text-color">No {statusFilter === "Archived" ? "canceled" : "active"} tickets found.</p>}
-        {!(statusFilter === "Archived" ? archivedTicketsAreLoading || archivedTicketsHaveError : isLoading) && paginatedTickets.map((ticket) => {
+        {!(ticketView === "Archived" ? archivedTicketsAreLoading || archivedTicketsHaveError : isLoading) && paginatedTickets.length === 0 &&
+          <p className="col-span-full py-8 text-center secondary-text-color">No {ticketView.toLowerCase()} tickets found.</p>}
+        {!(ticketView === "Archived" ? archivedTicketsAreLoading || archivedTicketsHaveError : isLoading) && paginatedTickets.map((ticket) => {
           const status = formatLabel(ticket.status) as Status;
           const type = formatLabel(ticket.type) as TicketType;
           return (
@@ -448,10 +462,10 @@ export default function ManageTicket({ statusFilter, onStatusChange, typeFilter,
 	              computerCode={ticket.computer?.computerCode || "No Computer"}
 	              date={ticket.createdAt}
               onClick={() => openTicket(ticket)}
-              onArchive={statusFilter !== "Archived" && ticket.status.toLowerCase() === "open"
+              onArchive={ticketView !== "Archived" && ticket.status.toLowerCase() === "open"
                 ? () => setTicketToArchive(ticket)
                 : undefined}
-              onResubmit={statusFilter === "Archived" ? () => unarchiveTicketMutation.mutate(ticket) : undefined}
+              onResubmit={ticketView === "Archived" ? () => setTicketToResubmit(ticket) : undefined}
               isResubmitting={unarchiveTicketMutation.isPending && unarchiveTicketMutation.variables?.id === ticket.id}
             />
           );
@@ -463,7 +477,7 @@ export default function ManageTicket({ statusFilter, onStatusChange, typeFilter,
           <ResponsivePagination
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setPage}
+            onPageChange={(page) => setPagination({ page, filterKey })}
             className={isMobile ? "justify-center" : "justify-end"}
           />
         </div>
@@ -487,6 +501,21 @@ export default function ManageTicket({ statusFilter, onStatusChange, typeFilter,
         actionLabel="Cancel Ticket"
         actionIcon={CircleX}
         description="This open ticket and its related history will be archived. You can resubmit it afterward."
+      />
+      <ArchiveTicketDialog
+        open={ticketToResubmit !== null}
+        onOpenChange={(open) => {
+          if (!open && !unarchiveTicketMutation.isPending) setTicketToResubmit(null);
+        }}
+        onArchive={() => {
+          if (ticketToResubmit) unarchiveTicketMutation.mutate(ticketToResubmit);
+        }}
+        isPending={unarchiveTicketMutation.isPending}
+        title="Resubmit Ticket?"
+        actionLabel="Resubmit"
+        actionIcon={RotateCcw}
+        pendingLabel="Resubmitting..."
+        description="This ticket and its related history will return to the active ticket list."
       />
     </>
   );

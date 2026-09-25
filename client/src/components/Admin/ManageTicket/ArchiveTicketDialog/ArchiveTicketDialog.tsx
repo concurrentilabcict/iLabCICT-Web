@@ -21,6 +21,7 @@ type ArchiveTicketDialogProps = {
     title?: string;
     actionLabel?: string;
     actionIcon?: LucideIcon;
+    pendingLabel?: string;
 };
 
 export default function ArchiveTicketDialog({
@@ -32,6 +33,7 @@ export default function ArchiveTicketDialog({
     title = "Archive Ticket?",
     actionLabel = "Archive",
     actionIcon: ActionIcon = Archive,
+    pendingLabel = "Archiving...",
 }: ArchiveTicketDialogProps) {
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -51,7 +53,7 @@ export default function ArchiveTicketDialog({
                         {isPending ? (
                             <>
                                 <Spinner className="size-4" />
-                                Archiving...
+                                {pendingLabel}
                             </>
                         ) : (
                             <>

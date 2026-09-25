@@ -1,4 +1,5 @@
 import Filter from "@/components/Faculty/ManageTicket/Filter";
+import type { FacultyTicketView } from "@/components/Faculty/ManageTicket/Filter";
 import Header from "@/components/Header/Header";
 import ManageTicket from "@/components/Faculty/ManageTicket/ManageTicket";
 import SearchFilter from "@/components/Faculty/ManageTicket/SearchFilter";
@@ -11,6 +12,7 @@ import { useEffect, useState } from "react";
 import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
 
 export default function ManageTicketPage() {
+  const [ticketView, setTicketView] = useState<FacultyTicketView>("Recent");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [typeFilter, setTypeFilter] = useState<TicketTypeFilter>("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,7 +29,8 @@ export default function ManageTicketPage() {
         <div className="min-h-screen w-full min-w-0 bg-[#f8fafc]">
           {isMobile ? <MobileHeader title="Manage Tickets" /> : <Header title="Manage Tickets" />}
           <div className="mx-auto w-full min-w-0 max-w-[1000px]">
-            <Filter selectedStatus={statusFilter} onStatusChange={setStatusFilter} />
+            <Filter selectedView={ticketView} onViewChange={setTicketView}
+              selectedStatus={statusFilter} onStatusChange={setStatusFilter} />
             <SearchFilter
               searchQuery={searchQuery}
               selectedType={typeFilter}
@@ -35,8 +38,9 @@ export default function ManageTicketPage() {
               onTypeChange={setTypeFilter}
             />
             <ManageTicket
+              ticketView={ticketView}
+              onTicketViewChange={setTicketView}
               statusFilter={statusFilter}
-              onStatusChange={setStatusFilter}
               typeFilter={typeFilter}
               searchQuery={searchQuery}
             />
