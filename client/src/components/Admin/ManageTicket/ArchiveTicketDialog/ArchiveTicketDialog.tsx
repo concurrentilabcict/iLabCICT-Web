@@ -36,7 +36,9 @@ export default function ArchiveTicketDialog({
     pendingLabel = "Archiving...",
 }: ArchiveTicketDialogProps) {
     return (
-        <AlertDialog open={open} onOpenChange={onOpenChange}>
+        <AlertDialog open={open} onOpenChange={(nextOpen) => {
+            if (!isPending) onOpenChange(nextOpen);
+        }}>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>{title}</AlertDialogTitle>
@@ -49,7 +51,10 @@ export default function ArchiveTicketDialog({
                     <AlertDialogCancel disabled={isPending}>
                         Cancel
                     </AlertDialogCancel>
-                    <AlertDialogAction onClick={onArchive} disabled={isPending}>
+                    <AlertDialogAction onClick={(event) => {
+                        event.preventDefault();
+                        onArchive();
+                    }} disabled={isPending}>
                         {isPending ? (
                             <>
                                 <Spinner className="size-4" />

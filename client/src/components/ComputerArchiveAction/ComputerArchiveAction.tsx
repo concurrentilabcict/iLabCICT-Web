@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Archive, RotateCcw } from "lucide-react";
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
+import { Spinner } from "@/components/ui/spinner";
 import { appToast } from "@/utils/appToast";
 import type { ComputerCardType } from "@/types/computer";
 import { recentComputerArchiveKey, removeComputerTicketsFromCache } from "@/lib/roomComputers";
@@ -49,10 +50,12 @@ export default function ComputerArchiveAction({ computer, queryKey }: Props) {
   return (
     <>
       <button type="button" title={`${actionLabel} computer`} aria-label={`${actionLabel} ${computer.computerCode}`}
-        onClick={() => setOpen(true)} className="grid h-9 w-10 shrink-0 place-items-center rounded-xl border border-gray-200 bg-white text-zinc-500 hover:bg-gray-50">
-        <ActionIcon size={17} />
+        onClick={() => setOpen(true)} disabled={archive.isPending} className="grid h-9 w-10 shrink-0 place-items-center rounded-xl border border-gray-200 bg-white text-zinc-500 hover:bg-gray-50 disabled:opacity-50">
+        {archive.isPending ? <Spinner className="size-4" /> : <ActionIcon size={17} />}
       </button>
-      <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialog open={open} onOpenChange={(nextOpen) => {
+        if (!archive.isPending) setOpen(nextOpen);
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{actionLabel} {computer.computerCode}?</AlertDialogTitle>
@@ -64,8 +67,12 @@ export default function ComputerArchiveAction({ computer, queryKey }: Props) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={archive.isPending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction disabled={archive.isPending} onClick={() => archive.mutate()}>
-              <ActionIcon className="size-4" /> {actionLabel}
+            <AlertDialogAction disabled={archive.isPending} onClick={(event) => {
+              event.preventDefault();
+              archive.mutate();
+            }}>
+              {archive.isPending ? <Spinner className="size-4" /> : <ActionIcon className="size-4" />}
+              {archive.isPending ? `${isArchived ? "Unarchiving" : "Archiving"}...` : actionLabel}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -243,12 +243,21 @@ export default function ComputerList({
 
                 const archiveEvent = getComputerArchiveEvent(parsedMessage);
                 if (archiveEvent) {
-                    if (archiveEvent.event === "computer_archived" && archiveEvent.id !== null) {
+                    const updatedComputer = archiveEvent.computer;
+                    if (updatedComputer) {
+                        queryClient.setQueryData<ComputerCardType[]>(queryKey,
+                            (items = []) => upsertComputer(items, {
+                                ...updatedComputer,
+                                is_archived: archiveEvent.event === "computer_archived",
+                            }));
+                    } else if (archiveEvent.event === "computer_archived" && archiveEvent.id !== null) {
                         queryClient.setQueryData<ComputerCardType[]>(queryKey,
                             (items = []) => items.map((item) => item.id === archiveEvent.id ? { ...item, isArchived: true } : item));
-                        removeComputerTicketsFromCache(queryClient, archiveEvent.id);
                     } else {
                         void queryClient.invalidateQueries({ queryKey });
+                    }
+                    if (archiveEvent.event === "computer_archived" && archiveEvent.id !== null) {
+                        removeComputerTicketsFromCache(queryClient, archiveEvent.id);
                     }
                     void queryClient.invalidateQueries({ queryKey: ["request-history", roomId] });
                     return;

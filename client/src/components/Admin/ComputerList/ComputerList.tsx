@@ -211,10 +211,12 @@ export default function ComputerList({
 
     useEffect(() => {
         let socket: WebSocket | null = null;
-        const connectSocket = window.setTimeout(async () => {
+        let reconnectTimer: number | undefined;
+        let shouldReconnect = true;
+        const connectSocket = async () => {
             const accessToken = await getFreshAccessToken();
 
-            if (!accessToken || !roomId) {
+            if (!accessToken || !roomId || !shouldReconnect) {
                 return;
             }
 
@@ -237,10 +239,16 @@ export default function ComputerList({
 
                 const archiveEvent = getComputerArchiveEvent(parsedMessage);
                 if (archiveEvent) {
-                    if (archiveEvent.event === "computer_archived" && archiveEvent.id !== null) {
+                    const updatedComputer = archiveEvent.computer;
+                    if (updatedComputer) {
+                        queryClient.setQueryData<ComputerCardType[]>(queryKey,
+                            (items = []) => upsertComputer(items, {
+                                ...updatedComputer,
+                                is_archived: archiveEvent.event === "computer_archived",
+                            }));
+                    } else if (archiveEvent.event === "computer_archived" && archiveEvent.id !== null) {
                         queryClient.setQueryData<ComputerCardType[]>(queryKey,
                             (items = []) => items.map((item) => item.id === archiveEvent.id ? { ...item, isArchived: true } : item));
-                        removeComputerTicketsFromCache(queryClient, archiveEvent.id);
                     } else {
                         try {
                             const room = await fetchRoomComputers(roomId);
@@ -249,6 +257,9 @@ export default function ComputerList({
                         } catch {
                             // The next room snapshot can still reconcile the list.
                         }
+                    }
+                    if (archiveEvent.event === "computer_archived" && archiveEvent.id !== null) {
+                        removeComputerTicketsFromCache(queryClient, archiveEvent.id);
                     }
                     void queryClient.invalidateQueries({ queryKey: ["request-history", roomId] });
                     return;
@@ -300,10 +311,18 @@ export default function ComputerList({
                         )
                 );
             });
-        }, 0);
+
+            socket.addEventListener("close", () => {
+                if (shouldReconnect) reconnectTimer = window.setTimeout(connectSocket, 1_500);
+            });
+        };
+
+        const connectTimer = window.setTimeout(connectSocket, 0);
 
         return () => {
-            window.clearTimeout(connectSocket);
+            shouldReconnect = false;
+            window.clearTimeout(connectTimer);
+            if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer);
             socket?.close();
 
             if (computerSocketRef.current === socket) {

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RotateCcw } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { recentComputerArchiveKey } from "@/lib/roomComputers";
 import { appToast } from "@/utils/appToast";
@@ -54,7 +55,8 @@ export default function ComputerRestoreNotice({ roomId, queryKey }: Props) {
       <span>{computer.computerCode} was archived.</span>
       <button type="button" disabled={restore.isPending} onClick={() => restore.mutate(computer)}
         className="inline-flex items-center gap-2 font-semibold primary-text-color disabled:opacity-50">
-        <RotateCcw size={16} /> Unarchive
+        {restore.isPending ? <Spinner className="size-4" /> : <RotateCcw size={16} />}
+        {restore.isPending ? "Unarchiving..." : "Unarchive"}
       </button>
     </div>
   );

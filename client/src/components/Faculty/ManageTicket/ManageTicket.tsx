@@ -500,6 +500,7 @@ export default function ManageTicket({ ticketView, onTicketViewChange, statusFil
         title="Cancel Ticket?"
         actionLabel="Cancel Ticket"
         actionIcon={CircleX}
+        pendingLabel="Canceling..."
         description="This open ticket and its related history will be archived. You can resubmit it afterward."
       />
       <ArchiveTicketDialog

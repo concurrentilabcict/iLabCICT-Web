@@ -1,4 +1,4 @@
-import type { ApiRoomComputers } from "@/types/computer";
+import type { ApiComputerCard, ApiRoomComputers } from "@/types/computer";
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import type { QueryClient } from "@tanstack/react-query";
 import type { Ticket } from "@/types/ticket";
@@ -22,10 +22,15 @@ export const getComputerArchiveEvent = (value: unknown) => {
     if (value.event !== "computer_archived" && value.event !== "computer_unarchived") return null;
     const payload = value as Record<string, unknown>;
     const computer = payload.computer;
+    const updatedComputer = typeof computer === "object" && computer !== null &&
+        "id" in computer && typeof computer.id === "number" &&
+        "computer_code" in computer && typeof computer.computer_code === "string" &&
+        "room" in computer && typeof computer.room === "number"
+        ? computer as ApiComputerCard : null;
     const id = typeof computer === "number" ? computer
         : typeof computer === "object" && computer !== null && "id" in computer ? computer.id
         : payload.computer_id ?? payload.id;
-    return { event: value.event, id: typeof id === "number" ? id : null };
+    return { event: value.event, id: typeof id === "number" ? id : null, computer: updatedComputer };
 };
 
 type ApiErrorPayload = {
