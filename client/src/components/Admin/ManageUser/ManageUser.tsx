@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Eye, MoreHorizontal } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import UserDetails from "./UserDetails";
 import UserForm from "./UserForm";
 import UserToolbar, { type RoleFilter } from "./UserToolbar";
 import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
+import DeleteUserDialog from "./DeleteUserDialog/DeleteUserDialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,6 +36,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import type { User } from "@/types/manageUser";
 import { getPaginationWindow } from "@/utils/pagination";
+import { appToast } from "@/utils/appToast";
 
 type ApiUser = {
   id: number;
@@ -93,13 +95,15 @@ const mapUser = (user: ApiUser): User => ({
 
 export default function ManageUser() {
   const isMobile = useMediaQuery("(max-width: 767px)");
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("All Role");
   const [dateFilter, setDateFilter] = useState<Date>();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [sheetMode, setSheetMode] = useState<"details" | "add">("details");
+  const [sheetMode, setSheetMode] = useState<"details" | "add" | "edit">("details");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   const {
     data: users = [],
@@ -179,6 +183,46 @@ export default function ManageUser() {
     setSheetMode("add");
     setSheetOpen(true);
   };
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setSheetMode("edit");
+    setSheetOpen(true);
+  };
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (user: User) => {
+      const response = await privateFetch(buildApiUrl(`/api/users/${user.id}/`), {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const body: unknown = await response.json().catch(() => null);
+        const payload = typeof body === "object" && body !== null
+          ? body as { message?: string; detail?: string }
+          : null;
+        throw createApiError(
+          response.status,
+          payload?.message || payload?.detail || "Failed to delete user."
+        );
+      }
+
+      return user;
+    },
+    onSuccess: async (deletedUser) => {
+      setUserToDelete(null);
+      if (selectedUser?.id === deletedUser.id) {
+        setSheetOpen(false);
+        setSelectedUser(null);
+      }
+      await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      await queryClient.invalidateQueries({ queryKey: ["admin-dashboard-users"] });
+      appToast.success("User deleted successfully.");
+    },
+    onError: (error: Error) => {
+      appToast.error(error.message || "We couldn't delete the user. Please try again.");
+    },
+  });
 
   const handleSheetOpenChange = (open: boolean) => {
     setSheetOpen(open);
@@ -308,6 +352,17 @@ export default function ManageUser() {
                             <Eye className="size-4" />
                             View User
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                            <Pencil className="size-4" />
+                            Edit User
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setUserToDelete(user)}
+                            className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                          >
+                            <Trash2 className="size-4" />
+                            Delete User
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -355,16 +410,29 @@ export default function ManageUser() {
           side={isMobile ? "bottom" : "right"}
           className={isMobile ? "h-[90vh]" : "w-[420px]!"}
         >
-          {sheetMode === "add" ? (
+          {sheetMode === "add" || sheetMode === "edit" ? (
             <UserForm
               closeSheet={() => setSheetOpen(false)}
               existingUsers={users}
+              user={sheetMode === "edit" ? selectedUser : null}
             />
           ) : (
             selectedUser && <UserDetails user={selectedUser} />
           )}
         </SheetContent>
       </Sheet>
+
+      <DeleteUserDialog
+        user={userToDelete}
+        open={userToDelete !== null}
+        isPending={deleteUserMutation.isPending}
+        onOpenChange={(open) => {
+          if (!open) setUserToDelete(null);
+        }}
+        onConfirm={() => {
+          if (userToDelete) deleteUserMutation.mutate(userToDelete);
+        }}
+      />
     </>
   );
 }

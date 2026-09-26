@@ -43,26 +43,35 @@ import type { User } from "@/types/manageUser";
 type UserFormProps = {
   closeSheet: () => void;
   existingUsers: User[];
+  user?: User | null;
 };
 
-type AddUserForm = {
+type UserFormState = {
+  username: string;
   firstName: string;
   lastName: string;
   email: string;
-  role: "technician" | "faculty";
+  role: "admin" | "technician" | "faculty";
+  isActive: boolean;
 };
 
-const initialForm: AddUserForm = {
+const initialForm: UserFormState = {
+  username: "",
   firstName: "",
   lastName: "",
   email: "",
   role: "faculty",
+  isActive: true,
 };
 
 const roleOptions: Array<{
   label: string;
-  value: AddUserForm["role"];
+  value: UserFormState["role"];
 }> = [
+  {
+    label: "Admin",
+    value: "admin",
+  },
   {
     label: "Faculty",
     value: "faculty",
@@ -73,8 +82,17 @@ const roleOptions: Array<{
   },
 ];
 
-export default function UserForm({ closeSheet, existingUsers }: UserFormProps) {
-  const [form, setForm] = useState<AddUserForm>(initialForm);
+export default function UserForm({ closeSheet, existingUsers, user }: UserFormProps) {
+  const isEditing = Boolean(user);
+  const currentRole = user?.role.trim().toLowerCase();
+  const [form, setForm] = useState<UserFormState>(() => user ? {
+    username: user.username,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: currentRole === "admin" || currentRole === "technician" ? currentRole : "faculty",
+    isActive: user.isActive,
+  } : initialForm);
   const [roleOpen, setRoleOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -83,32 +101,39 @@ export default function UserForm({ closeSheet, existingUsers }: UserFormProps) {
     () =>
       normalizedEmail !== "" &&
       existingUsers.some(
-        (user) => user.email.trim().toLowerCase() === normalizedEmail
+        (existingUser) => existingUser.id !== user?.id &&
+          existingUser.email.trim().toLowerCase() === normalizedEmail
       ),
-    [existingUsers, normalizedEmail]
+    [existingUsers, normalizedEmail, user?.id]
   );
 
-  const addUserMutation = useMutation({
+  const saveUserMutation = useMutation({
     mutationFn: async () => {
       const response = await privateFetch(
-        buildApiUrl("/api/users/"),
+        buildApiUrl(isEditing ? `/api/users/${user?.id}/` : "/api/users/"),
         {
-          method: "POST",
+          method: isEditing ? "PATCH" : "POST",
           body: JSON.stringify({
             first_name: form.firstName.trim(),
             last_name: form.lastName.trim(),
-            username: form.email.trim().toLowerCase(),
+            username: isEditing
+              ? form.username.trim()
+              : form.email.trim().toLowerCase(),
             email: form.email.trim().toLowerCase(),
             role: form.role,
+            ...(isEditing ? { is_active: form.isActive } : {}),
           }),
         }
       );
-      const data = await response.json();
+      const data: unknown = await response.json().catch(() => null);
 
       if (!response.ok) {
+        const payload = typeof data === "object" && data !== null
+          ? data as { message?: string; detail?: string }
+          : null;
         throw createApiError(
           response.status,
-          data.message || data.detail || "Failed to add user."
+          payload?.message || payload?.detail || `Failed to ${isEditing ? "update" : "add"} user.`
         );
       }
 
@@ -118,8 +143,11 @@ export default function UserForm({ closeSheet, existingUsers }: UserFormProps) {
       await queryClient.invalidateQueries({
         queryKey: ["admin-users"],
       });
+      await queryClient.invalidateQueries({
+        queryKey: ["admin-dashboard-users"],
+      });
 
-      appToast.success("User added successfully.");
+      appToast.success(`User ${isEditing ? "updated" : "added"} successfully.`);
       closeSheet();
     },
     onError: (error: ApiError) => {
@@ -128,13 +156,13 @@ export default function UserForm({ closeSheet, existingUsers }: UserFormProps) {
         return;
       }
 
-      appToast.error("We couldn't add the user. Please try again.");
+      appToast.error(error.message || `We couldn't ${isEditing ? "update" : "add"} the user. Please try again.`);
     },
   });
 
-  const updateField = <Field extends keyof AddUserForm>(
+  const updateField = <Field extends keyof UserFormState>(
     field: Field,
-    value: AddUserForm[Field]
+    value: UserFormState[Field]
   ) => {
     setForm((currentForm) => ({
       ...currentForm,
@@ -150,23 +178,38 @@ export default function UserForm({ closeSheet, existingUsers }: UserFormProps) {
       return;
     }
 
-    addUserMutation.mutate();
+    saveUserMutation.mutate();
   };
 
-  const isSubmitting = addUserMutation.isPending;
+  const isSubmitting = saveUserMutation.isPending;
   const selectedRole =
     roleOptions.find((role) => role.value === form.role) ?? roleOptions[0];
 
   return (
     <form onSubmit={handleSubmit} className="flex h-full flex-col">
       <SheetHeader>
-        <SheetTitle className="mb-2 text-lg font-semibold">Add User</SheetTitle>
+        <SheetTitle className="mb-2 text-lg font-semibold">{isEditing ? "Edit User" : "Add User"}</SheetTitle>
         <SheetDescription>
-          Create a new account for a faculty member or technician.
+          {isEditing ? "Update this user's account details and access." : "Create a new account for a faculty member or technician."}
         </SheetDescription>
       </SheetHeader>
 
-      <div className="flex flex-1 flex-col gap-4 px-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-1">
+        {isEditing && (
+          <label className="flex flex-col gap-2 text-sm font-medium">
+            <span className="secondary-text-color flex items-center gap-x-1.5">
+              <AtSign size={14} />
+              Username
+            </span>
+            <Input
+              value={form.username}
+              onChange={(event) => updateField("username", event.target.value)}
+              required
+              disabled={isSubmitting}
+              className="h-10"
+            />
+          </label>
+        )}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm font-medium">
             <span className="secondary-text-color flex items-center gap-x-1.5">
@@ -257,7 +300,7 @@ export default function UserForm({ closeSheet, existingUsers }: UserFormProps) {
                   <CommandEmpty>No role found.</CommandEmpty>
 
                   <CommandGroup className="p-2">
-                    {roleOptions.map((role) => (
+                    {roleOptions.filter((role) => isEditing || role.value !== "admin").map((role) => (
                       <CommandItem
                         key={role.value}
                         onSelect={() => {
@@ -280,12 +323,28 @@ export default function UserForm({ closeSheet, existingUsers }: UserFormProps) {
             </PopoverContent>
           </Popover>
         </div>
+
+        {isEditing && (
+          <label className="flex items-center gap-3 rounded-xl bg-muted/50 px-3 py-3 text-sm font-medium">
+            <Checkbox
+              checked={form.isActive}
+              onCheckedChange={(checked) => updateField("isActive", checked === true)}
+              disabled={isSubmitting}
+            />
+            <span>
+              Active account
+              <span className="block text-xs font-normal secondary-text-color">
+                Inactive users cannot access the system.
+              </span>
+            </span>
+          </label>
+        )}
       </div>
 
       <SheetFooter>
         <Button type="submit" disabled={isSubmitting || emailAlreadyExists}>
           {isSubmitting && <Spinner />}
-          Add User
+          {isEditing ? "Save Changes" : "Add User"}
         </Button>
 
          <SheetClose asChild>
