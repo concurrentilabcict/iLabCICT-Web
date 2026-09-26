@@ -5,7 +5,7 @@ import type { ApiRoom, EditRoomFormType, Room } from "@/types/room";
 import RoomCard from "./RoomCard";
 import LaboratorySkeleton from "@/components/LaboratorySkeleton/LaboratorySkeleton";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Status, StatusFilter, Floor, FloorFilter } from "@/utils/room";
+import { normalizeRoomStatus, type StatusFilter, type Floor, type FloorFilter } from "@/utils/room";
 import { getPaginationWindow } from "@/utils/pagination";
 import {
     Pagination,
@@ -155,7 +155,7 @@ export default function Laboratory({
         queryClient.getQueryData<boolean>(ROOMS_READY_QUERY_KEY) === true;
     const [hasInitialRooms, setHasInitialRooms] = useState(cachedRoomsAreReady);
     const filterKey = JSON.stringify([statusFilter, floorFilter, searchQuery]);
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [, setSearchParams] = useSearchParams();
     const [pagination, setPagination] = useState({
         page: 1,
         filterKey
@@ -263,7 +263,7 @@ export default function Laboratory({
                     new Date(b.createdAt).getTime()
             )
             .filter((room) => {
-                const status = formatLabel(room.status) as Status
+                const status = normalizeRoomStatus(room.status)
                 const floor = room.floorNumber as Floor
 
                 const matchesStatus = 
@@ -332,7 +332,7 @@ export default function Laboratory({
 
                 {!isLoading && paginatedRooms.map((room)=> {
 
-                    const status = formatLabel(room.status) as Status
+                    const status = normalizeRoomStatus(room.status)
                     const location = formatLabel(room.buildingName) + " - " + floorConverter(room.floorNumber) + ", " + room.roomName
                     const custodian = 
                         room.assignedCustodian ? 

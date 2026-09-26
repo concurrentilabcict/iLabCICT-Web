@@ -37,7 +37,7 @@ export default function RoomCard({
                 setSheetOpen(true)
             }
 
-    const statusData = statusConfig[status];
+    const statusData = statusConfig[status] ?? statusConfig.Unknown;
     const StatusIcon = statusData.icon
     const technician = room.assignedTechnician
         ? `${room.assignedTechnician.firstName} ${room.assignedTechnician.lastName}`

@@ -11,7 +11,7 @@ import type { ApiRoom, Room } from "@/types/room";
 import RoomCard from "./RoomCard";
 import LaboratorySkeleton from "@/components/LaboratorySkeleton/LaboratorySkeleton";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Status, StatusFilter, Floor, FloorFilter } from "@/utils/room";
+import { normalizeRoomStatus, type StatusFilter, type Floor, type FloorFilter } from "@/utils/room";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 
 type LaboratoryProps = {
@@ -240,7 +240,7 @@ export default function Laboratory({
                     new Date(b.createdAt).getTime()
             )
             .filter((room) => {
-                const status = formatLabel(room.status) as Status
+                const status = normalizeRoomStatus(room.status)
                 const floor = room.floorNumber as Floor
 
                 const matchesStatus = 
@@ -315,7 +315,7 @@ export default function Laboratory({
 
                 {!isLoading && paginatedRooms.map((room)=> {
 
-                    const status = formatLabel(room.status) as Status
+                    const status = normalizeRoomStatus(room.status)
                     const location = formatLabel(room.buildingName) + " - " + floorConverter(room.floorNumber) + ", " + room.roomName
                     const custodian = 
                         room.assignedCustodian ? 

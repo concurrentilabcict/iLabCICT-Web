@@ -2,6 +2,7 @@
 import { 
     CheckCircle2, 
     CircleAlert,
+    CircleHelp,
     CircleMinus,
     CircleX
 } from "lucide-react";
@@ -30,6 +31,12 @@ export const statusConfig = {
         icon: CircleX,
         className: "bg-red-100 text-red-700",
         value: "Out of Service"
+    },
+
+    Unknown: {
+        icon: CircleHelp,
+        className: "bg-zinc-100 text-zinc-600",
+        value: "Unknown"
     }
 };
 
@@ -42,11 +49,22 @@ export const floorConfig: Record<Floor, string> = {
 export type Status = 
     keyof typeof statusConfig;
 
+export const normalizeRoomStatus = (status: string): Status => {
+    const normalizedStatus = status.replace(/[^a-zA-Z]/g, "").toLowerCase();
+    const statusLookup: Record<string, Status> = {
+        operational: "Operational",
+        maintenance: "Maintenance",
+        degraded: "Degraded",
+        outofservice: "OutOfService",
+    };
+
+    return statusLookup[normalizedStatus] ?? "Unknown";
+};
+
 export type Floor = 1 | 2 | 3 
    
 export type StatusFilter = "All" | Status 
 
 export type FloorFilter = "All" | Floor
  
-
 
