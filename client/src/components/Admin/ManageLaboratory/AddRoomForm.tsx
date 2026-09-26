@@ -6,8 +6,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus} from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { appToast } from "@/utils/appToast";
 import DropDownOptions from "./DropDownOptions";
 import type { RoomForm, BuildingNames, RoomStatus, FloorNumber } from "@/types/room";
+import { normalizeRoomStatus } from "@/utils/room";
 
 type AddRoomProps = { 
     closeSheet: () => void;
@@ -91,7 +91,7 @@ const roomStatusOptions: Array<{
     },
     {
         label: "Out of Service",
-        value: "out of service"
+        value: "out_of_service"
     },
 ];
 
@@ -161,16 +161,7 @@ export default function AddRoomForm({
     const [form, setForm] = useState<RoomForm>(initialForm);
     const queryClient = useQueryClient();
 
-    useEffect(() => {
-        if (form.assignedTechnicianId !== null || roomTechnicianOptions.length === 0) {
-            return;
-        }
-
-        setForm((currentForm) => ({
-            ...currentForm,
-            assignedTechnicianId: roomTechnicianOptions[0].value
-        }));
-    }, [form.assignedTechnicianId, roomTechnicianOptions]);
+    const assignedTechnicianId = form.assignedTechnicianId ?? roomTechnicianOptions[0]?.value ?? null;
 
     const addComputerMutation = useMutation({
         mutationFn: async () => {
@@ -184,17 +175,28 @@ export default function AddRoomForm({
                         building_name: form.buildingName,
                         room_status: form.roomStatus,
                         assigned_custodian: form.assignedCustodianId,
-                        assigned_technician: form.assignedTechnicianId
+                        assigned_technician: assignedTechnicianId
                     }),
                 }
             );
-            const data = await response.json();
+            const data: unknown = await response.json().catch(() => null);
 
             if(!response.ok){
+                const errorData = typeof data === "object" && data !== null
+                    ? data as { message?: string; detail?: string; status?: string[]; room_status?: string[] }
+                    : null;
                 throw createApiError(
                     response.status,
-                    data.message || data.detail || "Failed to add room."
+                    errorData?.message || errorData?.detail || errorData?.room_status?.[0] || errorData?.status?.[0] || "Failed to add room."
                 );
+            }
+
+            const savedStatus = typeof data === "object" && data !== null &&
+                "status" in data && typeof data.status === "string"
+                    ? data.status
+                    : null;
+            if (savedStatus && normalizeRoomStatus(savedStatus) !== normalizeRoomStatus(form.roomStatus)) {
+                throw createApiError(500, "The room status was not saved by the server.");
             }
 
             return data;
@@ -209,11 +211,11 @@ export default function AddRoomForm({
         },
         onError: (error: ApiError) => {
             if(error.status === 400){
-                appToast.warning("Please review the room details and try again.");
+                appToast.warning(error.message || "Please review the room details and try again.");
                 return;
             }
 
-            appToast.error("We couldn't add the room. Please try again.");
+            appToast.error(error.message || "We couldn't add the room. Please try again.");
         }
     });
 
@@ -247,7 +249,7 @@ export default function AddRoomForm({
         custodianOptions.find((custodian) => custodian.value === form.assignedCustodianId) ?? null;
 
     const selectedRoomTechnician =
-        roomTechnicianOptions.find((technician) => technician.value === form.assignedTechnicianId) ?? null;
+        roomTechnicianOptions.find((technician) => technician.value === assignedTechnicianId) ?? null;
 
     return(
         <form onSubmit={handleSubmit} className="flex flex-col h-full">   
@@ -348,7 +350,7 @@ export default function AddRoomForm({
                                     fieldType="assignedTechnicianId"
                                     selectedItem={selectedRoomTechnician}
                                     isSubmitting={isSubmitting}
-                                    form={form}
+                                    form={{ ...form, assignedTechnicianId }}
                                     updateField={updateField}
                                     itemOptions={roomTechnicianOptions}
                                 />

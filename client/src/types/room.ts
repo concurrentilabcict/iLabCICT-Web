@@ -54,7 +54,7 @@ export type ApiRoom = {
 
 export type BuildingNames = "pimentel" | "law" | "acad";
 
-export type RoomStatus = "operational" | "maintenance" | "degraded" | "out of service";
+export type RoomStatus = "operational" | "maintenance" | "degraded" | "out_of_service";
 
 export type FloorNumber = 1 | 2 | 3;
 

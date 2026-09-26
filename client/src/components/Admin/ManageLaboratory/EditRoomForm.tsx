@@ -20,6 +20,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { appToast } from "@/utils/appToast";
 import DropDownOptions from "./DropDownOptions";
 import type { Room, RoomForm, BuildingNames, RoomStatus, FloorNumber } from "@/types/room";
+import { normalizeRoomStatus } from "@/utils/room";
 import type { EditRoomFormType } from "@/types/room";
 
 type AddRoomProps = { 
@@ -45,6 +46,10 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const getResponseMessage = (value: unknown) => {
     if (!isRecord(value)) {
         return undefined;
+    }
+
+    if (Array.isArray(value.status) && typeof value.status[0] === "string") {
+        return value.status[0];
     }
 
     return typeof value.message === "string"
@@ -109,7 +114,7 @@ const roomStatusOptions: Array<{
     },
     {
         label: "Out of Service",
-        value: "out of service"
+        value: "out_of_service"
     },
 ];
 
@@ -193,7 +198,9 @@ export default function EditRoomForm({
         roomName: room.roomName,
         floorNumber: room.floorNumber,
         buildingName: room.buildingName,
-        roomStatus: room.roomStatus,
+        roomStatus: normalizeRoomStatus(room.roomStatus) === "OutOfService"
+            ? "out_of_service"
+            : room.roomStatus,
         assignedCustodianId:  room.assignedCustodianId || null,
         assignedTechnicianId: room.assignedTechnicianId || null
     }
@@ -226,7 +233,8 @@ export default function EditRoomForm({
                 );
             }
 
-            if (!isRecord(data) || data.status !== form.roomStatus) {
+            if (!isRecord(data) || typeof data.status !== "string" ||
+                normalizeRoomStatus(data.status) !== normalizeRoomStatus(form.roomStatus)) {
                 throw createApiError(
                     500,
                     "The room status was not saved by the server."
@@ -278,11 +286,11 @@ export default function EditRoomForm({
         },
         onError: (error: ApiError) => {
             if(error.status === 400){
-                appToast.warning("Please review the room details and try again.");
+                appToast.warning(error.message || "Please review the room details and try again.");
                 return;
             }
 
-            appToast.error("We couldn't update the room. Please try again.");
+            appToast.error(error.message || "We couldn't update the room. Please try again.");
         }
     });
 

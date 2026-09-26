@@ -32,7 +32,7 @@ const roomStatuses: RoomStatus[] = [
   "operational",
   "maintenance",
   "degraded",
-  "out of service",
+  "out_of_service",
 ];
 
 const isBuildingName = (value: string): value is BuildingNames =>
@@ -88,7 +88,7 @@ const createPayload = (
     .replace(/\s+/g, " ");
   const roomStatus =
     normalizedStatus.replace(/\s/g, "") === "outofservice"
-      ? "out of service"
+      ? "out_of_service"
       : normalizedStatus;
 
   if (!roomName) {
