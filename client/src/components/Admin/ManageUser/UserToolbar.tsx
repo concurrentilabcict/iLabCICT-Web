@@ -128,7 +128,7 @@ export default function UserToolbar({
               <AlertDialogTitle>Export Users?</AlertDialogTitle>
 
               <AlertDialogDescription>
-                This will prepare the current users table as a legal-size PDF.
+                This will prepare the current users table as an A4 PDF.
               </AlertDialogDescription>
             </AlertDialogHeader>
 

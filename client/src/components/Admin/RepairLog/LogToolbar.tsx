@@ -145,7 +145,7 @@ export default function LogToolbar({
               <AlertDialogTitle>Export Repair Logs?</AlertDialogTitle>
 
               <AlertDialogDescription>
-                This will prepare the current repair logs table as a legal-size PDF.
+                This will prepare the current repair logs table as an A4 PDF.
               </AlertDialogDescription>
             </AlertDialogHeader>
 

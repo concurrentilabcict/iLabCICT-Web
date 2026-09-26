@@ -93,7 +93,7 @@ export default function AuditLogsToolbar({
           <AlertDialogHeader>
             <AlertDialogTitle>Export Audit Logs?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will prepare the current audit logs table as a legal-size PDF.
+              This will prepare the current audit logs table as an A4 PDF.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
