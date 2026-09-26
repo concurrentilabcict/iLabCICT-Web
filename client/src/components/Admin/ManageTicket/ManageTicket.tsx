@@ -165,6 +165,11 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
   updatedAt: ticket.updated_at,
 });
 
+const mapArchivedTicket = (ticket: ApiTicket): Ticket => ({
+  ...mapTicket(ticket),
+  status: "archived",
+});
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
@@ -316,7 +321,7 @@ export default function ManageTicket() {
         );
       }
 
-      return getTicketsFromResponse(data).map(mapTicket);
+      return getTicketsFromResponse(data).map(mapArchivedTicket);
     },
     enabled: ticketView === "archived",
     staleTime: 30_000,
@@ -568,7 +573,7 @@ export default function ManageTicket() {
 
         if (parsedMessage.event === "ticket_archived") {
           const archivedTicket = parsedMessage.ticket
-            ? mapTicket(parsedMessage.ticket)
+            ? mapArchivedTicket(parsedMessage.ticket)
             : null;
           const archivedTicketId =
             archivedTicket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
@@ -659,6 +664,16 @@ export default function ManageTicket() {
           return;
         }
 
+        if (parsedMessage.ticket.status.toLowerCase() === "archived") {
+          const ticketId = parsedMessage.ticket.id;
+          queryClient.setQueryData<Ticket[]>(
+            ADMIN_TICKETS_QUERY_KEY,
+            (currentTickets = []) => currentTickets.filter((ticket) => ticket.id !== ticketId)
+          );
+          void queryClient.invalidateQueries({ queryKey: ADMIN_ARCHIVED_TICKETS_QUERY_KEY });
+          return;
+        }
+
         queryClient.setQueryData<Ticket[]>(
           ADMIN_TICKETS_QUERY_KEY,
           (currentTickets = []) =>
@@ -685,7 +700,10 @@ export default function ManageTicket() {
     };
   }, [queryClient]);
 
-  const visibleTickets = ticketView === "active" ? tickets : archivedTickets;
+  const archivedTicketIds = new Set(archivedTickets.map((ticket) => ticket.id));
+  const visibleTickets = ticketView === "active"
+    ? tickets.filter((ticket) => ticket.status.toLowerCase() !== "archived" && !archivedTicketIds.has(ticket.id))
+    : archivedTickets;
   const ticketsAreLoading =
     ticketView === "active" ? isLoading : archivedTicketsAreLoading;
   const ticketsHaveError =
