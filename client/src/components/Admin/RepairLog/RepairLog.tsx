@@ -5,6 +5,8 @@ import { Eye, MoreHorizontal } from "lucide-react";
 import RepairLogDetails from "./RepairLogDetails";
 import LogToolbar from "./LogToolbar";
 import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
+import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
+import { useAdminUserDirectory } from "@/hooks/useAdminUserDirectory";
 import type { TechnicianFilter } from "./LogToolbar";
 import { Button } from "@/components/ui/button";
 import {
@@ -160,6 +162,7 @@ const upsertRepairLog = (
 };
 
 export default function RepairLog() {
+  const getProfileImage = useAdminUserDirectory();
   const queryClient = useQueryClient();
   const repairLogSocketRef = useRef<WebSocket | null>(null);
   const cachedRepairLogsAreReady =
@@ -403,8 +406,18 @@ export default function RepairLog() {
                     <TableCell className="font-medium">
                       {repairLog.repairLogCode}
                     </TableCell>
-                    <TableCell>{faculty}</TableCell>
-                    <TableCell>{technician}</TableCell>
+                    <TableCell>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <ProfileAvatar src={getProfileImage(repairLog.ticket.reportedBy.id)} alt={faculty} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                        <span className="truncate">{faculty}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex min-w-0 items-center gap-3">
+                        <ProfileAvatar src={getProfileImage(repairLog.ticket.assignedTo.id)} alt={technician} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                        <span className="truncate">{technician}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>{formatDate(repairLog.createdAt)}</TableCell>
                     <TableCell
                       className="text-center"

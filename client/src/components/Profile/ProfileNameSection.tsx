@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "@/auth/useAuth";
 import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
@@ -20,6 +20,7 @@ const splitFullName = (fullName: string) => {
 };
 
 export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps) {
+    const queryClient = useQueryClient();
     const { name, setName } = useAuth();
     const initialName = splitFullName(name);
     const [isEditing, setIsEditing] = useState(false);
@@ -104,6 +105,8 @@ export default function ProfileNameSection({ isMobile }: ProfileNameSectionProps
         },
 
         onSuccess: (data) => {
+            void queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+            void queryClient.invalidateQueries({ queryKey: ["admin-dashboard-users"] });
             const updatedFirstName = data.first_name ?? firstName.trim();
             const updatedLastName = data.last_name ?? lastName.trim();
             const updatedEmail = data.email ?? email.trim();

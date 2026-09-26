@@ -4,6 +4,7 @@ import { ChevronDown, Eye, MoreHorizontal, Search, X } from "lucide-react";
 import TicketDetails from "./TicketDetails";
 import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
+import { useAdminUserDirectory } from "@/hooks/useAdminUserDirectory";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -76,6 +77,7 @@ export default function RecentTicket({
   isLoading,
   isError,
 }: RecentTicketProps) {
+  const getProfileImage = useAdminUserDirectory();
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TicketTypeFilter>("All");
@@ -274,7 +276,7 @@ export default function RecentTicket({
                       <TableCell>
                         <div className="flex min-w-0 items-center gap-3">
                           <ProfileAvatar
-                            src={ticket.reportedBy.profileImage ?? null}
+                            src={getProfileImage(ticket.reportedBy.id) ?? ticket.reportedBy.profileImage ?? null}
                             alt={faculty}
                             className="h-8 w-8 shrink-0 rounded-full object-cover"
                           />

@@ -9,6 +9,8 @@ import {
 import type { WeeklyReport as WeeklyReportType } from "@/types/weeklyReport";
 import WeeklyReportActions from "./WeeklyReportActions";
 import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
+import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
+import { useAdminUserDirectory } from "@/hooks/useAdminUserDirectory";
 import {
   formatDate,
   formatLabel,
@@ -31,6 +33,7 @@ export default function WeeklyReportTable({
   onViewReport,
   onExportReport,
 }: WeeklyReportTableProps) {
+  const getProfileImage = useAdminUserDirectory();
   return (
     <div className="overflow-hidden rounded-2xl border border-primary-color bg-white">
       <Table>
@@ -97,7 +100,12 @@ export default function WeeklyReportTable({
                     </p>
                   </div>
                 </TableCell>
-                <TableCell>{report.technicianName}</TableCell>
+                <TableCell>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <ProfileAvatar src={getProfileImage(report.technicianId)} alt={report.technicianName} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                    <span className="truncate">{report.technicianName}</span>
+                  </div>
+                </TableCell>
                 <TableCell>
                   {getTotalRepairLogs(report.repairLogSummary)}
                 </TableCell>

@@ -9,6 +9,7 @@ import { mapNotification, sortNotificationsByNewest } from "@/utils/notification
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { appToast } from "@/utils/appToast";
+import { useAuth } from "@/auth/useAuth";
 
 type InitialNotificationsMessage = {
     event: "initial_notifications";
@@ -79,6 +80,23 @@ const upsertNotification = (
             notification.id === nextNotification.id ? nextNotification : notification
         )
     );
+};
+
+const isForCurrentUser = (notification: Notification, role: string, userId: number) => {
+    if (notification.isArchived || (notification.recipientId !== null && notification.recipientId !== userId)) {
+        return false;
+    }
+
+    if (role !== "technician" && notification.eventType === "unicast-technician") {
+        return false;
+    }
+
+    if (role === "admin" && /ticket assigned to you/i.test(notification.title) &&
+        notification.ticket.assignedTo?.id !== userId) {
+        return false;
+    }
+
+    return true;
 };
 
 export const useMarkNotificationAsRead = () => {
@@ -165,6 +183,8 @@ export const useArchiveNotification = () => {
 };
 
 export const useNotifications = () => {
+    const { role } = useAuth();
+    const userId = Number(localStorage.getItem("id"));
     const queryClient = useQueryClient();
     const notificationSocketRef = useRef<WebSocket | null>(null);
     const cachedNotificationsAreReady =
@@ -225,7 +245,7 @@ export const useNotifications = () => {
                         NOTIFICATIONS_QUERY_KEY,
                         sortNotificationsByNewest(
                             parsedMessage.notification.map(mapNotification).filter(
-                                (notification) => !notification.isArchived
+                                (notification) => isForCurrentUser(notification, role, userId)
                             )
                         )
                     );
@@ -244,12 +264,17 @@ export const useNotifications = () => {
                     return;
                 }
 
+                const notification = mapNotification(parsedMessage.notification);
+                if (!isForCurrentUser(notification, role, userId)) {
+                    return;
+                }
+
                 queryClient.setQueryData<Notification[]>(
                     NOTIFICATIONS_QUERY_KEY,
                     (currentNotifications = []) =>
                         upsertNotification(
                             currentNotifications,
-                            mapNotification(parsedMessage.notification)
+                            notification
                         )
                 );
             });
@@ -263,10 +288,10 @@ export const useNotifications = () => {
                 notificationSocketRef.current = null;
             }
         };
-    }, [queryClient]);
+    }, [queryClient, role, userId]);
 
     return {
-        notifications,
+        notifications: notifications.filter((notification) => isForCurrentUser(notification, role, userId)),
         isLoading: isPending || !hasInitialNotifications,
         isError,
     };

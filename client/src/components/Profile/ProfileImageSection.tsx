@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Image } from "lucide-react";
 
 import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
@@ -23,6 +23,7 @@ const hasUploadedProfilePicture = (picture: string | null) => {
 };
 
 export default function ProfileImageSection({ isMobile }: ProfileImageSectionProps) {
+    const queryClient = useQueryClient();
     const { role, profilePicture, setProfilePicture } = useAuth();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -31,6 +32,8 @@ export default function ProfileImageSection({ isMobile }: ProfileImageSectionPro
 
     const syncProfilePicture = (profileImage: string | null) => {
         setProfilePicture(profileImage);
+        void queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+        void queryClient.invalidateQueries({ queryKey: ["admin-dashboard-users"] });
 
         if (profileImage) {
             localStorage.setItem("profilePicture", profileImage);

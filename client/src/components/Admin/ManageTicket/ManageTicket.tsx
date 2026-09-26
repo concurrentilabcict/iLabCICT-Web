@@ -10,6 +10,7 @@ import ConfirmTicketReassignment from "@/components/ConfirmTicketReassignment/Co
 import TicketDetails from "./TicketDetails";
 import TicketToolbar from "./TicketToolbar";
 import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
+import { useAdminUserDirectory } from "@/hooks/useAdminUserDirectory";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -250,6 +251,7 @@ const getStatusClasses = (status: string) => {
 };
 
 export default function ManageTicket() {
+  const getProfileImage = useAdminUserDirectory();
   const queryClient = useQueryClient();
   const ticketSocketRef = useRef<WebSocket | null>(null);
   const cachedTicketsAreReady =
@@ -916,7 +918,7 @@ export default function ManageTicket() {
                     <TableCell>
                       <div className="flex min-w-0 items-center gap-3">
                         <ProfileAvatar
-                          src={ticket.reportedBy.profileImage ?? null}
+                          src={getProfileImage(ticket.reportedBy.id) ?? ticket.reportedBy.profileImage ?? null}
                           alt={faculty}
                           className="h-8 w-8 shrink-0 rounded-full object-cover"
                         />
@@ -926,7 +928,7 @@ export default function ManageTicket() {
                     <TableCell>
                       <div className="flex min-w-0 items-center gap-3">
                         <ProfileAvatar
-                          src={ticket.assignedTo?.profileImage ?? null}
+                          src={getProfileImage(ticket.assignedTo?.id) ?? ticket.assignedTo?.profileImage ?? null}
                           alt={technician || ""}
                           className="h-8 w-8 shrink-0 rounded-full object-cover"
                         />

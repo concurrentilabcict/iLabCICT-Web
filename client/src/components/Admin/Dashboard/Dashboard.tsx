@@ -295,7 +295,8 @@ export default function Dashboard() {
     } = useQuery<User[]>({
         queryKey: ["admin-dashboard-users"],
         queryFn: fetchDashboardUsers,
-        staleTime: 60_000,
+        staleTime: 30_000,
+        refetchInterval: 30_000,
     });
     const roomComputerQueries = useQueries({
         queries: rooms.map((room) => ({

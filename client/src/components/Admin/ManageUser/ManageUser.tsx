@@ -111,6 +111,7 @@ export default function ManageUser() {
     isError,
   } = useQuery<User[]>({
     queryKey: ["admin-users"],
+    refetchInterval: 30_000,
     queryFn: async () => {
       const response = await privateFetch(
         buildApiUrl("/api/users/")
