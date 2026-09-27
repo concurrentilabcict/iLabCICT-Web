@@ -1,4 +1,3 @@
-import QRCode from "qrcode";
 import {
     Building2,
     CheckCircle2,
@@ -11,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { Status } from "@/utils/computer";
 import { statusConfig } from "@/utils/computer";
+import { createComputerQrDataUrl, getComputerQrValue } from "@/utils/computerQr";
 
 type ComputerAssetCardProps = {
     computerCode: string;
@@ -40,23 +40,13 @@ export default function ComputerAssetCard({
     const qrValue = useMemo(() => {
         if (typeof window === "undefined") return computerCode;
 
-        const room = encodeURIComponent(roomName);
-        const code = encodeURIComponent(computerCode);
-
-        return `${window.location.origin}/manage-laboratory/${room}/${code}`;
+        return getComputerQrValue({ computerCode, roomName });
     }, [computerCode, roomName]);
 
     useEffect(() => {
         let isMounted = true;
 
-        QRCode.toDataURL(qrValue, {
-            margin: 1,
-            width: 180,
-            color: {
-                dark: "#c94f2b",
-                light: "#ffffff",
-            },
-        })
+        createComputerQrDataUrl(qrValue)
             .then((dataUrl) => {
                 if (isMounted) setQrDataUrl(dataUrl);
             })

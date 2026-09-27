@@ -97,7 +97,7 @@ const openPrintTarget = () => {
   return { targetWindow: iframe.contentWindow, iframe };
 };
 
-export const exportTablePdf = ({
+  export const exportTablePdf = ({
   title,
   subject,
   filename,

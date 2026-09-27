@@ -1,8 +1,11 @@
-import { Archive, Cpu, HardDrive, Hash, LaptopMinimal, MemoryStick, SquarePen, type LucideIcon } from "lucide-react";
+import { Archive, Cpu, Download, HardDrive, Hash, LaptopMinimal, LoaderCircle, MemoryStick, SquarePen, type LucideIcon } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
 import { statusConfig, type Status } from "@/utils/computer";
 import type { ComputerCardType } from "@/types/computer";
 import ComputerArchiveAction from "@/components/ComputerArchiveAction/ComputerArchiveAction";
+import { downloadComputerQrPng } from "@/utils/computerQr";
+import { appToast } from "@/utils/appToast";
 
 type CompCardType = {
     computer: ComputerCardType
@@ -25,6 +28,7 @@ export default function ComputerCard({
     setIsEditing,
     setSheetOpen,
 }: CompCardType){
+    const [isExportingQr, setIsExportingQr] = useState(false);
 
     const handleEditComputerClick = (computer: ComputerCardType) => {
             setSelectedComputer(computer)
@@ -37,6 +41,27 @@ export default function ComputerCard({
 
     const {room} = useParams()
     const navigate = useNavigate()
+
+    const handleExportQr = async () => {
+        if (!room || isExportingQr) return;
+
+        setIsExportingQr(true);
+        try {
+            await downloadComputerQrPng({
+                computerCode: computer.computerCode,
+                computerNumber: computer.computerNumber,
+                roomName: room,
+            });
+            appToast.success("Computer QR exported successfully.");
+        } catch (error) {
+            appToast.error(
+                error instanceof Error ? error.message : "We couldn't export the computer QR. Please try again."
+            );
+        } finally {
+            setIsExportingQr(false);
+        }
+    };
+
     return(
         <article className="group flex h-full min-h-[300px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 md:max-w-[550px]">
                 <div className="flex items-start justify-between gap-3">
@@ -69,9 +94,23 @@ export default function ComputerCard({
                     <button
                         onClick={()=>navigate(`/manage-laboratory/${room}/${computer.computerCode}`)}
                         type="button"
-                        className="flex h-9 flex-1 shrink-0 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white"
+                        className="flex h-9 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white"
                         >
-                        <HardDrive size={17}/> View Specifications
+                        <HardDrive className="size-[17px] shrink-0" />
+                        <span className="truncate">View Specifications</span>
+                    </button>
+
+                    <button
+                        onClick={handleExportQr}
+                        type="button"
+                        title="Export QR as PNG"
+                        aria-label={`Export QR for ${computer.computerCode}`}
+                        disabled={isExportingQr}
+                        className="grid h-9 w-10 shrink-0 place-items-center rounded-xl border primary-border-color bg-white text-zinc-500 hover:cursor-pointer hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        {isExportingQr
+                            ? <LoaderCircle className="size-[17px] animate-spin" />
+                            : <Download size={17} />}
                     </button>
 
                     {!computer.isArchived && <button
