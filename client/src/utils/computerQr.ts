@@ -115,19 +115,22 @@ export const downloadComputerQrPng = async ({
     const number = computerNumber === null || computerNumber === undefined
         ? ""
         : String(computerNumber).trim();
-    const label = number ? `${number} - ${computerCode}` : computerCode;
-
-    context.fillStyle = "#18181B";
     context.textAlign = "center";
     context.textBaseline = "middle";
 
-    let fontSize = 50;
-    do {
-        context.font = `700 ${fontSize}px Geist, Arial, sans-serif`;
-        fontSize -= 2;
-    } while (context.measureText(label).width > 880 && fontSize >= 28);
+    if (number) {
+        context.fillStyle = "#18181B";
+        context.font = "700 48px Geist, Arial, sans-serif";
+        context.fillText(number, 500, 900);
 
-    context.fillText(label, 500, 925);
+        context.fillStyle = "#71717A";
+        context.font = "600 30px Geist, Arial, sans-serif";
+        context.fillText(computerCode, 500, 953);
+    } else {
+        context.fillStyle = "#18181B";
+        context.font = "700 44px Geist, Arial, sans-serif";
+        context.fillText(computerCode, 500, 925);
+    }
 
     const downloadLink = document.createElement("a");
     const fileLabel = number ? `${number}-${computerCode}` : computerCode;
