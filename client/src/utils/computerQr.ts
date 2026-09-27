@@ -123,8 +123,8 @@ export const downloadComputerQrPng = async ({
         context.font = "700 48px Geist, Arial, sans-serif";
         context.fillText(number, 500, 900);
 
-        context.fillStyle = "#71717A";
-        context.font = "600 30px Geist, Arial, sans-serif";
+        context.fillStyle = QR_COLOR;
+        context.font = "600 34px Geist, Arial, sans-serif";
         context.fillText(computerCode, 500, 953);
     } else {
         context.fillStyle = "#18181B";
