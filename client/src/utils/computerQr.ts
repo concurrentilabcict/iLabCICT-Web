@@ -60,7 +60,7 @@ const createQrCanvas = async (value: string, size: number) => {
 
     await QRCode.toCanvas(canvas, value, {
         width: size,
-        margin: 4,
+        margin: 2,
         errorCorrectionLevel: "H",
         color: {
             dark: QR_COLOR,
@@ -108,9 +108,9 @@ export const downloadComputerQrPng = async ({
 
     const qrCanvas = await createQrCanvas(
         getComputerQrValue({ computerCode, roomName }),
-        760
+        840
     );
-    context.drawImage(qrCanvas, 120, 55, 760, 760);
+    context.drawImage(qrCanvas, 80, 20, 840, 840);
 
     const number = computerNumber === null || computerNumber === undefined
         ? ""
@@ -127,7 +127,7 @@ export const downloadComputerQrPng = async ({
         fontSize -= 2;
     } while (context.measureText(label).width > 880 && fontSize >= 28);
 
-    context.fillText(label, 500, 895);
+    context.fillText(label, 500, 925);
 
     const downloadLink = document.createElement("a");
     const fileLabel = number ? `${number}-${computerCode}` : computerCode;

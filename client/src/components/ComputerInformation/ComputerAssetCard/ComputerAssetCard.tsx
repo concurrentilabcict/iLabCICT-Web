@@ -110,7 +110,7 @@ export default function ComputerAssetCard({
 
                 <div className="flex shrink-0 items-end justify-end self-end md:items-center md:self-center">
                     <div
-                        className={`grid size-20 place-items-center rounded-2xl bg-white p-2 min-[360px]:size-24 sm:size-32 md:size-40 ${
+                        className={`grid size-20 place-items-center rounded-2xl bg-white p-1 min-[360px]:size-24 sm:size-32 md:size-40 ${
                             variant === "bordered" ? "border border-white/30" : "shadow-lg shadow-black/15"
                         }`}
                     >
