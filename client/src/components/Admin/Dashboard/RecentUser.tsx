@@ -5,7 +5,6 @@ import UserDetails from "../ManageUser/UserDetails";
 import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
 import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -181,7 +180,6 @@ export default function RecentUser({
                               : ""
                           }`}
                         >
-                          <Checkbox checked={roleFilter === role} />
                           <span>{role}</span>
                         </CommandItem>
                       ))}

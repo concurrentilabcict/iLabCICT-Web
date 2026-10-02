@@ -7,7 +7,6 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus} from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -22,9 +21,9 @@ type EditComputerProps = {
     computer: ComputerCardType; 
 }
 
-type PeripheralStatus = "active" | "fixing" | "broken" | "none";
+type PeripheralStatus = "active" | "pending" | "unserviceable" | "none";
 
-type ComputerStatusType = "active" | "fixing" | "broken";
+type ComputerStatusType = "active" | "pending" | "unserviceable";
 
 type EditComputerForm = {
     id: number | null
@@ -52,11 +51,11 @@ const peripheralStatusOptions: Array<{
     value: "active",
   },
   {
-    label: "Fixing",
-    value: "fixing",
+    label: "Pending",
+    value: "pending",
   },{
-    label: "Broken",
-    value: "broken",
+    label: "Unserviceable",
+    value: "unserviceable",
   },
   {
     label: "None",
@@ -73,11 +72,11 @@ const computerStatusOptions: Array<{
     value: "active",
   },
   {
-    label: "Fixing",
-    value: "fixing",
+    label: "Pending",
+    value: "pending",
   },{
-    label: "Broken",
-    value: "broken",
+    label: "Unserviceable",
+    value: "unserviceable",
   },
 ];
 

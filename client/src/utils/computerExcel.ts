@@ -35,8 +35,8 @@ const REQUIRED_IMPORT_HEADERS = [
   "Disk Installed (GB)",
 ] as const;
 
-const computerStatuses = ["active", "fixing", "broken"] as const;
-const peripheralStatuses = ["active", "fixing", "broken", "none"] as const;
+const computerStatuses = ["active", "pending", "unserviceable"] as const;
+const peripheralStatuses = ["active", "pending", "unserviceable", "none"] as const;
 
 export type ComputerExcelImportRecord = {
   cpu: string;

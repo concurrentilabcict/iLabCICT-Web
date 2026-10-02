@@ -11,11 +11,11 @@ export const statusConfig = {
         icon: CheckCircle2,
         className: "bg-green-100 text-green-700",
     },
-    Fixing: {
+    Pending: {
         icon: Wrench,
         className: "bg-yellow-100 text-yellow-700",
     },
-    Broken: {
+    Unserviceable: {
         icon: CircleX,
         className: "bg-red-100 text-red-700",
     }
@@ -25,10 +25,10 @@ export const peripheralStatusConfig = {
     Active: {
         className: "bg-green-100 text-green-700",
     },
-    Fixing: {
+    Pending: {
         className: "bg-yellow-100 text-yellow-700",
     },
-    Broken: {
+    Unserviceable: {
         className: "bg-red-100 text-red-700",
     },
     None: {

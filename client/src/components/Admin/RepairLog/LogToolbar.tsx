@@ -26,7 +26,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { appToast } from "@/utils/appToast";
 import { exportTablePdf, formatPdfDate, getLocalDateStamp } from "@/utils/tabularPdf";
 
@@ -228,7 +227,6 @@ export default function LogToolbar({
                             : ""
                         }`}
                       >
-                        <Checkbox checked={selectedTechnician === technician} />
                         <span>{technician}</span>
                       </CommandItem>
                     ))}
@@ -276,7 +274,6 @@ export default function LogToolbar({
                             : ""
                         }`}
                       >
-                        <Checkbox checked={selectedType === type} />
                         <span>{type}</span>
                       </CommandItem>
                     ))}

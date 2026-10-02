@@ -14,6 +14,7 @@ import { useSearchParams } from "react-router-dom";
 import { getPaginationWindow } from "@/utils/pagination";
 import ComputerRestoreNotice from "@/components/ComputerRestoreNotice/ComputerRestoreNotice";
 import { fetchRoomComputers, getComputerArchiveEvent, recentComputerArchiveKey, removeComputerTicketsFromCache } from "@/lib/roomComputers";
+import { mapComputerCard, handleComputerTransferEvent } from "@/lib/roomComputers";
 
 import {
     Sheet,
@@ -148,27 +149,6 @@ export default function ComputerList({
         }
     }
 
-    const mapComputerCard = (computerCard: ApiComputerCard): ComputerCardType => ({
-        id:computerCard.id,
-        computerCode: computerCard.computer_code,
-        computerNumber: computerCard.computer_number,
-        isArchived: computerCard.is_archived === true,
-        room: computerCard.room,
-        operatingSystem: computerCard.operating_system,
-        gpu: computerCard.gpu,
-        cpu: computerCard.cpu,
-        ramSizeInstalled: computerCard.ram_size_installed,
-        diskSizeInstalled: computerCard.disk_size_installed,
-        buildVersion: computerCard.build_version,
-        computerStatus: computerCard.computer_status,
-        motherboard: computerCard.motherboard,
-        monitorStatus: computerCard.monitor_status,
-        mouseStatus: computerCard.mouse_status,
-        keyboardStatus: computerCard.keyboard_status,
-        upsStatus: computerCard.ups_status,
-        createdAt: computerCard.created_at,
-        updatedAt: computerCard.updated_at
-    })
 
     const upsertComputer = useCallback((
         currentComputers: ComputerCardType[],
@@ -236,6 +216,8 @@ export default function ComputerList({
                 } catch {
                     return;
                 }
+
+                if (handleComputerTransferEvent(parsedMessage, queryClient, roomId)) return;
 
                 const archiveEvent = getComputerArchiveEvent(parsedMessage);
                 if (archiveEvent) {
@@ -357,7 +339,7 @@ export default function ComputerList({
                     ]
                         .join(" ")
                         .toLowerCase();
-                    
+
                     const matchesSearch = 
                         normalizedQuery === "" || 
                         searchableText.includes(normalizedQuery)
@@ -419,7 +401,7 @@ export default function ComputerList({
                         );
 
                     }
-                
+
                 )}
             </div>
 

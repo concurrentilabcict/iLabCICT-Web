@@ -6,7 +6,6 @@ import TableSkeleton from "@/components/TableSkeleton/TableSkeleton";
 import ProfileAvatar from "@/components/ProfileAvatar/ProfileAvatar";
 import { useAdminUserDirectory } from "@/hooks/useAdminUserDirectory";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -202,7 +201,6 @@ export default function RecentTicket({
                               : ""
                           }`}
                         >
-                          <Checkbox checked={typeFilter === type} />
                           <span>{type}</span>
                         </CommandItem>
                       ))}

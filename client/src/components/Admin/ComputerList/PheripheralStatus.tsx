@@ -12,7 +12,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 
-import { Checkbox } from "@/components/ui/checkbox";
 
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -88,7 +87,6 @@ export default function PheripheralStatus({
                             : ""
                         }`}
                       >
-                        <Checkbox checked={form[field] === status.value} />
                         <span>{status.label}</span>
                       </CommandItem>
                     ))}

@@ -1,6 +1,7 @@
 import type { ComputerCardType } from "@/types/computer"
 import { Building2, Eye, Layers3, LaptopMinimal, Plus, User, Wrench } from "lucide-react"
 import ComputerExcelActions from "@/components/ComputerExcelActions/ComputerExcelActions"
+import ComputerTransfer from "@/components/ComputerTransfer/ComputerTransfer"
 
 type ButtonGroupType = {
     roomName: string,
@@ -71,7 +72,7 @@ export default function ButtonGroup({
                     </div>
                 </div>
             </div>
-            <div className="mt-4 flex items-center justify-between gap-2.5 border-t border-gray-100 pt-4">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2.5 border-t border-gray-100 pt-4">
                 <button
                     type="button"
                     onClick={onRequestHistoryClick}
@@ -81,6 +82,7 @@ export default function ButtonGroup({
                     <Eye size={16} />
                     <span>Request History</span>
                 </button>
+                <ComputerTransfer roomId={roomId} roomName={roomName} />
                 <ComputerExcelActions
                         roomId={roomId}
                         roomName={roomName}

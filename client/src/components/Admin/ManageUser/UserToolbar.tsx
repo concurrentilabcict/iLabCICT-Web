@@ -25,7 +25,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { appToast } from "@/utils/appToast";
 import { exportTablePdf, formatPdfDate, getLocalDateStamp } from "@/utils/tabularPdf";
 
@@ -212,7 +211,6 @@ export default function UserToolbar({
                               : ""
                           }`}
                         >
-                          <Checkbox checked={selectedRole === role} />
                           <span>{role}</span>
                         </CommandItem>
                       ))}

@@ -48,8 +48,8 @@ function formatStatus(status: string) {
 function getStatusTone(status: string): PeripheralTone {
   const normalizedStatus = status.toLowerCase();
   if (normalizedStatus === "active" || normalizedStatus === "operational") return "green";
-  if (normalizedStatus === "broken" || normalizedStatus === "inactive") return "red";
-  if (normalizedStatus === "fixing" || normalizedStatus === "maintenance") return "yellow";
+  if (normalizedStatus === "unserviceable" || normalizedStatus === "inactive") return "red";
+  if (normalizedStatus === "pending" || normalizedStatus === "maintenance") return "yellow";
   return "gray";
 }
 

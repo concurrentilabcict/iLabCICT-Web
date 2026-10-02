@@ -313,7 +313,6 @@ export default function UserForm({ closeSheet, existingUsers, user }: UserFormPr
                             : ""
                         }`}
                       >
-                        <Checkbox checked={form.role === role.value} />
                         <span>{role.label}</span>
                       </CommandItem>
                     ))}

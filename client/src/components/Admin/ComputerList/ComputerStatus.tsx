@@ -12,7 +12,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 
-import { Checkbox } from "@/components/ui/checkbox";
 
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -85,7 +84,6 @@ export default function ComputerStatus({
                             : ""
                         }`}
                       >
-                        <Checkbox checked={form.computerStatus === status.value} />
                         <span>{status.label}</span>
                       </CommandItem>
                     ))}

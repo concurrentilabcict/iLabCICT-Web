@@ -31,7 +31,6 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-import { Checkbox } from "@/components/ui/checkbox";
 
 import { DatePicker } from '../DatePicker/DatePicker';
 
@@ -258,7 +257,6 @@ export default function TicketToolbar({
                                                 className={`flex items-center gap-3 rounded-2xl py-2 cursor-pointer ${selectedStatus === status ? "bg-muted data-selected:bg-muted" : ""
                                                     }`}
                                             >
-                                                <Checkbox checked={selectedStatus === status} />
                                                 <span>{status}</span>
                                             </CommandItem>
                                         ))}
@@ -306,7 +304,6 @@ export default function TicketToolbar({
                                                 className={`flex items-center gap-3 rounded-2xl py-2 cursor-pointer ${selectedType === type ? "bg-muted data-selected:bg-muted" : ""
                                                     }`}
                                             >
-                                                <Checkbox checked={selectedType === type} />
                                                 <span>{type}</span>
                                             </CommandItem>
                                         ))}

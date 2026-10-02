@@ -12,7 +12,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 
-import { Checkbox } from "@/components/ui/checkbox";
 
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -100,7 +99,6 @@ export default function DropDownOptions({
                             : ""
                         }`}
                       >
-                        <Checkbox checked={form[fieldType] === item.value} />
                         <span className="min-w-0 flex-1 truncate">{item?.label}</span>
                       </CommandItem>
                     ))}

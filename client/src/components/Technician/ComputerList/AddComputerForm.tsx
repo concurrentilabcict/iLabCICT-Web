@@ -21,9 +21,9 @@ type AddComputerProps = {
     room: number | null
 }
 
-type PeripheralStatus = "active" | "fixing" | "broken" | "none";
+type PeripheralStatus = "active" | "pending" | "unserviceable" | "none";
 
-type ComputerStatusType = "active" | "fixing" | "broken";
+type ComputerStatusType = "active" | "pending" | "unserviceable";
 
 type AddComputerForm = {
     cpu: string,
@@ -53,11 +53,11 @@ const peripheralStatusOptions: Array<{
     value: "active",
   },
   {
-    label: "Fixing",
-    value: "fixing",
+    label: "Pending",
+    value: "pending",
   },{
-    label: "Broken",
-    value: "broken",
+    label: "Unserviceable",
+    value: "unserviceable",
   },
   {
     label: "None",
@@ -74,11 +74,11 @@ const computerStatusOptions: Array<{
     value: "active",
   },
   {
-    label: "Fixing",
-    value: "fixing",
+    label: "Pending",
+    value: "pending",
   },{
-    label: "Broken",
-    value: "broken",
+    label: "Unserviceable",
+    value: "unserviceable",
   },
 ];
 
@@ -170,11 +170,11 @@ export default function AddComputerForm({
         }));
     };
 
-    const handleIncreaseQuantity = (): any => {
+    const handleIncreaseQuantity = (): void => {
         updateField("quantity", form.quantity + 1);
     }
 
-    const handleDecreaseQuantity = (): any => {
+    const handleDecreaseQuantity = (): void => {
         updateField("quantity", Math.max(0, form.quantity - 1));
     }
 

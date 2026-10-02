@@ -9,6 +9,7 @@ import {
     getFreshAccessToken,
 } from "@/lib/api";
 import { fetchRoomComputers, getComputerArchiveEvent, removeComputerTicketsFromCache } from "@/lib/roomComputers";
+import { mapComputerCard, handleComputerTransferEvent } from "@/lib/roomComputers";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 type ComputerListProps = {
@@ -64,25 +65,6 @@ const formatLabel = (text: string) => {
         .join(" ");
 };
 
-const mapComputerCard = (computerCard: ApiComputerCard): ComputerCardType => ({
-    id: computerCard.id,
-    computerCode: computerCard.computer_code,
-    room: computerCard.room,
-    operatingSystem: computerCard.operating_system,
-    gpu: computerCard.gpu,
-    cpu: computerCard.cpu,
-    ramSizeInstalled: computerCard.ram_size_installed,
-    diskSizeInstalled: computerCard.disk_size_installed,
-    buildVersion: computerCard.build_version,
-    computerStatus: computerCard.computer_status,
-    motherboard: computerCard.motherboard,
-    monitorStatus: computerCard.monitor_status,
-    mouseStatus: computerCard.mouse_status,
-    keyboardStatus: computerCard.keyboard_status,
-    upsStatus: computerCard.ups_status,
-    createdAt: computerCard.created_at,
-    updatedAt: computerCard.updated_at,
-});
 
 const upsertComputer = (
     computers: ComputerCardType[],
@@ -124,7 +106,7 @@ export default function ComputerList({
         filterKey
     });
 
-    const { data: computers = [], isLoading, isError, error, refetch } = useQuery<ComputerCardType[]>({
+    const { data: queriedComputers, isLoading, isError, error, refetch } = useQuery<ComputerCardType[]>({
         queryKey: ["computers", roomId],
         queryFn: async ()=> {
             const data = await fetchRoomComputers(roomId);
@@ -150,6 +132,7 @@ export default function ComputerList({
         retry: 1,
         retryDelay: 750,
     });
+    const computers = useMemo(() => (queriedComputers ?? []).filter((computer) => !computer.isArchived), [queriedComputers]);
 
     useEffect(() => {
         onLoadStateChange(isLoading ? "loading" : isError ? "error" : "success");
@@ -182,6 +165,8 @@ export default function ComputerList({
                 } catch {
                     return;
                 }
+
+                if (handleComputerTransferEvent(parsedMessage, queryClient, roomId)) return;
 
                 const archiveEvent = getComputerArchiveEvent(parsedMessage);
                 if (archiveEvent) {

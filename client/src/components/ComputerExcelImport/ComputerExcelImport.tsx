@@ -1,32 +1,15 @@
 import { useRef, type ChangeEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Upload } from "lucide-react";
+import { LoaderCircle, Upload } from "lucide-react";
 
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
-import { readComputerInventoryWorkbook } from "@/utils/computerExcel";
 import { appToast } from "@/utils/appToast";
+import { refreshRoomComputerCaches } from "@/lib/roomComputers";
 
 type ComputerExcelImportProps = {
   roomId: number | null;
   showLabel: boolean;
   className: string;
-};
-
-type ComputerImportPayload = {
-  room: number;
-  cpu: string;
-  gpu: string;
-  motherboard: string;
-  ram_size_installed: number;
-  disk_size_installed: number;
-  operating_system: string;
-  build_version: string;
-  monitor_status: string;
-  mouse_status: string;
-  keyboard_status: string;
-  ups_status: string;
-  computer_status: string;
-  quantity: number;
 };
 
 const hasApiStatus = (error: unknown): error is Error & { status: number } =>
@@ -63,44 +46,29 @@ export default function ComputerExcelImport({
         throw new Error("The laboratory could not be resolved.");
       }
 
-      const records = await readComputerInventoryWorkbook(file);
-      const payloads: ComputerImportPayload[] = records.map((record) => ({
-        room: roomId,
-        cpu: record.cpu,
-        gpu: record.gpu,
-        motherboard: record.motherboard,
-        ram_size_installed: record.ramSizeInstalled,
-        disk_size_installed: record.diskSizeInstalled,
-        operating_system: record.operatingSystem,
-        build_version: record.buildVersion,
-        computer_status: record.computerStatus,
-        monitor_status: record.monitorStatus,
-        mouse_status: record.mouseStatus,
-        keyboard_status: record.keyboardStatus,
-        ups_status: record.upsStatus,
-        quantity: 1,
-      }));
+      const body = new FormData();
+      body.append("file", file);
+      const response = await privateFetch(buildApiUrl(`/api/rooms/${roomId}/computers/import/`), {
+        method: "POST",
+        body,
+      });
+      const responseData: unknown = await response.json().catch(() => null);
 
-      for (const payload of payloads) {
-        const response = await privateFetch(buildApiUrl("/api/computers/"), {
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
-        const responseData: unknown = await response.json().catch(() => null);
-
-        if (!response.ok) {
-          throw createApiError(
-            response.status,
-            getResponseMessage(responseData) ?? "Failed to import computers."
-          );
-        }
+      if (!response.ok || (typeof responseData === "object" && responseData !== null &&
+        "success" in responseData && responseData.success === false)) {
+        throw createApiError(
+          response.status,
+          getResponseMessage(responseData) ?? "Failed to import computers."
+        );
       }
-
-      return payloads.length;
+      return typeof responseData === "object" && responseData !== null &&
+        "created" in responseData && typeof responseData.created === "number"
+        ? responseData.created : null;
     },
     onSuccess: (importedCount) => {
       appToast.success(
-        `${importedCount} ${importedCount === 1 ? "computer" : "computers"} imported successfully.`
+        importedCount === null ? "Computers imported successfully." :
+          `${importedCount} ${importedCount === 1 ? "computer" : "computers"} imported successfully.`
       );
     },
     onError: (error) => {
@@ -121,6 +89,9 @@ export default function ComputerExcelImport({
       }
 
       await Promise.all([
+        refreshRoomComputerCaches(queryClient, String(roomId)).catch((error: unknown) => {
+          console.error("Failed to refresh imported computers", error);
+        }),
         queryClient.invalidateQueries({
           queryKey: ["technician-room-computers", String(roomId)],
         }),
@@ -151,7 +122,7 @@ export default function ComputerExcelImport({
         className={className}
         aria-label="Import computers from Excel"
       >
-        <Upload size={16} />
+        {importMutation.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Upload size={16} />}
         {showLabel && (
           <span>{importMutation.isPending ? "Importing..." : "Import"}</span>
         )}
