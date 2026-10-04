@@ -11,7 +11,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -211,7 +210,6 @@ export default function LogToolbar({
 
             <PopoverContent align="start" className="w-60 rounded-3xl p-1">
               <Command>
-                <CommandInput placeholder="Technician" />
 
                 <CommandList>
                   <CommandEmpty>No technician found.</CommandEmpty>
@@ -258,7 +256,6 @@ export default function LogToolbar({
 
             <PopoverContent align="start" className="w-50 rounded-3xl p-1">
               <Command>
-                <CommandInput placeholder="Type" />
 
                 <CommandList>
                   <CommandEmpty>No type found.</CommandEmpty>

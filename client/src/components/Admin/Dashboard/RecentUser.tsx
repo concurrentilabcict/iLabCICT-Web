@@ -9,7 +9,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -163,7 +162,6 @@ export default function RecentUser({
 
               <PopoverContent align="end" className="w-52 rounded-3xl p-1">
                 <Command>
-                  <CommandInput placeholder="Role" />
                   <CommandList>
                     <CommandEmpty>No role found.</CommandEmpty>
                     <CommandGroup className="p-2">

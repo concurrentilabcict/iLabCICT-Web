@@ -23,7 +23,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -294,7 +293,6 @@ export default function UserForm({ closeSheet, existingUsers, user }: UserFormPr
 
             <PopoverContent align="start" className="w-60 rounded-3xl p-1">
               <Command>
-                <CommandInput placeholder="Role" />
 
                 <CommandList>
                   <CommandEmpty>No role found.</CommandEmpty>

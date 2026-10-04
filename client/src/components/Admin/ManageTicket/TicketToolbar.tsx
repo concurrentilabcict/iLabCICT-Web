@@ -15,7 +15,6 @@ import {
     Command,
     CommandEmpty,
     CommandGroup,
-    CommandInput,
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
@@ -244,7 +243,6 @@ export default function TicketToolbar({
                             className="w-50 p-1 rounded-3xl"
                         >
                             <Command>
-                                <CommandInput placeholder="Status" />
 
                                 <CommandList>
                                     <CommandEmpty>No status found.</CommandEmpty>
@@ -291,7 +289,6 @@ export default function TicketToolbar({
                             className="w-50 p-1 rounded-3xl"
                         >
                             <Command>
-                                <CommandInput placeholder="Type" />
 
                                 <CommandList>
                                     <CommandEmpty>No type found.</CommandEmpty>
