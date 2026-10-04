@@ -50,6 +50,9 @@ import { mapTicketComputer } from "@/utils/ticketComputer";
 import { getPaginationWindow } from "@/utils/pagination";
 import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
 import { appToast } from "@/utils/appToast";
+import { fetchInitialList } from "@/lib/fetchInitialList";
+import { useInitialSocketFallback } from "@/hooks/useInitialSocketFallback";
+import DataLoadNotice from "@/components/DataLoadNotice/DataLoadNotice";
 
 const ITEMS_PER_PAGE = 10;
 const ADMIN_TICKETS_QUERY_KEY = ["admin-tickets"] as const;
@@ -296,7 +299,15 @@ export default function ManageTicket() {
     staleTime: Infinity,
     gcTime: Infinity,
   });
-  const isLoading = isPending || !hasInitialTickets;
+  const ticketFallback = useInitialSocketFallback<Ticket>({
+    ready: hasInitialTickets,
+    queryKey: ADMIN_TICKETS_QUERY_KEY,
+    readyQueryKey: ADMIN_TICKETS_READY_QUERY_KEY,
+    fetchData: async (signal) =>
+      (await fetchInitialList<ApiTicket>("/api/tickets/", signal)).map(mapTicket),
+    onReady: () => setHasInitialTickets(true),
+  });
+  const isLoading = (isPending || !hasInitialTickets) && !ticketFallback.hasError;
 
   const {
     data: archivedTickets = [],
@@ -705,7 +716,7 @@ export default function ManageTicket() {
   const ticketsAreLoading =
     ticketView === "active" ? isLoading : archivedTicketsAreLoading;
   const ticketsHaveError =
-    ticketView === "active" ? isError : archivedTicketsHaveError;
+    ticketView === "active" ? isError || ticketFallback.hasError : archivedTicketsHaveError;
 
   const filteredTickets = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -862,6 +873,10 @@ export default function ManageTicket() {
         selectedDate={dateFilter}
         onDateChange={(date) => updateFilter(() => setDateFilter(date))}
       />
+
+      {ticketView === "active" && ticketFallback.hasError && (
+        <DataLoadNotice message="Tickets couldn't load. Check your connection and try again." onRetry={() => { void ticketFallback.retry(); }} isRetrying={ticketFallback.isRetrying} />
+      )}
 
       <div className="overflow-hidden rounded-2xl border border-primary-color bg-white">
         <Table>

@@ -647,7 +647,7 @@ export function findPotentialDuplicates({
   title,
   description,
   tickets,
-  threshold = 0.55,
+  threshold = 0.3,
   maxResults = 3,
 }: FindDuplicatesOptions): TicketSimilarityResult[] {
   if (!normalizeText(title) && !normalizeText(description)) return [];

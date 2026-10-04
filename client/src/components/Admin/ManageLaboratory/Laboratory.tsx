@@ -23,6 +23,9 @@ import {
 import AddRoomForm from "./AddRoomForm";
 import EditRoomForm from "./EditRoomForm";
 import { useSearchParams } from "react-router-dom";
+import { fetchInitialList } from "@/lib/fetchInitialList";
+import { useInitialSocketFallback } from "@/hooks/useInitialSocketFallback";
+import DataLoadNotice from "@/components/DataLoadNotice/DataLoadNotice";
 
 type LaboratoryProps = {
     setRooms: (rooms: Room[]) => void
@@ -181,7 +184,15 @@ export default function Laboratory({
         staleTime: Infinity,
         gcTime: Infinity,
     });
-    const isLoading = isPending || !hasInitialRooms;
+    const roomFallback = useInitialSocketFallback<Room>({
+        ready: hasInitialRooms,
+        queryKey: ROOMS_QUERY_KEY,
+        readyQueryKey: ROOMS_READY_QUERY_KEY,
+        fetchData: async (signal) =>
+            (await fetchInitialList<ApiRoom>("/api/rooms/", signal)).map(mapRoom),
+        onReady: () => setHasInitialRooms(true),
+    });
+    const isLoading = (isPending || !hasInitialRooms) && !roomFallback.hasError;
 
     useEffect(() => {
         setRooms(rooms);
@@ -324,13 +335,19 @@ export default function Laboratory({
                     <LaboratorySkeleton />
                 )}
 
-                {!isLoading && paginatedRooms.length === 0 &&(
+                {roomFallback.hasError && (
+                    <div className="col-span-full">
+                        <DataLoadNotice message="Laboratories couldn't load. Check your connection and try again." onRetry={() => { void roomFallback.retry(); }} isRetrying={roomFallback.isRetrying} />
+                    </div>
+                )}
+
+                {!isLoading && !roomFallback.hasError && paginatedRooms.length === 0 &&(
                     <p className="col-span-full py-8 text-center secondary-text-color">
                         No rooms found.
                     </p>
                 )}
 
-                {!isLoading && paginatedRooms.map((room)=> {
+                {!isLoading && !roomFallback.hasError && paginatedRooms.map((room)=> {
 
                     const status = normalizeRoomStatus(room.status)
                     const location = formatLabel(room.buildingName) + " - " + floorConverter(room.floorNumber) + ", " + room.roomName

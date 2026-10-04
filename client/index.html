@@ -5,9 +5,15 @@
     <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>client</title>
+    <style>
+      #initial-loading { min-height: 100vh; display: grid; place-items: center; background: #f8f9fb; color: #333; font: 500 15px system-ui, sans-serif; }
+      #initial-loading span { display: flex; align-items: center; gap: 12px; }
+      #initial-loading i { width: 19px; height: 19px; border: 2px solid #e7c0b5; border-top-color: #bd4e2c; border-radius: 50%; animation: initial-spin .8s linear infinite; }
+      @keyframes initial-spin { to { transform: rotate(360deg); } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div id="initial-loading" role="status"><span><i aria-hidden="true"></i>Loading iLabCICT...</span></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

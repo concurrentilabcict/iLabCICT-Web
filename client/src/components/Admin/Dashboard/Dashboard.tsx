@@ -20,6 +20,9 @@ import {
 } from "./dashboardData";
 import { buildApiUrl, buildWebSocketUrl, getFreshAccessToken, privateFetch } from "@/lib/api";
 import { fetchRoomComputers } from "@/lib/roomComputers";
+import { fetchInitialList } from "@/lib/fetchInitialList";
+import { useInitialSocketFallback } from "@/hooks/useInitialSocketFallback";
+import DataLoadNotice from "@/components/DataLoadNotice/DataLoadNotice";
 import type { User } from "@/types/manageUser";
 import type { Room } from "@/types/room";
 import type { ApiTicket, Ticket } from "@/types/ticket";
@@ -298,6 +301,22 @@ export default function Dashboard() {
         staleTime: 30_000,
         refetchInterval: 30_000,
     });
+    const ticketFallback = useInitialSocketFallback<Ticket>({
+        ready: hasInitialTickets,
+        queryKey: DASHBOARD_TICKETS_QUERY_KEY,
+        readyQueryKey: DASHBOARD_TICKETS_READY_QUERY_KEY,
+        fetchData: async (signal) =>
+            (await fetchInitialList<ApiTicket>("/api/tickets/", signal)).map(mapDashboardTicket),
+        onReady: () => setHasInitialTickets(true),
+    });
+    const roomFallback = useInitialSocketFallback<Room>({
+        ready: hasInitialRooms,
+        queryKey: DASHBOARD_ROOMS_QUERY_KEY,
+        readyQueryKey: DASHBOARD_ROOMS_READY_QUERY_KEY,
+        fetchData: async (signal) =>
+            (await fetchInitialList<ApiRoom>("/api/rooms/", signal)).map(mapDashboardRoom),
+        onReady: () => setHasInitialRooms(true),
+    });
     const roomComputerQueries = useQueries({
         queries: rooms.map((room) => ({
             queryKey: ["admin-dashboard-room-computers", room.id] as const,
@@ -325,11 +344,11 @@ export default function Dashboard() {
         })
     );
 
-    const isTicketsLoading = isTicketsPending || !hasInitialTickets;
-    const isRoomsLoading = isRoomsPending || !hasInitialRooms;
+    const isTicketsLoading = (isTicketsPending || !hasInitialTickets) && !ticketFallback.hasError;
+    const isRoomsLoading = (isRoomsPending || !hasInitialRooms) && !roomFallback.hasError;
     const isDashboardLoading =
         isTicketsLoading || isRoomsLoading || isUsersLoading;
-    const isDashboardError = isTicketsError || isRoomsError || isUsersError;
+    const isDashboardError = isTicketsError || isRoomsError || isUsersError || ticketFallback.hasError || roomFallback.hasError;
 
     useEffect(() => {
         let socket: WebSocket | null = null;
@@ -651,6 +670,12 @@ export default function Dashboard() {
 
     return(
         <div className="space-y-3 py-3">
+            {ticketFallback.hasError && (
+                <DataLoadNotice message="Tickets couldn't load. Check your connection and try again." onRetry={() => { void ticketFallback.retry(); }} isRetrying={ticketFallback.isRetrying} />
+            )}
+            {roomFallback.hasError && (
+                <DataLoadNotice message="Laboratories couldn't load. Check your connection and try again." onRetry={() => { void roomFallback.retry(); }} isRetrying={roomFallback.isRetrying} />
+            )}
             <div className="grid grid-cols-4 gap-3">
                 {summaryCards.map((card) => (
                     <SummaryCard

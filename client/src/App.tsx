@@ -1,42 +1,44 @@
-import LandingPage from "./pages/LandingPage"
-import SmoothScrolling from "./components/LandingPage/SmoothScrolling/SmoothScrolling"
-import LoginPage from "./pages/LoginPage"
-import TechnicianManageTicket from "./pages/Technician/ManageTicketPage"
+import { lazy, Suspense } from "react"
 import { Route, Routes } from "react-router-dom"
 import { ProtectedRoute, PublicRoute } from "./routes/ProtectedRoute"
-import ProfilePage from "./pages/Technician/ProfilePage"
-import NotificationPage from "./pages/Technician/NotificationPage"
-import TechnicianWeeklyReport from "./pages/Technician/WeeklyReportPage"
-import AdminWeeklyReport from "./pages/Admin/WeeklyReportPage"
-import AdminAuditLogs from "./pages/Admin/AuditLogsPage"
 import { Toaster } from "react-hot-toast";
-import QrScannerPage from "./pages/Technician/QrScannerPage"
-import ProcessTicket from "./components/Technician/ManageTicket/ProcessTicket"
-import ChatbotPage from "./pages/Technician/ChatBotPage"
-import TechnicianRepairLog from "./pages/Technician/RepairLogPage"
-import LaboratoryPage from "./pages/Technician/LaboratoryPage"
-import ComputerListPage from "./pages/Technician/ComputerListPage"
-import ComputerInformationPage from "./pages/Technician/ComputerInformationPage"
-import AdminManageTicket from "./pages/Admin/ManageTicketPage"
-import AdminRepairLog from "./pages/Admin/RepairLogPage"
-import UnauthorizedPage from "./pages/UnauthorizedPage"
 import { useAuth } from "./auth/useAuth"
-import ManageUserPage from "./pages/Admin/ManageUserPage"
-import DashboardPage from "./pages/Admin/DashboardPage"
-import FacultyNotificationPage from "./pages/Faculty/NotificationPage"
-import FacultyQrScannerPage from "./pages/Faculty/QrScannerPage"
-import FacultyManageTicket from "./pages/Faculty/ManageTicketPage"
-import FacultyFaqPage from "./pages/Faculty/FaqPage"
-import CreateTicketPage from "./pages/Faculty/CreateTicketPage"
-import FacultyManageLaboratoryPage from "./pages/Faculty/ManageLaboratoryPage"
-import FacultyComputerListPage from "./pages/Faculty/ComputerListPage"
-import FacultyComputerInformationPage from "./pages/Faculty/ComputerInformationPage"
-import AdminManageLaboratoryPage from "./pages/Admin/ManageLaboratoryPage"
-import AdminComputerInformationPage from "./pages/Admin/ComputerInformationPage"
-import AdminComputerListPage from "./pages/Admin/ComputerListPage"
-import ForgotPasswordPage from "./pages/ForgotPasswordPage"
-import ResetPasswordPage from "./pages/ResetPasswordPage"
-import NotFound from "./components/NotFound/NotFound"
+
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const SmoothScrolling = lazy(() => import("./components/LandingPage/SmoothScrolling/SmoothScrolling"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const TechnicianManageTicket = lazy(() => import("./pages/Technician/ManageTicketPage"));
+const ProfilePage = lazy(() => import("./pages/Technician/ProfilePage"));
+const NotificationPage = lazy(() => import("./pages/Technician/NotificationPage"));
+const TechnicianWeeklyReport = lazy(() => import("./pages/Technician/WeeklyReportPage"));
+const AdminWeeklyReport = lazy(() => import("./pages/Admin/WeeklyReportPage"));
+const AdminAuditLogs = lazy(() => import("./pages/Admin/AuditLogsPage"));
+const QrScannerPage = lazy(() => import("./pages/Technician/QrScannerPage"));
+const ProcessTicket = lazy(() => import("./components/Technician/ManageTicket/ProcessTicket"));
+const ChatbotPage = lazy(() => import("./pages/Technician/ChatBotPage"));
+const TechnicianRepairLog = lazy(() => import("./pages/Technician/RepairLogPage"));
+const LaboratoryPage = lazy(() => import("./pages/Technician/LaboratoryPage"));
+const ComputerListPage = lazy(() => import("./pages/Technician/ComputerListPage"));
+const ComputerInformationPage = lazy(() => import("./pages/Technician/ComputerInformationPage"));
+const AdminManageTicket = lazy(() => import("./pages/Admin/ManageTicketPage"));
+const AdminRepairLog = lazy(() => import("./pages/Admin/RepairLogPage"));
+const UnauthorizedPage = lazy(() => import("./pages/UnauthorizedPage"));
+const ManageUserPage = lazy(() => import("./pages/Admin/ManageUserPage"));
+const DashboardPage = lazy(() => import("./pages/Admin/DashboardPage"));
+const FacultyNotificationPage = lazy(() => import("./pages/Faculty/NotificationPage"));
+const FacultyQrScannerPage = lazy(() => import("./pages/Faculty/QrScannerPage"));
+const FacultyManageTicket = lazy(() => import("./pages/Faculty/ManageTicketPage"));
+const FacultyFaqPage = lazy(() => import("./pages/Faculty/FaqPage"));
+const CreateTicketPage = lazy(() => import("./pages/Faculty/CreateTicketPage"));
+const FacultyManageLaboratoryPage = lazy(() => import("./pages/Faculty/ManageLaboratoryPage"));
+const FacultyComputerListPage = lazy(() => import("./pages/Faculty/ComputerListPage"));
+const FacultyComputerInformationPage = lazy(() => import("./pages/Faculty/ComputerInformationPage"));
+const AdminManageLaboratoryPage = lazy(() => import("./pages/Admin/ManageLaboratoryPage"));
+const AdminComputerInformationPage = lazy(() => import("./pages/Admin/ComputerInformationPage"));
+const AdminComputerListPage = lazy(() => import("./pages/Admin/ComputerListPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const NotFound = lazy(() => import("./components/NotFound/NotFound"));
 
 const allRoles = ["technician", "admin", "faculty"] as const;
 const adminOnly = ["admin"] as const;
@@ -52,6 +54,7 @@ function App() {
   return (
     <>
       <Toaster position="top-center" gutter={10} />
+      <Suspense fallback={<div id="initial-loading" role="status"><span><i aria-hidden="true" />Loading iLabCICT...</span></div>}>
       <Routes>
         <Route path="/" element={<PublicRoute><SmoothScrolling>
           <LandingPage /></SmoothScrolling></PublicRoute>} />
@@ -124,6 +127,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
 
       </Routes>
+      </Suspense>
     </>
   )
 }
