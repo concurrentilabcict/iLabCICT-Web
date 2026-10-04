@@ -15,6 +15,8 @@ export type Room = {
 export type Computer = {
     id: number;
     computerCode: string;
+    computerNumber?: string | number | null;
+    room?: Room;
 }
 
 export type Ticket = {
@@ -57,6 +59,8 @@ export type ApiTicketRoom = {
 export type ApiTicketComputer = {
     id: number;
     computer_code: string;
+    computer_number?: string | number | null;
+    room?: ApiTicketRoom;
 }
 
 /** Raw ticket shape returned by GET /api/tickets/. */

@@ -2,6 +2,7 @@ import type { ComputerCardType } from "@/types/computer"
 import { Building2, Eye, Layers3, LaptopMinimal, Plus, User, Wrench } from "lucide-react"
 import ComputerExcelActions from "@/components/ComputerExcelActions/ComputerExcelActions"
 import ComputerTransfer from "@/components/ComputerTransfer/ComputerTransfer"
+import ComputerQrExport from "@/components/ComputerQrExport/ComputerQrExport"
 
 type ButtonGroupType = {
     roomName: string,
@@ -83,6 +84,7 @@ export default function ButtonGroup({
                     <span>Request History</span>
                 </button>
                 <ComputerTransfer roomId={roomId} roomName={roomName} />
+                <ComputerQrExport computers={computers} roomName={roomName} />
                 <ComputerExcelActions
                         roomId={roomId}
                         roomName={roomName}

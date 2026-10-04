@@ -1,5 +1,6 @@
 import { SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { Ticket } from "@/types/ticket";
+import TicketComputerLocation from "@/components/TicketComputerLocation/TicketComputerLocation";
 import {
   Building2,
   CalendarDays,
@@ -57,6 +58,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
 	        <DetailRow icon={User} label="Reported by" value={`${ticket.reportedBy.firstName} ${ticket.reportedBy.lastName}`} />
 	        <DetailRow icon={Wrench} label="Assigned to" value={`${ticket.assignedTo?.firstName} ${ticket.assignedTo?.lastName}`.trim() || "Unassigned"} />
 	        <DetailRow icon={Monitor} label="Computer" value={ticket.computer?.computerCode || "No computer"} />
+	        <TicketComputerLocation ticket={ticket} />
 	        <DetailRow icon={Building2} label="Room" value={`${capitalize(ticket.room.buildingName)}, ${ticket.room.roomName}`} />
 	        <DetailRow icon={CalendarDays} label="Date" value={formatDateTime(ticket.createdAt)} />
 	      </div>

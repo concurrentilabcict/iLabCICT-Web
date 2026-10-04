@@ -9,6 +9,7 @@ import {
 } from "@/lib/api";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ApiTicket, Ticket } from "@/types/ticket";
+import { mapTicketComputer } from "@/utils/ticketComputer";
 import type { Status, StatusFilter, TicketType, TicketTypeFilter } from "@/utils/ticket";
 import ManageTicketCard from "./ManageTicketCard";
 import type { FacultyTicketView } from "./Filter";
@@ -100,10 +101,7 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
     buildingName: ticket.room.building_name,
     floorNumber: ticket.room.floor_number,
   },
-  computer: ticket.computer ? {
-    id: ticket.computer.id,
-    computerCode: ticket.computer.computer_code,
-  } : { id: 0, computerCode: "Not specified" },
+  computer: ticket.computer ? mapTicketComputer(ticket.computer) : { id: 0, computerCode: "Not specified" },
   type: ticket.type,
   title: ticket.title,
   complaintDescription: ticket.complaint_description,
@@ -394,6 +392,7 @@ export default function ManageTicket({ ticketView, onTicketViewChange, statusFil
           ticket.reportedBy.firstName, ticket.reportedBy.lastName,
           ticket.assignedTo?.firstName, ticket.assignedTo?.lastName,
           ticket.room.buildingName, ticket.room.roomName, ticket.computer?.computerCode,
+          ticket.computer?.computerNumber, ticket.computer?.room?.roomName,
           status, type,
         ].join(" ").toLowerCase();
 

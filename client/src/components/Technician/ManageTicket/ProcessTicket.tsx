@@ -35,6 +35,8 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/api";
 import type { ApiComputerCard, ComputerCardType } from "@/types/computer";
 import type { ApiTicket, Ticket } from "@/types/ticket";
+import { mapTicketComputer } from "@/utils/ticketComputer";
+import TicketComputerLocation from "@/components/TicketComputerLocation/TicketComputerLocation";
 import { capitalize, formatDateTime } from "@/utils/string";
 import {
     statusConfig,
@@ -93,10 +95,7 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
         buildingName: ticket.room.building_name,
         floorNumber: ticket.room.floor_number,
     },
-    computer: ticket.computer ? {
-        id: ticket.computer.id,
-        computerCode: ticket.computer.computer_code,
-    } : { id: 0, computerCode: "Not specified" },
+    computer: ticket.computer ? mapTicketComputer(ticket.computer) : { id: 0, computerCode: "Not specified" },
     type: ticket.type,
     title: ticket.title,
     complaintDescription: ticket.complaint_description,
@@ -335,6 +334,7 @@ export default function ProcessTicket() {
 
                                 <div className="space-y-3 text-sm">
                                     <InfoRow label="Computer" value={ticket.computer?.computerCode || "Not Specified"} />
+                                    <TicketComputerLocation ticket={ticket} />
                                     <InfoRow label="Room" value={`${capitalize(ticket.room.buildingName)}, ${ticket.room.roomName}`} />
                                     <InfoRow label="Floor" value={`Floor ${ticket.room.floorNumber}`} />
                                 </div>

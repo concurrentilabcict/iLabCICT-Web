@@ -46,6 +46,7 @@ import {
   type ApiError,
 } from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
+import { mapTicketComputer } from "@/utils/ticketComputer";
 import { getPaginationWindow } from "@/utils/pagination";
 import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
 import { appToast } from "@/utils/appToast";
@@ -152,10 +153,7 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
     buildingName: ticket.room.building_name,
     floorNumber: ticket.room.floor_number,
   },
-  computer: {
-    id: ticket.computer?.id ?? 0,
-    computerCode: ticket.computer?.computer_code ?? "N/A",
-  },
+  computer: ticket.computer ? mapTicketComputer(ticket.computer) : null,
   type: ticket.type,
   title: ticket.title,
   complaintDescription: ticket.complaint_description,
@@ -726,6 +724,9 @@ export default function ManageTicket() {
       const created = formatDate(ticket.createdAt);
       const searchableText = [
         ticket.ticketCode,
+        ticket.computer?.computerCode,
+        ticket.computer?.computerNumber,
+        ticket.computer?.room?.roomName,
         faculty,
         technician,
         type,

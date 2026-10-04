@@ -10,6 +10,7 @@ import {
     privateFetch,
 } from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
+import { mapTicketComputer } from "@/utils/ticketComputer";
 
 import {
     Sheet,
@@ -130,10 +131,7 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
         floorNumber: ticket.room.floor_number,
     },
     computer: ticket.computer
-        ? {
-            id: ticket.computer.id,
-            computerCode: ticket.computer.computer_code,
-        }
+        ? mapTicketComputer(ticket.computer)
         : { id: 0, computerCode: "Not specified" },
     type: ticket.type,
     title: ticket.title,
@@ -446,6 +444,8 @@ export default function ManageTicket({
                     ticket.room.buildingName,
                     ticket.room.roomName,
                     ticket.computer?.computerCode,
+                    ticket.computer?.computerNumber,
+                    ticket.computer?.room?.roomName,
                     status,
                     type,
                 ]

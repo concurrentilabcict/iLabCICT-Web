@@ -89,7 +89,7 @@ export const createComputerQrDataUrl = async (value: string, size = 500) => {
     return canvas.toDataURL("image/png");
 };
 
-export const downloadComputerQrPng = async ({
+export const createComputerQrPng = async ({
     computerCode,
     computerNumber,
     roomName,
@@ -132,11 +132,21 @@ export const downloadComputerQrPng = async ({
         context.fillText(computerCode, 500, 925);
     }
 
-    const downloadLink = document.createElement("a");
+    const blob = await new Promise<Blob>((resolve, reject) => {
+        exportCanvas.toBlob((result) => result ? resolve(result) : reject(new Error("Failed to create the QR image.")), "image/png");
+    });
     const fileLabel = number ? `${number}-${computerCode}` : computerCode;
-    downloadLink.download = `${fileLabel.replace(/[^a-z0-9_-]+/gi, "-")}-QR.png`;
-    downloadLink.href = exportCanvas.toDataURL("image/png");
+    return { blob, filename: `${fileLabel.replace(/[^a-z0-9_-]+/gi, "-")}-QR.png` };
+};
+
+export const downloadComputerQrPng = async (options: DownloadComputerQrOptions) => {
+    const { blob, filename } = await createComputerQrPng(options);
+    const url = URL.createObjectURL(blob);
+    const downloadLink = document.createElement("a");
+    downloadLink.download = filename;
+    downloadLink.href = url;
     document.body.appendChild(downloadLink);
     downloadLink.click();
     downloadLink.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 };

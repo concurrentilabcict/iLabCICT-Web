@@ -23,6 +23,7 @@ import WeeklyReportDetails from "./WeeklyReportDetails";
 import WeeklyReportSchedule from "./WeeklyReportSchedule";
 import WeeklyReportTable from "./WeeklyReportTable";
 import TemplateUploadDialog from "./TemplateUploadDialog/TemplateUploadDialog";
+import AssignmentReport from "@/components/Admin/AssignmentReport/AssignmentReport";
 import {
   exportReportToPdf,
   formatDate,
@@ -125,14 +126,15 @@ export default function WeeklyReport() {
   return (
     <>
       <div className="mt-5 flex w-full flex-col gap-4 p-3">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
             <p className="text-sm secondary-text-color">
               {filteredReports.length} report
               {filteredReports.length === 1 ? "" : "s"} found
             </p>
             <WeeklyReportSchedule />
             <TemplateUploadDialog />
+            <AssignmentReport />
           </div>
 
           <div className="relative w-full md:w-[320px]">

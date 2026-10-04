@@ -2,6 +2,7 @@ import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import type { User } from "@/types/manageUser";
 import type { Room } from "@/types/room";
 import type { ApiTicket, Ticket } from "@/types/ticket";
+import { mapTicketComputer } from "@/utils/ticketComputer";
 
 export type ApiRoom = {
   id: number;
@@ -73,10 +74,7 @@ export const mapDashboardTicket = (ticket: ApiTicket): Ticket => ({
     buildingName: ticket.room.building_name,
     floorNumber: ticket.room.floor_number,
   },
-  computer: {
-    id: ticket.computer?.id ?? 0,
-    computerCode: ticket.computer?.computer_code ?? "N/A",
-  },
+  computer: ticket.computer ? mapTicketComputer(ticket.computer) : null,
   type: ticket.type,
   title: ticket.title,
   complaintDescription: ticket.complaint_description,

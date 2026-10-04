@@ -8,6 +8,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import type { Ticket } from "@/types/ticket";
+import TicketComputerLocation from "@/components/TicketComputerLocation/TicketComputerLocation";
 import { Building2, Monitor, Layers2, User, CalendarDays, ImageOff, UserCheck } from "lucide-react";
 import { statusConfig, type Status } from "@/utils/ticket";
 import { capitalize, formatDateTime } from "@/utils/string";
@@ -152,6 +153,7 @@ export default function TicketDetails({
           </div>
           <p>{ticket.computer?.computerCode || "No Computer"}</p>
         </div>
+        <TicketComputerLocation ticket={ticket} />
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-x-1.5 font-medium secondary-text-color">

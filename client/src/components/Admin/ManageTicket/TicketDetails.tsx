@@ -5,6 +5,7 @@ import {
 } from "@/components/ui/sheet";
 
 import type { Ticket } from "@/types/ticket";
+import TicketComputerLocation from "@/components/TicketComputerLocation/TicketComputerLocation";
 import { capitalize, formatDateTime } from "@/utils/string";
 import { statusConfig, type Status } from "@/utils/ticket";
 import {
@@ -102,6 +103,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
           </div>
           <span>{ticket.computer?.computerCode || "No computer"}</span>
         </div>
+        <TicketComputerLocation ticket={ticket} />
 
         <div className="flex items-center justify-between gap-4">
           <div className="secondary-text-color flex items-center gap-x-1.5 font-medium">
