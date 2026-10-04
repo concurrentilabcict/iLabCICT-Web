@@ -499,8 +499,7 @@ export default function ManageTicket({
 
     return (
         <>
-            <div className={`flex items-center w-full flex-col gap-3 px-3 py-3
-            sm:grid sm:grid-cols-2 mb-3`}>
+            <div className="mb-3 flex w-full flex-col gap-3 px-3 py-3">
                 {isLoading && (
                     <ManageTicketSkeleton />
                 )}

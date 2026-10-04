@@ -440,7 +440,7 @@ export default function ManageTicket({ ticketView, onTicketViewChange, statusFil
 
   return (
     <>
-      <div className="flex w-full flex-col gap-3 px-3 pt-3 pb-10 sm:grid sm:grid-cols-2">
+      <div className="flex w-full flex-col gap-3 px-3 pt-3 pb-10">
         {(ticketView === "Archived" ? archivedTicketsAreLoading : isLoading) && <ManageTicketSkeleton />}
         {ticketView === "Archived" && archivedTicketsHaveError && (
           <div className="col-span-full flex flex-col items-center gap-2 py-8 text-center text-red-600">

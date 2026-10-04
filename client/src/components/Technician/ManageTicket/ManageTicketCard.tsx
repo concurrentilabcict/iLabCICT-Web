@@ -99,7 +99,15 @@ export default function ManageTicketCard({
   return (
     <article
       onClick={onClick}
-      className="group flex h-full min-h-[430px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] md:max-w-[550px]"
+      tabIndex={0}
+      aria-label={`View ticket ${ticketCode}: ${title}`}
+      onKeyDown={(event) => {
+        if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          onClick?.();
+        }
+      }}
+      className="group flex w-full cursor-pointer flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 text-left transition hover:border-gray-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     >
       <div className="flex items-center justify-between gap-3">
         <div
@@ -122,22 +130,22 @@ export default function ManageTicketCard({
           {title}
         </h1>
 
-        <p className="mt-1.5 line-clamp-2 min-h-10 text-sm font-medium leading-relaxed text-zinc-500">
+        <p className="mt-1.5 line-clamp-2 text-sm font-medium leading-relaxed text-zinc-500">
           {complaintDescription}
         </p>
       </div>
 
+      <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-5">
       {shouldShowComputer && (
         <InfoTile
           icon={Monitor}
           label="Affected Computer"
           value={computerCode || "Not Specified"}
-          className="bg-[#fbf2f0]"
-          iconClassName="bg-[#f7ded8] text-[#bf3419]"
+          iconClassName="text-[#bf3419]"
         />
       )}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="contents">
         <InfoTile icon={User} label="Reported By" value={reportedBy} compact />
         <InfoTile
           icon={Building2}
@@ -147,21 +155,20 @@ export default function ManageTicketCard({
         />
       </div>
 
-      <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+      <div className="contents">
         <InfoTile
           icon={Building2}
           label="Building"
           value={buildingName}
           compact
-          className="rounded-none border-r border-gray-200 bg-white shadow-none"
         />
         <InfoTile
           icon={Monitor}
           label="Floor"
           value={String(floorNumber)}
           compact
-          className="rounded-none bg-white shadow-none"
         />
+      </div>
       </div>
 
       {isAssignedToAnother && (
@@ -170,11 +177,10 @@ export default function ManageTicketCard({
           label="Assigned Technician"
           value={assignedTechnician}
           compact
-          className="bg-white p-0 shadow-none"
         />
       )}
 
-      <div className="mt-auto h-px w-full bg-gray-100" />
+      <div className="h-px w-full bg-gray-100" />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-zinc-400">
@@ -247,21 +253,21 @@ function InfoTile({
 }: InfoTileProps) {
   return (
     <div
-      className={`flex min-w-0 items-center gap-2.5 rounded-2xl bg-zinc-50 p-3 shadow-sm shadow-black/[0.01] ${
-        compact ? "py-2.5" : ""
+      className={`flex min-w-0 items-center gap-2 ${
+        compact ? "py-1" : "py-1.5"
       } ${className}`}
     >
       <div
-        className={`flex size-8 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-400 ${iconClassName}`}
+        className={`flex size-5 shrink-0 items-center justify-center text-zinc-400 ${iconClassName}`}
       >
         <Icon size={16} />
       </div>
 
       <div className="min-w-0">
-        <p className="text-[0.65rem] font-bold uppercase tracking-[0.12em] text-zinc-400">
+        <p className="text-xs font-medium text-zinc-400">
           {label}
         </p>
-        <p className="mt-0.5 truncate text-sm font-bold text-zinc-800">
+        <p className="mt-0.5 break-words text-sm font-medium text-zinc-800">
           {value}
         </p>
       </div>
