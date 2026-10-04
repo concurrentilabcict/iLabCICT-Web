@@ -58,6 +58,8 @@ export type ApiRelatedTicket = {
   title: string;
   complaint_description: string;
   status: string;
+  is_archived?: boolean;
+  type?: TicketType;
   reported_by?: ApiRelatedTicketUser | null;
   assigned_to?: ApiRelatedTicketUser | null;
   created_at?: string;

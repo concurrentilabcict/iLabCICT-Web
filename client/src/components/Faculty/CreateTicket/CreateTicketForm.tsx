@@ -1,13 +1,16 @@
-import { useState, type FormEvent } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef, useState, type FormEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { appToast } from "@/utils/appToast";
 
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 import { fetchComputerByCode } from "@/lib/computers";
+import { fetchDuplicateTicketCandidates, getComputerRelatedTickets, scopeDuplicateTickets } from "@/lib/ticketDuplicates";
+import { findPotentialDuplicates, type TicketSimilarityResult } from "@/utils/ticketSimilarity";
+import DuplicateTicketDialog from "./DuplicateTicketDialog/DuplicateTicketDialog";
 import { getComputerCodeFromQrValue } from "@/utils/qrComputer";
 import { Spinner } from "@/components/ui/spinner";
-import type { ApiComputer, ApiRelatedTicket, ApiRoom, ScannerState, TicketType } from "@/types/createTicket";
+import type { ApiComputer, ApiRoom, ScannerState, TicketType } from "@/types/createTicket";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,17 +49,13 @@ function normalizeApiList<T>(data: unknown): T[] {
   return [];
 }
 
-function getRelatedTickets(computer?: ApiComputer): ApiRelatedTicket[] {
-  if (!computer) return [];
-
-  const tickets =
-    computer.assigned_tickets ??
-    computer.pending_tickets ??
-    computer.related_tickets ??
-    computer.tickets ??
-    [];
-
-  return tickets.filter((ticket) => ticket.status !== "resolved");
+interface TicketPayload {
+  type: TicketType;
+  title: string;
+  complaint_description: string;
+  status: "open";
+  room: number;
+  computer: number | null;
 }
 
 export default function CreateTicketForm() {
@@ -75,7 +74,11 @@ export default function CreateTicketForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
+  const [duplicateMatches, setDuplicateMatches] = useState<TicketSimilarityResult[]>([]);
+  const [pendingTicket, setPendingTicket] = useState<TicketPayload | null>(null);
+  const checkLock = useRef(false);
+  const submitLock = useRef(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isRelatedTicketsOpen, setIsRelatedTicketsOpen] = useState(false);
 
@@ -120,9 +123,9 @@ export default function CreateTicketForm() {
   });
 
   const selectedPeripheralStatus = selectedComputerDetails ? getPeripheralStatuses(selectedComputerDetails) : [];
-  const relatedTickets = getRelatedTickets(selectedComputerDetails);
+  const relatedTickets = getComputerRelatedTickets(selectedComputerDetails);
   const relatedTicketsCount =
-    selectedComputerDetails?.assigned_tickets?.filter((ticket) => ticket.status !== "resolved").length ??
+    (selectedComputerDetails?.assigned_tickets ? relatedTickets.length : undefined) ??
     selectedComputerDetails?.pending_tickets_count ??
     selectedComputerDetails?.related_tickets_count ??
     relatedTickets.length;
@@ -148,8 +151,32 @@ export default function CreateTicketForm() {
     setIsRelatedTicketsOpen(false);
   };
 
-  const handleSubmitRequest = (event: FormEvent<HTMLFormElement>) => {
+  const submitTicket = useMutation({
+    mutationFn: async (payload: TicketPayload) => {
+      const response = await privateFetch(buildApiUrl("/api/tickets/"), {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) throw createApiError(response.status, data.detail || data.message || "Failed to submit ticket.");
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      await queryClient.invalidateQueries({ queryKey: ["computer", activeComputerCode] });
+      setIsConfirmOpen(false);
+      setDuplicateMatches([]);
+      setPendingTicket(null);
+      appToast.success("Ticket submitted successfully.");
+      navigate("/manage-ticket", { replace: true });
+    },
+    onError: () => appToast.error("We couldn't submit the ticket. Please try again."),
+    onSettled: () => { submitLock.current = false; },
+  });
+  const isSubmitting = submitTicket.isPending;
+
+  const handleSubmitRequest = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (checkLock.current || submitLock.current || isConfirmOpen || duplicateMatches.length > 0) return;
     if (isScannedReport && !selectedComputerId) {
       appToast.warning("The scanned computer must finish loading before you submit the report.");
       return;
@@ -160,36 +187,53 @@ export default function CreateTicketForm() {
       return;
     }
 
-    setIsConfirmOpen(true);
+    const payload: TicketPayload = {
+      type, title: title.trim(), complaint_description: description.trim(),
+      status: "open", room: Number(effectiveRoomId), computer: isReport ? selectedComputerId : null,
+    };
+    checkLock.current = true;
+    setIsCheckingDuplicates(true);
+    try {
+      let candidates;
+      if (isReport && payload.computer !== null && activeComputerCode) {
+        const computer = await queryClient.fetchQuery({
+          queryKey: ["computer", activeComputerCode],
+          queryFn: () => fetchComputerByCode(activeComputerCode),
+          staleTime: 0,
+        });
+        const hasRelatedData = [computer.assigned_tickets, computer.pending_tickets, computer.related_tickets, computer.tickets].some(Array.isArray);
+        candidates = hasRelatedData ? getComputerRelatedTickets(computer).map((ticket) => ({
+          ...ticket, type: ticket.type ?? "report", computerId: computer.id, roomId: computer.room.id,
+        })) : await fetchDuplicateTicketCandidates();
+      } else {
+        candidates = await queryClient.fetchQuery({
+          queryKey: ["ticket-duplicate-candidates"],
+          queryFn: fetchDuplicateTicketCandidates,
+          staleTime: 0,
+        });
+      }
+      const matches = findPotentialDuplicates({
+        title: payload.title,
+        description: payload.complaint_description,
+        tickets: scopeDuplicateTickets(candidates, {
+          type: payload.type, roomId: payload.room, computerId: payload.computer,
+        }),
+      });
+      setPendingTicket(payload);
+      setDuplicateMatches(matches);
+      setIsConfirmOpen(matches.length === 0);
+    } catch {
+      appToast.error("We couldn't check existing tickets. Please try submitting again.");
+    } finally {
+      checkLock.current = false;
+      setIsCheckingDuplicates(false);
+    }
   };
 
-  const handleSubmitTicket = async () => {
-    setIsSubmitting(true);
-    try {
-      const payload = {
-        type,
-        title: title.trim(),
-        complaint_description: description.trim(),
-        status: "open",
-        room: Number(effectiveRoomId),
-        computer: type === "report" ? selectedComputerId : null,
-      };
-
-      const response = await privateFetch(buildApiUrl("/api/tickets/"), {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
-      if (!response.ok) throw createApiError(response.status, data.message || "Failed to submit ticket.");
-      await queryClient.invalidateQueries({ queryKey: ["tickets"] });
-      setIsConfirmOpen(false);
-      appToast.success("Ticket submitted successfully.");
-      navigate("/manage-ticket", { replace: true });
-    } catch {
-      appToast.error("We couldn't submit the ticket. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSubmitTicket = () => {
+    if (!pendingTicket || submitLock.current || checkLock.current) return;
+    submitLock.current = true;
+    submitTicket.mutate(pendingTicket);
   };
 
   const ticketTitle = type === "report" ? "Create a Report Ticket" : "Create a Request Ticket";
@@ -234,6 +278,7 @@ export default function CreateTicketForm() {
 
   return (
     <form onSubmit={handleSubmitRequest} className="mx-auto w-full max-w-[760px] space-y-5 px-5 py-6 md:px-6 md:py-7">
+      <fieldset disabled={isSubmitting || isCheckingDuplicates} className="min-w-0 space-y-5">
       <section className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight text-zinc-950">{ticketTitle}</h1>
         <p className="text-sm font-medium leading-relaxed text-zinc-500">{ticketSubtitle}</p>
@@ -305,11 +350,20 @@ export default function CreateTicketForm() {
 
       <ImageUploadField image={image} onImageChange={setImage} />
 
-      <button type="submit" disabled={isSubmitting} className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl primary-bg-color text-sm font-semibold text-white shadow-[0_4px_14px_rgba(15,23,42,0.08)] transition disabled:cursor-not-allowed disabled:bg-primary/35">
-        {isSubmitting ? <><Spinner className="size-5" /> Submitting...</> : type === "report" ? "Submit report" : "Submit request"}
+      <button type="submit" disabled={isSubmitting || isCheckingDuplicates} className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl primary-bg-color text-sm font-semibold text-white shadow-[0_4px_14px_rgba(15,23,42,0.08)] transition disabled:cursor-not-allowed disabled:bg-primary/35">
+        {isCheckingDuplicates ? <><Spinner className="size-5" /> Checking existing tickets...</> : isSubmitting ? <><Spinner className="size-5" /> Submitting...</> : type === "report" ? "Submit report" : "Submit request"}
       </button>
+      </fieldset>
 
-      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+      <DuplicateTicketDialog open={duplicateMatches.length > 0} matches={duplicateMatches} isSubmitting={isSubmitting}
+        onOpenChange={(open) => { if (!open) { setDuplicateMatches([]); setPendingTicket(null); } }}
+        onSubmitAnyway={handleSubmitTicket} />
+
+      <AlertDialog open={isConfirmOpen} onOpenChange={(open) => {
+        if (isSubmitting) return;
+        setIsConfirmOpen(open);
+        if (!open) setPendingTicket(null);
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Submit ticket?</AlertDialogTitle>
@@ -319,7 +373,7 @@ export default function CreateTicketForm() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSubmitTicket} disabled={isSubmitting}>
+            <AlertDialogAction onClick={(event) => { event.preventDefault(); handleSubmitTicket(); }} disabled={isSubmitting}>
               {isSubmitting ? "Submitting..." : "Submit"}
             </AlertDialogAction>
           </AlertDialogFooter>
