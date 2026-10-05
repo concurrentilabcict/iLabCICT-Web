@@ -1,4 +1,3 @@
-import "@/styles/system.css"
 import ForgotPasswordForm from "@/components/ForgotPasswordForm/ForgotPasswordForm";
 import { useEffect } from "react";
 

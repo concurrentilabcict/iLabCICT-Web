@@ -1,5 +1,4 @@
 import LoginForm from "@/components/LoginForm/LoginForm";
-import "@/styles/system.css"
 import Logo from "@/assets/logo.png";
 import {
     Bell,

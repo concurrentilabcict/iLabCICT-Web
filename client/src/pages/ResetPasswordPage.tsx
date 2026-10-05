@@ -1,5 +1,4 @@
 import ResetPasswordForm from "@/components/ResetPasswordForm/ResetPasswordForm";
-import "@/styles/system.css"
 import { useEffect } from "react";
 
 export default function ResetPasswordPage() {
