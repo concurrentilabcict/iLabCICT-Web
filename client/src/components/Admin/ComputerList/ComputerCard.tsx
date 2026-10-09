@@ -63,7 +63,7 @@ export default function ComputerCard({
     };
 
     return(
-        <article className="group flex h-full min-h-[300px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 md:max-w-[550px]">
+        <article className="group flex w-full cursor-pointer flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-gray-300">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
                         <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
@@ -79,7 +79,7 @@ export default function ComputerCard({
                     </div>                    
                 </div>
 
-                <div className="grid gap-3">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-flow-col lg:auto-cols-fr lg:grid-cols-none">
                     {computer.computerNumber !== null && computer.computerNumber !== undefined && String(computer.computerNumber).trim() !== "" && (
                         <InfoTile icon={Hash} label="Computer No." value={String(computer.computerNumber)} highlight />
                     )}
@@ -90,11 +90,11 @@ export default function ComputerCard({
 
                 <div className="mt-auto h-px w-full bg-gray-100" />
 
-                <div className="flex w-full gap-2">
+                <div className="flex w-full gap-2 sm:justify-end">
                     <button
                         onClick={()=>navigate(`/manage-laboratory/${room}/${computer.computerCode}`)}
                         type="button"
-                        className="flex h-9 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white"
+                        className="flex h-9 min-w-0 flex-1 items-center sm:flex-none justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white"
                         >
                         <HardDrive className="size-[17px] shrink-0" />
                         <span className="truncate">View Specifications</span>

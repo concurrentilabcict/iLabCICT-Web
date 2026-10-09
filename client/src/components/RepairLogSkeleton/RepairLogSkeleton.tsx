@@ -10,7 +10,7 @@ export default function RepairLogSkeleton({
   return Array.from({ length: count }, (_, index) => (
     <div
       key={index}
-      className="flex h-full min-h-[330px] w-full max-w-[600px] flex-col gap-3 rounded-3xl bg-white p-5 shadow-[0_16px_38px_rgba(15,23,42,0.08)] md:max-w-[550px]"
+      className="flex w-full flex-col gap-3 rounded-3xl bg-white p-5 shadow-[0_16px_38px_rgba(15,23,42,0.08)]"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1 space-y-3">

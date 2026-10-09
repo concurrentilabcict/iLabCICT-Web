@@ -52,7 +52,7 @@ export default function RoomCard({
                     state: { roomName: room.roomName },
                 })
             }
-            className="group flex h-full min-h-[360px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 md:max-w-[550px]"
+            className="group flex w-full cursor-pointer flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-gray-300"
         >
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
@@ -74,7 +74,7 @@ export default function RoomCard({
                     <InfoTile icon={TriangleAlert} label="Active Issues" value={String(room.activeIssuesCount)} />
                 </div>
 
-                <div className="grid gap-3">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <InfoTile icon={Building2} label="Building" value={room.buildingName} />
                     <InfoTile icon={Layers3} label="Floor" value={floorLabel} />
                     <InfoTile icon={User} label="Custodian" value={assignedCustodian} />
@@ -83,7 +83,7 @@ export default function RoomCard({
 
                 <div className="mt-auto h-px w-full bg-gray-100" />
 
-                <div className="flex w-full gap-2">
+                <div className="flex w-full gap-2 sm:justify-end">
                     <button
                         onClick={(event) => {
                             event.stopPropagation();
@@ -92,7 +92,7 @@ export default function RoomCard({
                             });
                         }}
                         type="button"
-                        className="flex h-9 flex-1 shrink-0 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white"
+                        className="flex h-9 flex-1 shrink-0 items-center sm:flex-none justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white"
                         >
                         <LaptopMinimal size={17}/> View Computers
                     </button>

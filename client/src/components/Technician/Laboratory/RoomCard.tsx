@@ -32,7 +32,7 @@ export default function RoomCard({
                     state: { roomName: room.roomName },
                 })
             }
-            className="group flex h-full min-h-[360px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] md:max-w-[550px]"
+            className="group flex w-full cursor-pointer flex-col gap-3 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)]"
         >
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
@@ -54,7 +54,7 @@ export default function RoomCard({
                     <InfoTile icon={TriangleAlert} label="Active Issues" value={String(room.activeIssuesCount)} />
                 </div>
 
-                <div className="grid gap-3">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <InfoTile icon={Building2} label="Building" value={room.buildingName} />
                     <InfoTile icon={Layers3} label="Floor" value={floorLabel} />
                     <InfoTile icon={User} label="Custodian" value={assignedCustodian} />
@@ -71,7 +71,7 @@ export default function RoomCard({
                         });
                     }}
                     type="button"
-                    className="flex h-9 w-full shrink-0 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20"
+                    className="flex h-9 w-full shrink-0 items-center sm:w-auto sm:self-end justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20"
                 >
                     <LaptopMinimal size={17} /> View Computers
                 </button>

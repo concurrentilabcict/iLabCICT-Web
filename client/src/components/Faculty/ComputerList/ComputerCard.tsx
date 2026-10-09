@@ -24,7 +24,7 @@ export default function ComputerCard({computer}: CompCardType){
     const {room} = useParams()
     const navigate = useNavigate()
     return(
-             <article className="group flex h-full min-h-[300px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-2xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] md:max-w-[550px]">
+             <article className="group flex w-full cursor-pointer flex-col gap-3 rounded-2xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)]">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
                         <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
@@ -40,7 +40,7 @@ export default function ComputerCard({computer}: CompCardType){
                     </div>                    
                 </div>
 
-                <div className="grid gap-3">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-flow-col lg:auto-cols-fr lg:grid-cols-none">
                     <InfoTile icon={Cpu} label="CPU" value={computer.cpu} />
                     <InfoTile icon={HardDrive} label="GPU" value={computer.gpu} />
                     <InfoTile icon={MemoryStick} label="Memory" value={`${computer.ramSizeInstalled}GB RAM`} />
@@ -48,11 +48,11 @@ export default function ComputerCard({computer}: CompCardType){
 
                 <div className="mt-auto h-px w-full bg-gray-100" />
 
-                <div className="flex w-full gap-2">
+                <div className="flex w-full gap-2 sm:justify-end">
                     <button
                         onClick={()=>navigate(`/manage-laboratory/${room}/${computer.computerCode}`)}
                         type="button"
-                        className="flex h-9 flex-1 shrink-0 items-center justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20"
+                        className="flex h-9 flex-1 shrink-0 items-center sm:flex-none justify-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20"
                         >
                         <HardDrive size={17}/> View Specifications
                     </button>

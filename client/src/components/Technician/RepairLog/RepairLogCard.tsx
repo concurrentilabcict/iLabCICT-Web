@@ -32,7 +32,7 @@ export default function RepairLogCard({
     return (
         <article
             onClick={onClick}
-            className="flex h-full min-h-[330px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-3xl bg-white p-5 shadow-[0_16px_38px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_46px_rgba(15,23,42,0.12)] md:max-w-[550px]"
+            className="flex w-full cursor-pointer flex-col gap-3 rounded-3xl bg-white p-5 shadow-[0_16px_38px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_46px_rgba(15,23,42,0.12)]"
         >
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">

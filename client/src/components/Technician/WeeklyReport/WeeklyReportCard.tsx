@@ -32,7 +32,7 @@ export default function WeeklyReportCard({
         <button
             type="button"
             onClick={onClick}
-            className="group flex h-full min-h-[430px] w-full max-w-[600px] cursor-pointer flex-col gap-3 rounded-3xl border border-white bg-white p-4 text-left shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:max-w-[550px]"
+            className="group flex w-full cursor-pointer flex-col gap-3 rounded-3xl border border-white bg-white p-4 text-left shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
             <div className="flex items-center justify-between gap-3">
                 <div className="inline-flex items-center gap-2 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-red-600">
@@ -64,25 +64,27 @@ export default function WeeklyReportCard({
                 </p>
             </div>
 
-            <InfoTile
-                icon={User}
-                label="Technician"
-                value={report.technicianName}
-            />
+            <div className="grid gap-3 lg:grid-cols-2">
+                <InfoTile
+                    icon={User}
+                    label="Technician"
+                    value={report.technicianName}
+                />
 
-            <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                <InfoTile
-                    icon={ClipboardList}
-                    label="Repair Logs"
-                    value={String(totalRepairLogs)}
-                    className="rounded-none border-r border-gray-200 bg-white shadow-none"
-                />
-                <InfoTile
-                    icon={CalendarDays}
-                    label="Created"
-                    value={formatDate(report.createdAt)}
-                    className="rounded-none bg-white shadow-none"
-                />
+                <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                    <InfoTile
+                        icon={ClipboardList}
+                        label="Repair Logs"
+                        value={String(totalRepairLogs)}
+                        className="rounded-none border-r border-gray-200 bg-white shadow-none"
+                    />
+                    <InfoTile
+                        icon={CalendarDays}
+                        label="Created"
+                        value={formatDate(report.createdAt)}
+                        className="rounded-none bg-white shadow-none"
+                    />
+                </div>
             </div>
 
             <div className="mt-auto h-px w-full bg-gray-100" />

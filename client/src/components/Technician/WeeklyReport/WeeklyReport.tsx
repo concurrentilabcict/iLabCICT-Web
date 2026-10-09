@@ -380,7 +380,7 @@ export default function WeeklyReport() {
                     </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-4">
                     {isLoading && (
                         <WeeklyReportSkeleton />
                     )}
