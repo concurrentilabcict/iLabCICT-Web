@@ -15,12 +15,12 @@ type ResponsivePaginationProps = {
     className?: string;
 };
 
-type MobilePageItem = number | "start-ellipsis" | "end-ellipsis";
+type PageItem = number | "start-ellipsis" | "end-ellipsis";
 
-const getMobilePageItems = (
+const getPageItems = (
     currentPage: number,
     totalPages: number
-): MobilePageItem[] => {
+): PageItem[] => {
     if (totalPages <= 5) {
         return Array.from({ length: totalPages }, (_, index) => index + 1);
     }
@@ -56,8 +56,7 @@ export default function ResponsivePagination({
 
     const previousDisabled = currentPage <= 1;
     const nextDisabled = currentPage >= totalPages;
-    const mobilePageItems = getMobilePageItems(currentPage, totalPages);
-    const allPages = Array.from({ length: totalPages }, (_, index) => index + 1);
+    const pageItems = getPageItems(currentPage, totalPages);
 
     const pageLink = (page: number) => (
         <PaginationItem key={page}>
@@ -112,9 +111,9 @@ export default function ResponsivePagination({
 
     return (
         <Pagination className={className}>
-            <PaginationContent className="max-w-full md:hidden">
+            <PaginationContent className="max-w-full">
                 {previous}
-                {mobilePageItems.map((item) =>
+                {pageItems.map((item) =>
                     typeof item === "number" ? (
                         pageLink(item)
                     ) : (
@@ -123,12 +122,6 @@ export default function ResponsivePagination({
                         </PaginationItem>
                     )
                 )}
-                {next}
-            </PaginationContent>
-
-            <PaginationContent className="hidden md:flex">
-                {previous}
-                {allPages.map(pageLink)}
                 {next}
             </PaginationContent>
         </Pagination>

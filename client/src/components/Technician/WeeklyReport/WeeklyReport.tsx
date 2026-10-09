@@ -2,14 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText, Search, X } from "lucide-react";
 
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
+import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
@@ -408,28 +401,12 @@ export default function WeeklyReport() {
                 </div>
 
                 {totalPages > 1 && (
-                    <Pagination className={`flex ${isMobile ? "justify-center" : "justify-end"}`}>
-                        <PaginationContent>
-                            <PaginationItem>
-                                <PaginationPrevious onClick={() => goToPage(currentPage - 1)} />
-                            </PaginationItem>
-
-                            {Array.from({ length: totalPages }, (_, index) => (
-                                <PaginationItem key={index + 1}>
-                                    <PaginationLink
-                                        isActive={currentPage === index + 1}
-                                        onClick={() => goToPage(index + 1)}
-                                    >
-                                        {index + 1}
-                                    </PaginationLink>
-                                </PaginationItem>
-                            ))}
-
-                            <PaginationItem>
-                                <PaginationNext onClick={() => goToPage(currentPage + 1)} />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
+                    <ResponsivePagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={goToPage}
+                        className={isMobile ? "justify-center" : "justify-end"}
+                    />
                 )}
             </div>
 
