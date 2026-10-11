@@ -17,7 +17,7 @@ type TabularPdfExportOptions = {
   letterhead?: { header: string; footer: string };
 };
 
-const escapeHtml = (value: string) =>
+export const escapeHtml = (value: string) =>
   value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -79,7 +79,7 @@ const buildColumnWidths = (headers: string[], widths: number[]) => {
     .join("")}</colgroup>`;
 };
 
-const openPrintTarget = () => {
+export const openPrintTarget = () => {
   const printWindow = window.open("", "_blank");
 
   if (printWindow) {

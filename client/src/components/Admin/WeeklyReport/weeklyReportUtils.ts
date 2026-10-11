@@ -140,7 +140,7 @@ const isPrintableTemplate = (value: unknown): value is ApiPrintableTemplate =>
   "updated_at" in value &&
   typeof value.updated_at === "string";
 
-const fetchWeeklyReportTemplate = async () => {
+export const fetchWeeklyReportTemplate = async () => {
   for (const [index, templateName] of weeklyReportTemplateNames.entries()) {
     const response = await privateFetch(
       buildApiUrl(`/api/templates/${encodeURIComponent(templateName)}/`)
@@ -656,7 +656,7 @@ const buildPrintableReport = (
   `;
 };
 
-const printWhenAssetsAreReady = (
+export const printWhenAssetsAreReady = (
   targetWindow: Window,
   onAfterPrint?: () => void,
   onAssetError?: () => void

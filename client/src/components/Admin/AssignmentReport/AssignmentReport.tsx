@@ -16,6 +16,16 @@ const months = Array.from({ length: 12 }, (_, index) => ({
   label: new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date(2000, index, 1)),
 }));
 
+const getErrorMessage = (data: unknown) => {
+  if (typeof data !== "object" || data === null) return null;
+  const messages = Object.entries(data).flatMap(([field, value]) => {
+    const text = Array.isArray(value) ? value.filter((item) => typeof item === "string").join(" ") : value;
+    if (typeof text !== "string" || text === "") return [];
+    return ["detail", "message", "error"].includes(field) ? [text] : [`${field}: ${text}`];
+  });
+  return messages.length > 0 ? messages.join(" ") : null;
+};
+
 export default function AssignmentReport() {
   const [open, setOpen] = useState(false);
   const [technicianId, setTechnicianId] = useState("");
@@ -31,22 +41,24 @@ export default function AssignmentReport() {
     queryKey: ["admin-assignment-report", technicianId, month],
     enabled: open && technicianId !== "",
     queryFn: async ({ signal }): Promise<AssignmentReportData> => {
-      const params = new URLSearchParams({ technician_id: technicianId, month_date: String(month) });
-      const response = await privateFetch(buildApiUrl(`/api/reports/assignment/?${params}`), { signal });
-      const data: unknown = await response.json();
+      const response = await privateFetch(buildApiUrl("/api/reports/assignment/"), {
+        method: "POST",
+        body: JSON.stringify({ technician_id: Number(technicianId), month_date: month }),
+        signal,
+      });
+      const data: unknown = await response.json().catch(() => null);
       if (!response.ok) {
-        const detail = typeof data === "object" && data !== null && "detail" in data && typeof data.detail === "string" ? data.detail : "Failed to load assignments.";
-        throw createApiError(response.status, detail);
+        throw createApiError(response.status, getErrorMessage(data) ?? `Failed to load assignments (error ${response.status}).`);
       }
       if (!isAssignmentReport(data)) throw new Error("Invalid assignment report response.");
       return data;
     },
   });
   const entries = reportQuery.data ? getCompletedAssignments(reportQuery.data) : [];
-  const exportReport = () => {
+  const exportReport = async () => {
     if (!reportQuery.data || reportQuery.isFetching) return;
     try {
-      exportAssignmentReport(reportQuery.data, month);
+      await exportAssignmentReport(reportQuery.data, month);
     } catch (error) {
       appToast.error(error instanceof Error ? error.message : "Failed to export the assignment form.");
     }
@@ -92,7 +104,7 @@ export default function AssignmentReport() {
           </Table>
         </div>}
       <div className="flex justify-end border-t pt-3">
-        <Button onClick={exportReport} disabled={entries.length === 0 || reportQuery.isFetching || reportQuery.isError} className="primary-bg-color text-white"><Download size={16} />Export PDF</Button>
+        <Button onClick={() => void exportReport()} disabled={entries.length === 0 || reportQuery.isFetching || reportQuery.isError} className="primary-bg-color text-white"><Download size={16} />Export PDF</Button>
       </div>
     </DialogContent>
   </Dialog>;
