@@ -19,7 +19,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import ResponsivePagination from "@/components/ResponsivePagination/ResponsivePagination";
 import ArchiveTicketDialog from "@/components/Admin/ManageTicket/ArchiveTicketDialog/ArchiveTicketDialog";
 import { appToast } from "@/utils/appToast";
-import { CircleX, RotateCcw } from "lucide-react";
+import { CircleX, Send } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
 type ManageTicketProps = {
@@ -522,9 +522,9 @@ export default function ManageTicket({ ticketView, onTicketViewChange, statusFil
         isPending={unarchiveTicketMutation.isPending}
         title="Resubmit Ticket?"
         actionLabel="Resubmit"
-        actionIcon={RotateCcw}
+        actionIcon={Send}
         pendingLabel="Resubmitting..."
-        description="This ticket and its related history will return to the active ticket list."
+        description="Are you sure you want to resubmit this ticket? It will be restored from the archive and become active again."
       />
     </>
   );

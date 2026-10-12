@@ -944,7 +944,7 @@ export default function ManageTicket() {
                         handleTicketClick(ticket);
                       }
                     }}
-                    className="cursor-pointer hover:bg-muted/50"
+                    className={`cursor-pointer hover:bg-muted/50 ${ticketView === "archived" ? "bg-zinc-100 text-zinc-500" : ""}`}
                   >
                     <TableCell className="font-medium">
                       {ticket.ticketCode}

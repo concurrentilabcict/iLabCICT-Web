@@ -7,13 +7,14 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Header from "@/components/Header/Header";
 import MobileHeader from "@/components/Header/MobileHeader";
 import RequestHistory from "@/components/RequestHistory/RequestHistory";
+import CreateRequestForm from "@/components/Faculty/CreateTicket/CreateRequestForm/CreateRequestForm";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { StatusFilter } from "@/utils/computer";
 import { useLocation, useParams } from "react-router-dom";
-import { Building2, Eye, Layers3, LaptopMinimal, User, Wrench, type LucideIcon } from "lucide-react";
+import { Building2, Eye, Layers3, LaptopMinimal, Plus, User, Wrench, type LucideIcon } from "lucide-react";
 import type { ComputerCardType } from "@/types/computer";
 import type { Room } from "@/types/room";
 import { useQueryClient } from "@tanstack/react-query";
@@ -38,6 +39,7 @@ export default function FacultyComputerListPage(){
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
     const [requestHistoryOpen, setRequestHistoryOpen] = useState(false);
+    const [createRequestOpen, setCreateRequestOpen] = useState(false);
     const [roomDatabaseId, setRoomDatabaseId] = useState<number | null>(null);
     const [loadState, setLoadState] = useState<"loading" | "success" | "error">("loading");
   
@@ -109,7 +111,7 @@ export default function FacultyComputerListPage(){
                                         <RoomDetail icon={User} label="Custodian" value={custodian || "No Assigned"} />
                                         <RoomDetail icon={Wrench} label="Technician" value={roomMeta.technicianName || "No Assigned"} />
                                     </div>
-                                    <div className="mt-4 border-t border-gray-100 pt-4">
+                                    <div className="mt-4 flex flex-wrap gap-2.5 border-t border-gray-100 pt-4">
                                         <button
                                             type="button"
                                             onClick={() => setRequestHistoryOpen(true)}
@@ -118,6 +120,15 @@ export default function FacultyComputerListPage(){
                                         >
                                             <Eye size={16} />
                                             Request History
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setCreateRequestOpen(true)}
+                                            disabled={!roomDatabaseId}
+                                            className="flex h-9 items-center gap-1.5 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                            <Plus size={16} />
+                                            Create Request
                                         </button>
                                     </div>
                                 </div>
@@ -143,6 +154,17 @@ export default function FacultyComputerListPage(){
                                         className={isMobile ? "data-[side=bottom]:h-[90dvh] overflow-hidden p-0" : "w-[520px]! overflow-hidden p-0"}
                                     >
                                         <RequestHistory roomId={roomDatabaseId} />
+                                    </SheetContent>
+                                </Sheet>
+                                <Sheet
+                                    open={createRequestOpen}
+                                    onOpenChange={setCreateRequestOpen}
+                                >
+                                    <SheetContent
+                                        side={isMobile ? "bottom" : "right"}
+                                        className={isMobile ? "data-[side=bottom]:h-[90dvh] overflow-y-auto bg-[#f8fafc] p-0" : "w-[520px]! overflow-y-auto bg-[#f8fafc] p-0"}
+                                    >
+                                        {roomDatabaseId && <CreateRequestForm roomId={roomDatabaseId} />}
                                     </SheetContent>
                                 </Sheet>
                             </div>

@@ -38,8 +38,8 @@ export default function ComputerCard({
     const {room} = useParams()
     const navigate = useNavigate()
     return(
-        <article className="group flex w-full cursor-pointer flex-col gap-3 rounded-3xl border border-white bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)]">
-                <div className="flex items-start justify-between gap-3">
+        <article className={`group flex w-full cursor-pointer flex-col gap-3 rounded-3xl border ${computer.isArchived ? "border-zinc-200 bg-zinc-100" : "border-white bg-white"} p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)]`}>
+                <div className={`flex items-start justify-between gap-3 ${computer.isArchived ? "opacity-60" : ""}`}>
                     <div className="flex min-w-0 items-center gap-3">
                         <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
                             <LaptopMinimal size={18} />
@@ -54,7 +54,7 @@ export default function ComputerCard({
                     </div>                    
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-flow-col lg:auto-cols-fr lg:grid-cols-none">
+                <div className={`grid gap-3 sm:grid-cols-2 lg:grid-flow-col lg:auto-cols-fr lg:grid-cols-none ${computer.isArchived ? "opacity-60" : ""}`}>
                     {computer.computerNumber !== null && computer.computerNumber !== undefined && String(computer.computerNumber).trim() !== "" && (
                         <InfoTile icon={Hash} label="Computer No." value={String(computer.computerNumber)} highlight />
                     )}

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ApiComputer, ApiRoom, TicketType } from "@/types/createTicket";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 
 export function Field({ label, className = "", children }: { label: string; className?: string; children: ReactNode }) {
   return (
@@ -157,5 +158,61 @@ export function ImageUploadField({ image, onImageChange }: { image: File | null;
         </button>
       )}
     </div>
+  );
+}
+
+export function TicketDetailsFields({
+  type,
+  title,
+  description,
+  onTitleChange,
+  onDescriptionChange,
+}: {
+  type: TicketType;
+  title: string;
+  description: string;
+  onTitleChange: (title: string) => void;
+  onDescriptionChange: (description: string) => void;
+}) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <Field label="Title" className="md:col-span-2">
+        <input
+          required
+          value={title}
+          onChange={(event) => onTitleChange(event.target.value)}
+          placeholder={type === "report" ? "e.g., PC automatically restarts" : "e.g., Aircon not working"}
+          className="h-12 w-full rounded-xl bg-white px-4 text-sm font-medium text-zinc-950 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none placeholder:text-zinc-300 focus:ring-2 focus:ring-primary/30"
+        />
+      </Field>
+
+      <Field label="Description" className="md:col-span-2">
+        <textarea
+          required
+          value={description}
+          onChange={(event) => onDescriptionChange(event.target.value)}
+          maxLength={500}
+          placeholder={type === "report" ? "Describe the issue you are experiencing..." : "Describe what you are requesting..."}
+          className="min-h-36 w-full resize-y rounded-xl bg-white p-4 text-sm font-medium text-zinc-950 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none placeholder:text-zinc-300 focus:ring-2 focus:ring-primary/30"
+        />
+        <span className="mt-1 block text-right text-xs font-medium text-zinc-400">{description.length}/500</span>
+      </Field>
+    </div>
+  );
+}
+
+export function SubmitTicketButton({
+  type,
+  isCheckingDuplicates,
+  isSubmitting,
+}: {
+  type: TicketType;
+  isCheckingDuplicates: boolean;
+  isSubmitting: boolean;
+}) {
+  return (
+    <button type="submit" disabled={isSubmitting || isCheckingDuplicates} className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl primary-bg-color text-sm font-semibold text-white shadow-[0_4px_14px_rgba(15,23,42,0.08)] transition disabled:cursor-not-allowed disabled:bg-primary/35">
+      {isCheckingDuplicates ? <><Spinner className="size-5" /> Checking existing tickets...</> : isSubmitting ? <><Spinner className="size-5" /> Submitting...</> : type === "report" ? "Submit report" : "Submit request"}
+    </button>
   );
 }

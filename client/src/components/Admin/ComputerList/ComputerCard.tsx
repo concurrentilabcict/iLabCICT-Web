@@ -63,8 +63,8 @@ export default function ComputerCard({
     };
 
     return(
-        <article className="group flex w-full cursor-pointer flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-gray-300">
-                <div className="flex items-start justify-between gap-3">
+        <article className={`group flex w-full cursor-pointer flex-col gap-3 rounded-2xl border ${computer.isArchived ? "border-zinc-200 bg-zinc-100" : "border-gray-200 bg-white"} p-4 transition hover:border-gray-300`}>
+                <div className={`flex items-start justify-between gap-3 ${computer.isArchived ? "opacity-60" : ""}`}>
                     <div className="flex min-w-0 items-center gap-3">
                         <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
                             <LaptopMinimal size={18} />
@@ -79,7 +79,7 @@ export default function ComputerCard({
                     </div>                    
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-flow-col lg:auto-cols-fr lg:grid-cols-none">
+                <div className={`grid gap-3 sm:grid-cols-2 lg:grid-flow-col lg:auto-cols-fr lg:grid-cols-none ${computer.isArchived ? "opacity-60" : ""}`}>
                     {computer.computerNumber !== null && computer.computerNumber !== undefined && String(computer.computerNumber).trim() !== "" && (
                         <InfoTile icon={Hash} label="Computer No." value={String(computer.computerNumber)} highlight />
                     )}

@@ -9,7 +9,7 @@ import {
   Clock3,
   Layers3,
   Monitor,
-  RotateCcw,
+  Send,
   User,
   Wrench,
   type LucideIcon,
@@ -81,6 +81,8 @@ export default function ManageTicketCard({
     type === "Report"
       ? "bg-red-50 text-red-600"
       : "bg-emerald-50 text-emerald-700";
+  const isArchived = status === "Archived";
+  const mutedClassName = isArchived ? "opacity-60" : "";
 
   return (
     <article
@@ -93,32 +95,42 @@ export default function ManageTicketCard({
           onClick?.();
         }
       }}
-      className="group flex w-full cursor-pointer flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 text-left transition hover:border-gray-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className={`group flex w-full cursor-pointer flex-col gap-3 rounded-lg border p-4 text-left transition hover:border-gray-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isArchived ? "border-zinc-200 bg-zinc-100" : "border-gray-200 bg-white"}`}
     >
       <div className="flex items-center justify-between gap-3">
         <div
-          className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${typeClassName}`}
+          className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${typeClassName} ${mutedClassName}`}
         >
           <TypeIcon size={14} />
           <span>{type}</span>
         </div>
 
-        <div
-          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold ${currentStatus.className}`}
-        >
-          <StatusIcon className="shrink-0" size={14} />
-          <span>{status === "Archived" ? "Canceled" : status}</span>
+        <div className="flex items-center gap-2">
+          <div
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold ${currentStatus.className} ${mutedClassName}`}
+          >
+            <StatusIcon className="shrink-0" size={14} />
+            <span>{isArchived ? "Canceled" : status}</span>
+          </div>
+
+          {onResubmit && (
+            <button type="button" disabled={isResubmitting}
+              onClick={(event) => { event.stopPropagation(); onResubmit(); }}
+              className="flex h-9 items-center gap-2 rounded-xl primary-bg-color px-3.5 text-sm font-semibold text-white shadow-md shadow-[#bf3419]/20 disabled:opacity-50">
+              <Send size={16} /> Resubmit
+            </button>
+          )}
         </div>
       </div>
 
-      <div>
+      <div className={mutedClassName}>
         <h2 className="text-lg font-bold leading-snug text-zinc-950">{title}</h2>
         <p className="mt-1.5 line-clamp-2 text-sm font-medium leading-relaxed text-zinc-500">
           {complaintDescription}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-5">
+      <div className={`grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-5 ${mutedClassName}`}>
       <InfoTile
         icon={Monitor}
         label="Affected Computer"
@@ -163,15 +175,7 @@ export default function ManageTicketCard({
         </button>
       )}
 
-      {onResubmit && (
-        <button type="button" disabled={isResubmitting}
-          onClick={(event) => { event.stopPropagation(); onResubmit(); }}
-          className="flex w-fit items-center gap-2 self-end rounded-lg px-3 py-1.5 text-sm font-medium primary-text-color hover:bg-red-50 disabled:opacity-50">
-          <RotateCcw size={16} /> Resubmit
-        </button>
-      )}
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${mutedClassName}`}>
         <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-zinc-400">
           <CalendarDays size={17} className="shrink-0" />
           <span className="truncate">{formatDateTime(date)}</span>
