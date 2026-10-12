@@ -26,7 +26,7 @@ export default class AppErrorBoundary extends Component<Props, State> {
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-5 rounded-lg bg-primary-color px-5 py-2.5 font-medium text-white"
+            className="mt-5 rounded-lg primary-bg-color px-5 py-2.5 font-medium text-white"
           >
             Reload page
           </button>
