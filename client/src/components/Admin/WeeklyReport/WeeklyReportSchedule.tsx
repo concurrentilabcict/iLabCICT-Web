@@ -12,12 +12,14 @@ import {
 } from "@/components/ui/popover";
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
 
+type ReportFrequency = "weekly" | "monthly";
+
 type ApiReportScheduler = {
   id: number;
   type: "report";
   enabled: boolean;
-  frequency: "weekly";
-  weekday: number;
+  frequency: ReportFrequency;
+  weekday: number | null;
   execution_time: string;
   next_execution: string;
   last_execution: string | null;
@@ -51,9 +53,15 @@ const weekdayOptions = [
   { label: "Sa", value: 5, name: "Saturday" },
 ] as const;
 
+const frequencyOptions: Array<{ label: string; value: ReportFrequency }> = [
+  { label: "Weekly", value: "weekly" },
+  { label: "Monthly", value: "monthly" },
+];
+
 export default function WeeklyReportSchedule() {
   const queryClient = useQueryClient();
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [frequency, setFrequency] = useState<ReportFrequency>("weekly");
   const [weekday, setWeekday] = useState<number>();
   const [startTime, setStartTime] = useState("22:00:00");
 
@@ -79,21 +87,27 @@ export default function WeeklyReportSchedule() {
       return;
     }
 
-    setWeekday(scheduler.weekday);
+    setFrequency(scheduler.frequency);
+    setWeekday(scheduler.weekday ?? undefined);
     setStartTime(getTimeValue(scheduler.execution_time));
   }, [scheduler]);
 
+  const isWeekly = frequency === "weekly";
+
   const updateSchedulerMutation = useMutation({
     mutationFn: async () => {
-      if (weekday === undefined) {
+      if (isWeekly && weekday === undefined) {
         throw createApiError(400, "Please select a schedule day.");
       }
 
       const response = await privateFetch(buildApiUrl(REPORT_SCHEDULER_ENDPOINT), {
         method: "PATCH",
         body: JSON.stringify({
-          weekday,
+          type: "report",
+          frequency,
           execution_time: startTime,
+          weekday: isWeekly ? weekday : null,
+          enabled: scheduler?.enabled ?? true,
         }),
       });
       const data = await response.json();
@@ -123,8 +137,9 @@ export default function WeeklyReportSchedule() {
   const selectedWeekday = weekdayOptions.find(
     (weekdayOption) => weekdayOption.value === weekday
   );
-  const scheduleLabel = selectedWeekday
-    ? `${selectedWeekday.name} at ${formatTimeLabel(startTime)}`
+  const scheduleDayLabel = isWeekly ? selectedWeekday?.name : "Monthly";
+  const scheduleLabel = scheduleDayLabel
+    ? `${scheduleDayLabel} at ${formatTimeLabel(startTime)}`
     : "Schedule report";
 
   return (
@@ -146,6 +161,26 @@ export default function WeeklyReportSchedule() {
       </PopoverTrigger>
 
       <PopoverContent align="start" className="w-auto overflow-hidden rounded-2xl p-0">
+        <div className="grid grid-cols-2 gap-1 border-b p-3">
+          {frequencyOptions.map((frequencyOption) => (
+            <button
+              key={frequencyOption.value}
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => setFrequency(frequencyOption.value)}
+              aria-pressed={frequency === frequencyOption.value}
+              className={`h-9 rounded-lg text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                frequency === frequencyOption.value
+                  ? "bg-[#bf3419] text-white"
+                  : "text-foreground hover:bg-muted"
+              }`}
+            >
+              {frequencyOption.label}
+            </button>
+          ))}
+        </div>
+
+        {isWeekly ? (
         <div className="grid grid-cols-7 gap-1 p-3">
           {weekdayOptions.map((weekdayOption) => (
             <button
@@ -164,6 +199,11 @@ export default function WeeklyReportSchedule() {
             </button>
           ))}
         </div>
+        ) : (
+          <p className="w-[300px] p-3 text-sm text-muted-foreground">
+            Monthly reports run on the 1st of every month.
+          </p>
+        )}
 
         <div className="border-t bg-card p-3">
           <label
@@ -193,7 +233,7 @@ export default function WeeklyReportSchedule() {
 
           <Button
             type="button"
-            disabled={weekday === undefined || isSubmitting}
+            disabled={(isWeekly && weekday === undefined) || isSubmitting}
             onClick={() => updateSchedulerMutation.mutate()}
             className="mt-3 h-9 w-full rounded-xl"
           >

@@ -75,6 +75,10 @@ const floorNumberOptions: Array<{
         label: "3rd Floor",
         value: 3
     },
+    {
+        label: "4th Floor",
+        value: 4
+    },
 ]
 
 const buildingNamesOptions: Array<{

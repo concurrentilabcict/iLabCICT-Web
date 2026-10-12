@@ -39,7 +39,7 @@ const isBuildingName = (value: string): value is BuildingNames =>
   buildingNames.some((buildingName) => buildingName === value);
 
 const isFloorNumber = (value: number): value is FloorNumber =>
-  value === 1 || value === 2 || value === 3;
+  value === 1 || value === 2 || value === 3 || value === 4;
 
 const isRoomStatus = (value: string): value is RoomStatus =>
   roomStatuses.some((roomStatus) => roomStatus === value);
@@ -96,7 +96,7 @@ const createPayload = (
   }
 
   if (!isFloorNumber(floorNumber)) {
-    throw new Error(`Row ${rowNumber}: Floor Number must be 1, 2, or 3.`);
+    throw new Error(`Row ${rowNumber}: Floor Number must be 1, 2, 3, or 4.`);
   }
 
   if (!isBuildingName(buildingName)) {

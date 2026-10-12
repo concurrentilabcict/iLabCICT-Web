@@ -5,7 +5,7 @@ type FilterProps = {
     selectedFloor: FloorFilter;
     onFloorChange: (floor: FloorFilter) => void;
 }
-const floorOptions: FloorFilter[] = ["All", 1, 2, 3]
+const floorOptions: FloorFilter[] = ["All", 1, 2, 3, 4]
 
 
 export default function Filter({

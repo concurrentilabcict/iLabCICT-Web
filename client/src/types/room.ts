@@ -56,7 +56,7 @@ export type BuildingNames = "pimentel" | "law" | "acad";
 
 export type RoomStatus = "operational" | "maintenance" | "degraded" | "out_of_service";
 
-export type FloorNumber = 1 | 2 | 3;
+export type FloorNumber = 1 | 2 | 3 | 4;
 
 export type RoomForm = {
     roomName: string,

@@ -67,6 +67,8 @@ const floorConverter = (floor: number) => {
         return "1st Floor";
     }else if(floor === 2){
         return "2nd Floor";
+    }else if(floor === 4){
+        return "4th Floor";
     }else{
         return "3rd Floor";
     }

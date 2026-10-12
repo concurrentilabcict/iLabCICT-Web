@@ -43,7 +43,8 @@ export const statusConfig = {
 export const floorConfig: Record<Floor, string> = {
     1:"1st Floor",
     2:"2nd Floor",
-    3: "3rd Floor"
+    3: "3rd Floor",
+    4: "4th Floor"
 }
 
 export type Status = 
@@ -61,7 +62,7 @@ export const normalizeRoomStatus = (status: string): Status => {
     return statusLookup[normalizedStatus] ?? "Unknown";
 };
 
-export type Floor = 1 | 2 | 3 
+export type Floor = 1 | 2 | 3 | 4
    
 export type StatusFilter = "All" | Status 
 
