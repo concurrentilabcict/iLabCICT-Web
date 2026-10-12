@@ -14,11 +14,12 @@ import { buildApiUrl, createApiError, privateFetch, type ApiError } from "@/lib/
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { appToast } from "@/utils/appToast";
 import DropDownOptions from "./DropDownOptions";
-import type { RoomForm, BuildingNames, RoomStatus, FloorNumber } from "@/types/room";
+import type { Room, RoomForm, BuildingNames, RoomStatus, FloorNumber } from "@/types/room";
 import { normalizeRoomStatus } from "@/utils/room";
 
 type AddRoomProps = { 
     closeSheet: () => void;
+    rooms: Room[];
 }
 
 
@@ -97,6 +98,7 @@ const roomStatusOptions: Array<{
 
 export default function AddRoomForm({
     closeSheet,
+    rooms,
 }: AddRoomProps){
     
     
@@ -139,10 +141,16 @@ export default function AddRoomForm({
         }
     })
 
-    const custodianOptions = custodians.map((user) => ({
-        label: `${user.firstName} ${user.lastName}`,
-        value: user.id,
-    }));
+    const assignedCustodianIds = new Set(
+        rooms.flatMap((room) => room.assignedCustodian ? [room.assignedCustodian.id] : [])
+    );
+
+    const custodianOptions = custodians
+        .filter((user) => !assignedCustodianIds.has(user.id))
+        .map((user) => ({
+            label: `${user.firstName} ${user.lastName}`,
+            value: user.id,
+        }));
 
     const roomTechnicianOptions = technicians.map((user) => ({
         label: `${user.firstName} ${user.lastName}`,
@@ -204,6 +212,9 @@ export default function AddRoomForm({
         onSuccess: async () => {
             await queryClient.invalidateQueries({
                 queryKey: ["add-rooms"]
+            });
+            await queryClient.invalidateQueries({
+                queryKey: ["custodian"]
             });
 
             appToast.success("Room added successfully.");

@@ -2,7 +2,8 @@
 import { 
     CheckCircle2,
     Wrench,
-    CircleX
+    CircleX,
+    CircleHelp
  } from "lucide-react"
 
 
@@ -39,6 +40,17 @@ export const peripheralStatusConfig = {
 
 export type Status = 
     keyof typeof statusConfig
+
+const unknownStatusData = {
+    icon: CircleHelp,
+    className: "bg-gray-100 text-gray-600",
+}
+
+const isStatus = (status: string): status is Status =>
+    Object.hasOwn(statusConfig, status)
+
+export const getStatusData = (status: string) =>
+    isStatus(status) ? statusConfig[status] : unknownStatusData
 
 export type PeripheralStatus = 
     keyof typeof peripheralStatusConfig

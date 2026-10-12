@@ -1,7 +1,7 @@
 import { Archive, Cpu, Download, HardDrive, Hash, LaptopMinimal, LoaderCircle, MemoryStick, SquarePen, type LucideIcon } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
-import { statusConfig, type Status } from "@/utils/computer";
+import { getStatusData } from "@/utils/computer";
 import type { ComputerCardType } from "@/types/computer";
 import ComputerArchiveAction from "@/components/ComputerArchiveAction/ComputerArchiveAction";
 import { downloadComputerQrPng } from "@/utils/computerQr";
@@ -36,7 +36,7 @@ export default function ComputerCard({
             setSheetOpen(true)
         }
 
-    const statusData = statusConfig[formatLabel(computer.computerStatus) as Status];
+    const statusData = getStatusData(formatLabel(computer.computerStatus));
     const StatusIcon = computer.isArchived ? Archive : statusData.icon
 
     const {room} = useParams()
@@ -75,7 +75,7 @@ export default function ComputerCard({
                         className={`inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${computer.isArchived ? "bg-zinc-100 text-zinc-600" : statusData.className}`}
                     >
                         <StatusIcon size={14} />
-                        <span>{computer.isArchived ? "Archived" : formatLabel(computer.computerStatus)}</span>
+                        <span>{computer.isArchived ? "Archived" : formatLabel(computer.computerStatus) || "Unknown"}</span>
                     </div>                    
                 </div>
 

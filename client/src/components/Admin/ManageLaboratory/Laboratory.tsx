@@ -426,6 +426,7 @@ export default function Laboratory({
                         />) 
                         : 
                         (<AddRoomForm
+                            rooms={rooms}
                             closeSheet={() => setSheetOpen(false)}
                         />)}
                         

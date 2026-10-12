@@ -132,7 +132,7 @@ export default function EditRoomForm({
     })
 
     const {data: custodians = [], isLoading } = useQuery<Custodian[]>({
-        queryKey: ["custodian"],
+        queryKey: ["custodian", room.assignedCustodianId],
         queryFn: async ()=>{
             
              const res = await privateFetch(room.assignedCustodianId ? 
@@ -280,6 +280,10 @@ export default function EditRoomForm({
                             : currentRoom
                     )
             );
+
+            void queryClient.invalidateQueries({
+                queryKey: ["custodian"]
+            });
 
             appToast.success("Room details updated successfully.");
             closeSheet();

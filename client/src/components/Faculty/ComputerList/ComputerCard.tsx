@@ -1,6 +1,6 @@
 import { Cpu, HardDrive, LaptopMinimal, MemoryStick, type LucideIcon } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { statusConfig, type Status } from "@/utils/computer";
+import { getStatusData } from "@/utils/computer";
 import type { ComputerCardType } from "@/types/computer";
 
 type CompCardType = {
@@ -18,7 +18,7 @@ const formatLabel = (text: string) => {
 export default function ComputerCard({computer}: CompCardType){
 
 
-    const statusData = statusConfig[formatLabel(computer.computerStatus) as Status];
+    const statusData = getStatusData(formatLabel(computer.computerStatus));
     const StatusIcon = statusData.icon
 
     const {room} = useParams()
@@ -36,7 +36,7 @@ export default function ComputerCard({computer}: CompCardType){
                         className={`inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${statusData.className}`}
                     >
                         <StatusIcon size={14} />
-                        <span>{formatLabel(computer.computerStatus)}</span>
+                        <span>{formatLabel(computer.computerStatus) || "Unknown"}</span>
                     </div>                    
                 </div>
 
