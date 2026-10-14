@@ -26,30 +26,15 @@ import DataLoadNotice from "@/components/DataLoadNotice/DataLoadNotice";
 import type { User } from "@/types/manageUser";
 import type { Room } from "@/types/room";
 import type { ApiTicket, Ticket } from "@/types/ticket";
+import {
+    getTicketArchiveEventId,
+    getTicketArchiveEventTicket,
+    isTicketArchivedMessage,
+    isTicketUnarchivedMessage,
+    isTicketWebSocketMessage,
+} from "@/lib/ticketEvents";
 
 type TicketStatus = "open" | "ongoing" | "resolved";
-type DashboardTicketEvent =
-    | {
-        event: "initial_tickets";
-        ticket: ApiTicket[];
-        next?: string | null;
-    }
-    | {
-        event: "ticket_created" | "ticket_updated" | "ticket_reassigned";
-        ticket: ApiTicket;
-    }
-    | {
-        event: "ticket_archived";
-        ticket?: ApiTicket;
-        ticket_id?: number;
-        id?: number;
-    }
-    | {
-        event: "ticket_unarchived";
-        ticket?: ApiTicket;
-        ticket_id?: number;
-        id?: number;
-    };
 type DashboardRoomEvent =
     | {
         event: "initial_rooms";
@@ -75,32 +60,6 @@ const DASHBOARD_ROOMS_WS_ENDPOINT = "/ws/rooms/";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null;
-
-const isDashboardTicketEvent = (
-    value: unknown
-): value is DashboardTicketEvent => {
-    if (!isRecord(value) || typeof value.event !== "string") {
-        return false;
-    }
-
-    if (value.event === "initial_tickets") {
-        return Array.isArray(value.ticket);
-    }
-
-    if (value.event === "ticket_archived" || value.event === "ticket_unarchived") {
-        return (
-            ("ticket" in value && isRecord(value.ticket)) ||
-            typeof value.ticket_id === "number" ||
-            typeof value.id === "number"
-        );
-    }
-
-    return (
-        ["ticket_created", "ticket_updated", "ticket_reassigned"].includes(
-            value.event
-        ) && isRecord(value.ticket)
-    );
-};
 
 const isDashboardRoomEvent = (value: unknown): value is DashboardRoomEvent => {
     if (!isRecord(value) || typeof value.event !== "string") {
@@ -376,7 +335,7 @@ export default function Dashboard() {
                     return;
                 }
 
-                if (!isDashboardTicketEvent(parsedMessage)) {
+                if (!isTicketWebSocketMessage(parsedMessage)) {
                     return;
                 }
 
@@ -393,11 +352,8 @@ export default function Dashboard() {
                     return;
                 }
 
-                if (parsedMessage.event === "ticket_archived") {
-                    const archivedTicketId =
-                        parsedMessage.ticket?.id ??
-                        parsedMessage.ticket_id ??
-                        parsedMessage.id;
+                if (isTicketArchivedMessage(parsedMessage)) {
+                    const archivedTicketId = getTicketArchiveEventId(parsedMessage);
 
                     if (archivedTicketId === undefined) {
                         return;
@@ -413,13 +369,14 @@ export default function Dashboard() {
                     return;
                 }
 
-                if (parsedMessage.event === "ticket_unarchived") {
-                    const ticketId = parsedMessage.ticket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
+                if (isTicketUnarchivedMessage(parsedMessage)) {
+                    const ticketId = getTicketArchiveEventId(parsedMessage);
                     if (ticketId === undefined) return;
-                    const response = parsedMessage.ticket
+                    const restoredTicket = getTicketArchiveEventTicket(parsedMessage);
+                    const response = restoredTicket
                         ? null
                         : await privateFetch(buildApiUrl(`/api/tickets/${ticketId}/`));
-                    const apiTicket = parsedMessage.ticket ?? (
+                    const apiTicket = restoredTicket ?? (
                         response?.ok ? await response.json() as ApiTicket : null
                     );
                     if (apiTicket) {

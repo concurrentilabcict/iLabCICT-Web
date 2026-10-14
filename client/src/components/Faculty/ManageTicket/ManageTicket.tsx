@@ -9,6 +9,13 @@ import {
 } from "@/lib/api";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ApiTicket, Ticket } from "@/types/ticket";
+import {
+  getTicketArchiveEventId,
+  getTicketArchiveEventTicket,
+  isTicketArchivedMessage,
+  isTicketUnarchivedMessage,
+  isTicketWebSocketMessage,
+} from "@/lib/ticketEvents";
 import { mapTicketComputer } from "@/utils/ticketComputer";
 import type { Status, StatusFilter, TicketType, TicketTypeFilter } from "@/utils/ticket";
 import ManageTicketCard from "./ManageTicketCard";
@@ -35,29 +42,6 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const FACULTY_TICKETS_QUERY_KEY = ["tickets"] as const;
 const facultyArchivedTicketsKey = (facultyId: number) => ["faculty-archived-tickets", facultyId] as const;
 const TICKETS_WS_ENDPOINT = "/ws/tickets/";
-
-type TicketWebSocketMessage =
-  | {
-    event: "initial_tickets";
-    ticket: ApiTicket[];
-    next?: string | null;
-  }
-  | {
-    event: "ticket_created" | "ticket_updated" | "ticket_reassigned";
-    ticket: ApiTicket;
-  }
-  | {
-    event: "ticket_archived";
-    ticket?: ApiTicket;
-    ticket_id?: number;
-    id?: number;
-  }
-  | {
-    event: "ticket_unarchived";
-    ticket?: ApiTicket;
-    ticket_id?: number;
-    id?: number;
-  };
 
 const formatLabel = (text: string) => text
   .replace(/_/g, " ")
@@ -113,32 +97,6 @@ const mapTicket = (ticket: ApiTicket): Ticket => ({
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
-
-const isTicketWebSocketMessage = (
-  value: unknown
-): value is TicketWebSocketMessage => {
-  if (!isRecord(value) || typeof value.event !== "string") {
-    return false;
-  }
-
-  if (value.event === "initial_tickets") {
-    return Array.isArray(value.ticket);
-  }
-
-  if (value.event === "ticket_archived" || value.event === "ticket_unarchived") {
-    return (
-      ("ticket" in value && isRecord(value.ticket)) ||
-      typeof value.ticket_id === "number" ||
-      typeof value.id === "number"
-    );
-  }
-
-  return (
-    ["ticket_created", "ticket_updated", "ticket_reassigned"].includes(
-      value.event
-    ) && isRecord(value.ticket)
-  );
-};
 
 const upsertTicket = (tickets: Ticket[], apiTicket: ApiTicket) => {
   if (apiTicket.status === "archived" || apiTicket.is_archived === true) {
@@ -316,9 +274,8 @@ export default function ManageTicket({ ticketView, onTicketViewChange, statusFil
           return;
         }
 
-        if (parsedMessage.event === "ticket_archived") {
-          const archivedTicketId =
-            parsedMessage.ticket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
+        if (isTicketArchivedMessage(parsedMessage)) {
+          const archivedTicketId = getTicketArchiveEventId(parsedMessage);
 
           if (archivedTicketId === undefined) return;
 
@@ -333,9 +290,9 @@ export default function ManageTicket({ ticketView, onTicketViewChange, statusFil
           return;
         }
 
-        if (parsedMessage.event === "ticket_unarchived") {
-          const restoredTicket = parsedMessage.ticket;
-          const restoredTicketId = restoredTicket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
+        if (isTicketUnarchivedMessage(parsedMessage)) {
+          const restoredTicket = getTicketArchiveEventTicket(parsedMessage);
+          const restoredTicketId = getTicketArchiveEventId(parsedMessage);
           if (restoredTicketId !== undefined) locallyArchivedIds.current.delete(restoredTicketId);
           queryClient.setQueryData<Ticket[]>(archivedQueryKey,
             (items = []) => items.filter((item) => item.id !== restoredTicketId));

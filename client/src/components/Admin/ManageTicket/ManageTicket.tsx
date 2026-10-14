@@ -46,6 +46,13 @@ import {
   type ApiError,
 } from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
+import {
+  getTicketArchiveEventId,
+  getTicketArchiveEventTicket,
+  isTicketArchivedMessage,
+  isTicketUnarchivedMessage,
+  isTicketWebSocketMessage,
+} from "@/lib/ticketEvents";
 import { mapTicketComputer } from "@/utils/ticketComputer";
 import { getPaginationWindow } from "@/utils/pagination";
 import type { StatusFilter, TicketTypeFilter } from "@/utils/ticket";
@@ -61,37 +68,6 @@ const ADMIN_ARCHIVED_TICKETS_QUERY_KEY = ["admin-archived-tickets"] as const;
 const TICKETS_WS_ENDPOINT = "/ws/tickets/";
 
 type TicketView = "active" | "archived";
-
-type InitialTicketsMessage = {
-  event: "initial_tickets";
-  ticket: ApiTicket[];
-  next?: string | null;
-};
-
-type TicketChangeMessage = {
-  event: "ticket_created" | "ticket_updated" | "ticket_reassigned";
-  ticket: ApiTicket;
-};
-
-type TicketArchivedMessage = {
-  event: "ticket_archived";
-  ticket?: ApiTicket;
-  ticket_id?: number;
-  id?: number;
-};
-
-type TicketUnarchivedMessage = {
-  event: "ticket_unarchived";
-  ticket?: ApiTicket;
-  ticket_id?: number;
-  id?: number;
-};
-
-type TicketWebSocketMessage =
-  | InitialTicketsMessage
-  | TicketChangeMessage
-  | TicketArchivedMessage
-  | TicketUnarchivedMessage;
 
 type ApiTechnician = {
   id: number;
@@ -199,32 +175,6 @@ const mapTechnician = (technician: ApiTechnician): AssignableTechnician => ({
   firstName: technician.firstName ?? technician.first_name ?? "",
   lastName: technician.lastName ?? technician.last_name ?? "",
 });
-
-const isTicketWebSocketMessage = (
-  value: unknown
-): value is TicketWebSocketMessage => {
-  if (!isRecord(value) || typeof value.event !== "string") {
-    return false;
-  }
-
-  if (value.event === "initial_tickets") {
-    return Array.isArray(value.ticket);
-  }
-
-  if (value.event === "ticket_archived" || value.event === "ticket_unarchived") {
-    return (
-      ("ticket" in value && isRecord(value.ticket)) ||
-      typeof value.ticket_id === "number" ||
-      typeof value.id === "number"
-    );
-  }
-
-  return (
-    ["ticket_created", "ticket_updated", "ticket_reassigned"].includes(
-      value.event
-    ) && isRecord(value.ticket)
-  );
-};
 
 const upsertMappedTicket = (tickets: Ticket[], ticket: Ticket) => {
   const existingTicket = tickets.some((currentTicket) =>
@@ -580,12 +530,13 @@ export default function ManageTicket() {
           return;
         }
 
-        if (parsedMessage.event === "ticket_archived") {
-          const archivedTicket = parsedMessage.ticket
-            ? mapArchivedTicket(parsedMessage.ticket)
+        if (isTicketArchivedMessage(parsedMessage)) {
+          const archivedApiTicket = getTicketArchiveEventTicket(parsedMessage);
+          const archivedTicket = archivedApiTicket
+            ? mapArchivedTicket(archivedApiTicket)
             : null;
           const archivedTicketId =
-            archivedTicket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
+            archivedTicket?.id ?? getTicketArchiveEventId(parsedMessage);
 
           if (archivedTicketId === undefined) {
             return;
@@ -628,15 +579,16 @@ export default function ManageTicket() {
           return;
         }
 
-        if (parsedMessage.event === "ticket_unarchived") {
-          const ticketId = parsedMessage.ticket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
+        if (isTicketUnarchivedMessage(parsedMessage)) {
+          const ticketId = getTicketArchiveEventId(parsedMessage);
           if (ticketId === undefined) return;
 
           const cachedTicket = queryClient.getQueryData<Ticket[]>(
             ADMIN_ARCHIVED_TICKETS_QUERY_KEY
           )?.find((ticket) => ticket.id === ticketId);
-          const restoredTicket = parsedMessage.ticket
-            ? mapTicket(parsedMessage.ticket)
+          const restoredApiTicket = getTicketArchiveEventTicket(parsedMessage);
+          const restoredTicket = restoredApiTicket
+            ? mapTicket(restoredApiTicket)
             : cachedTicket
               ? { ...cachedTicket, status: "open" }
               : null;

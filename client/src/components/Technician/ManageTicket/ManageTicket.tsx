@@ -10,6 +10,13 @@ import {
     privateFetch,
 } from "@/lib/api";
 import type { ApiTicket, Ticket } from "@/types/ticket";
+import {
+    getTicketArchiveEventId,
+    getTicketArchiveEventTicket,
+    isTicketArchivedMessage,
+    isTicketUnarchivedMessage,
+    isTicketWebSocketMessage,
+} from "@/lib/ticketEvents";
 import { mapTicketComputer } from "@/utils/ticketComputer";
 
 import {
@@ -47,29 +54,6 @@ const formatLabel = (text: string) => {
         .join(" ");
 };
 
-type TicketWebSocketMessage =
-    | {
-        event: "initial_tickets";
-        ticket: ApiTicket[];
-        next?: string | null;
-    }
-    | {
-        event: "ticket_created" | "ticket_updated" | "ticket_reassigned";
-        ticket: ApiTicket;
-    }
-    | {
-        event: "ticket_archived";
-        ticket?: ApiTicket;
-        ticket_id?: number;
-        id?: number;
-    }
-    | {
-        event: "ticket_unarchived";
-        ticket?: ApiTicket;
-        ticket_id?: number;
-        id?: number;
-    };
-
 const TICKETS_QUERY_KEY = ["technician-tickets"] as const;
 const TICKETS_READY_QUERY_KEY = ["technician-tickets-ready"] as const;
 const TICKETS_WS_ENDPOINT = "/ws/tickets/";
@@ -78,35 +62,6 @@ const ticketStatusOrder: Record<string, number> = {
     open: 0,
     ongoing: 1,
     resolved: 2,
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-    typeof value === "object" && value !== null;
-
-const isTicketWebSocketMessage = (
-    value: unknown
-): value is TicketWebSocketMessage => {
-    if (!isRecord(value) || typeof value.event !== "string") {
-        return false;
-    }
-
-    if (value.event === "initial_tickets") {
-        return Array.isArray(value.ticket);
-    }
-
-    if (value.event === "ticket_archived" || value.event === "ticket_unarchived") {
-        return (
-            ("ticket" in value && isRecord(value.ticket)) ||
-            typeof value.ticket_id === "number" ||
-            typeof value.id === "number"
-        );
-    }
-
-    return (
-        ["ticket_created", "ticket_updated", "ticket_reassigned"].includes(
-            value.event
-        ) && isRecord(value.ticket)
-    );
 };
 
 const isArchivedTicket = (ticket: ApiTicket) =>
@@ -270,11 +225,8 @@ export default function ManageTicket({
                     return;
                 }
 
-                if (parsedMessage.event === "ticket_archived") {
-                    const archivedTicketId =
-                        parsedMessage.ticket?.id ??
-                        parsedMessage.ticket_id ??
-                        parsedMessage.id;
+                if (isTicketArchivedMessage(parsedMessage)) {
+                    const archivedTicketId = getTicketArchiveEventId(parsedMessage);
 
                     if (archivedTicketId === undefined) return;
 
@@ -290,13 +242,14 @@ export default function ManageTicket({
                     return;
                 }
 
-                if (parsedMessage.event === "ticket_unarchived") {
-                    const ticketId = parsedMessage.ticket?.id ?? parsedMessage.ticket_id ?? parsedMessage.id;
+                if (isTicketUnarchivedMessage(parsedMessage)) {
+                    const ticketId = getTicketArchiveEventId(parsedMessage);
                     if (ticketId === undefined) return;
-                    const response = parsedMessage.ticket
+                    const restoredTicket = getTicketArchiveEventTicket(parsedMessage);
+                    const response = restoredTicket
                         ? null
                         : await privateFetch(buildApiUrl(`/api/tickets/${ticketId}/`));
-                    const apiTicket = parsedMessage.ticket ?? (
+                    const apiTicket = restoredTicket ?? (
                         response?.ok ? await response.json() as ApiTicket : null
                     );
                     if (apiTicket && !isArchivedTicket(apiTicket) && apiTicket.assigned_to?.id === technicianId) {
