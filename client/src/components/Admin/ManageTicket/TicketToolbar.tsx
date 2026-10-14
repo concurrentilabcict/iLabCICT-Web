@@ -192,7 +192,7 @@ export default function TicketToolbar({
                 <div className="relative w-[300px]">
                     <Search
                         size={18}
-                        className="absolute left-3 top-1/2 -translate-y-1/2"
+                        className="search-icon"
                     />
                     <input
                         ref={searchInputRef}
@@ -200,7 +200,7 @@ export default function TicketToolbar({
                         value={searchQuery}
                         onChange={(event) => onSearchQueryChange(event.target.value)}
                         placeholder="Search Tickets..."
-                        className="bg-white w-full rounded-xl border primary-border-color py-2 pl-10 pr-10 outline-none focus:border-black!"
+                        className="search-input"
                     />
 
                     {searchQuery && (

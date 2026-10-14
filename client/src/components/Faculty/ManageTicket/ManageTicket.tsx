@@ -408,11 +408,12 @@ export default function ManageTicket({ ticketView, onTicketViewChange, statusFil
         )}
         {!(ticketView === "Archived" ? archivedTicketsAreLoading || archivedTicketsHaveError : isLoading) && paginatedTickets.length === 0 &&
           <p className="col-span-full py-8 text-center secondary-text-color">No {ticketView.toLowerCase()} tickets found.</p>}
-        {!(ticketView === "Archived" ? archivedTicketsAreLoading || archivedTicketsHaveError : isLoading) && paginatedTickets.map((ticket) => {
+        {!(ticketView === "Archived" ? archivedTicketsAreLoading || archivedTicketsHaveError : isLoading) && paginatedTickets.map((ticket, index) => {
           const status = formatLabel(ticket.status) as Status;
           const type = formatLabel(ticket.type) as TicketType;
           return (
             <ManageTicketCard
+              index={index}
               key={ticket.id}
               status={status}
               type={type}

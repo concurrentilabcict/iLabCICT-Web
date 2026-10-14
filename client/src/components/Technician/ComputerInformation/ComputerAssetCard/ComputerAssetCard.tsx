@@ -8,11 +8,14 @@ import {
     QrCode,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 
 import type { Status } from "@/utils/computer";
 import { statusConfig } from "@/utils/computer";
 
 type ComputerAssetCardProps = {
+    index?: number;
     computerCode: string;
     buildingName: string;
     roomName: string;
@@ -23,6 +26,7 @@ type ComputerAssetCardProps = {
 const formatFloor = (floorNumber: number) => `Floor ${floorNumber}`;
 
 export default function ComputerAssetCard({
+    index = 0,
     computerCode,
     buildingName,
     roomName,
@@ -66,7 +70,10 @@ export default function ComputerAssetCard({
     }, [qrValue]);
 
     return (
-        <section className="col-span-full w-full rounded-2xl bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
+        <motion.section
+            {...cardMotion(index)}
+            className={`col-span-full w-full rounded-2xl bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.10)] ${CARD_SURFACE}`}
+        >
             <div className="flex flex-col gap-5 rounded-xl primary-bg-color p-5 text-white md:flex-row md:items-center md:justify-between">
                 <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -119,6 +126,6 @@ export default function ComputerAssetCard({
                     </div>
                 </div>
             </div>
-        </section>
+        </motion.section>
     );
 }

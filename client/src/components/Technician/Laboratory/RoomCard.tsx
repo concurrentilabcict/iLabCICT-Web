@@ -1,9 +1,12 @@
 import { Building2, LaptopMinimal, Layers3, Monitor, TriangleAlert, User, Wrench, type LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
+import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 import { useNavigate } from "react-router-dom";
 import { statusConfig, type Status } from "@/utils/room";
 import type { Room } from "@/types/room";
 
 type RoomCardProps = {
+    index?: number,
     status: Status,
     location:string,
     assignedCustodian: string,
@@ -11,6 +14,7 @@ type RoomCardProps = {
 }
 
 export default function RoomCard({
+    index = 0,
     status,
     location,
     assignedCustodian,
@@ -26,13 +30,14 @@ export default function RoomCard({
 
     const navigate = useNavigate()
     return(
-        <article
+        <motion.article
+            {...cardMotion(index)}
             onClick={() =>
                 navigate(`/manage-laboratory/${room.id}`, {
                     state: { roomName: room.roomName },
                 })
             }
-            className="group flex w-full cursor-pointer flex-col gap-3 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)]"
+            className={`group flex w-full cursor-pointer flex-col gap-3 rounded-2xl bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] ${CARD_SURFACE} hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)]`}
         >
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
@@ -75,7 +80,7 @@ export default function RoomCard({
                 >
                     <LaptopMinimal size={17} /> View Computers
                 </button>
-             </article>
+             </motion.article>
     );
 }
 

@@ -118,9 +118,10 @@ export default function MobileNotification({
                                     {group.label}
                                 </h3>
                                 <div className="flex flex-col gap-2">
-                                    {group.notifications.map((notification) => (
+                                    {group.notifications.map((notification, index) => (
                                         <NotificationCard
                                             key={notification.id}
+                                            index={index}
                                             notification={notification}
                                             onClick={() => handleNotificationClick(notification)}
                                             onArchive={() => archiveNotification.mutate(notification.id, {

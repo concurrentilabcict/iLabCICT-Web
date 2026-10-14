@@ -120,8 +120,8 @@ export default function RecentUser({
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-[220px]">
               <Search
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2"
+                size={18}
+                className="search-icon"
               />
               <input
                 ref={searchInputRef}
@@ -129,7 +129,7 @@ export default function RecentUser({
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search users..."
-                className="primary-border-color w-full rounded-xl border bg-white py-2 pl-9 pr-9 text-sm outline-none focus:border-black!"
+                className="search-input text-sm"
               />
 
               {searchQuery && (

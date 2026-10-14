@@ -7,12 +7,15 @@ import {
     QrCode,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 
 import type { Status } from "@/utils/computer";
 import { statusConfig } from "@/utils/computer";
 import { createComputerQrDataUrl, getComputerQrValue } from "@/utils/computerQr";
 
 type ComputerAssetCardProps = {
+    index?: number;
     computerCode: string;
     computerNumber?: string | number | null;
     buildingName: string;
@@ -25,6 +28,7 @@ type ComputerAssetCardProps = {
 const formatFloor = (floorNumber: number) => `Floor ${floorNumber}`;
 
 export default function ComputerAssetCard({
+    index = 0,
     computerCode,
     computerNumber,
     buildingName,
@@ -60,11 +64,12 @@ export default function ComputerAssetCard({
     }, [qrValue]);
 
     return (
-        <section
-            className={`w-full min-w-0 max-w-full rounded-2xl border bg-white p-3 md:p-4 ${
+        <motion.section
+            {...cardMotion(index)}
+            className={`w-full min-w-0 max-w-full rounded-2xl border bg-white p-3 md:p-4 ${CARD_SURFACE} ${
                 variant === "bordered"
                     ? "border-gray-200"
-                    : "border-white shadow-[0_14px_34px_rgba(15,23,42,0.08)] md:rounded-3xl"
+                    : "border-white shadow-[0_14px_34px_rgba(15,23,42,0.08)]"
             }`}
         >
             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-2xl primary-bg-color p-4 text-white min-[360px]:gap-4 md:flex md:items-center md:justify-between md:gap-5 md:p-5">
@@ -126,6 +131,6 @@ export default function ComputerAssetCard({
                     </div>
                 </div>
             </div>
-        </section>
+        </motion.section>
     );
 }

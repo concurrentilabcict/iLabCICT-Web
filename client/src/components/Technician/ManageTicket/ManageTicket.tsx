@@ -478,7 +478,7 @@ export default function ManageTicket({
                     </p>
                 )}
 
-                {!isLoading && paginatedTickets.map((ticket) => {
+                {!isLoading && paginatedTickets.map((ticket, index) => {
 
                     const status = formatLabel(ticket.status) as Status;
                     const type = formatLabel(ticket.type) as TicketType;
@@ -497,7 +497,7 @@ export default function ManageTicket({
 
                     return (
                         <div className="flex h-full w-full justify-center" key={ticket.id}>
-                            <ManageTicketCard status={status} type={type} title={ticket.title}
+                            <ManageTicketCard index={index} status={status} type={type} title={ticket.title}
                                 complaintDescription={ticket.complaintDescription} reportedBy={reportedBy}
                                 ticketCode={ticket.ticketCode}
                                 roomName={ticket.room.roomName}

@@ -15,10 +15,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { motion } from "framer-motion";
+
+import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 import { formatDateTime } from "@/utils/string";
 import type { Status, TicketType } from "@/utils/ticket";
 
 type ManageTicketCardProps = {
+  index?: number;
   status: Status;
   type: TicketType;
   title: string;
@@ -57,6 +61,7 @@ const statusStyle: Record<Status, { icon: LucideIcon; className: string }> = {
 };
 
 export default function ManageTicketCard({
+  index = 0,
   status,
   type,
   title,
@@ -85,7 +90,8 @@ export default function ManageTicketCard({
   const mutedClassName = isArchived ? "opacity-60" : "";
 
   return (
-    <article
+    <motion.article
+      {...cardMotion(index)}
       onClick={onClick}
       tabIndex={0}
       aria-label={`View ticket ${ticketCode}: ${title}`}
@@ -95,7 +101,7 @@ export default function ManageTicketCard({
           onClick?.();
         }
       }}
-      className={`group flex w-full cursor-pointer flex-col gap-3 rounded-lg border p-4 text-left transition hover:border-gray-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isArchived ? "border-zinc-200 bg-zinc-100" : "border-gray-200 bg-white"}`}
+      className={`group flex w-full cursor-pointer flex-col gap-3 rounded-2xl p-4 text-left ${CARD_SURFACE} focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary shadow-[0_14px_34px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] ${isArchived ? " bg-zinc-100" : " bg-white"}`}
     >
       <div className="flex items-center justify-between gap-3">
         <div
@@ -192,7 +198,7 @@ export default function ManageTicketCard({
           </div>
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 }
 

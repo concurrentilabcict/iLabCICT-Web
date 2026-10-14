@@ -1,4 +1,6 @@
 import { Archive, Cpu, Download, HardDrive, Hash, LaptopMinimal, LoaderCircle, MemoryStick, SquarePen, type LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
+import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { getStatusData } from "@/utils/computer";
@@ -8,6 +10,7 @@ import { downloadComputerQrPng } from "@/utils/computerQr";
 import { appToast } from "@/utils/appToast";
 
 type CompCardType = {
+    index?: number
     computer: ComputerCardType
     setSelectedComputer: (computer: ComputerCardType) => void
     setIsEditing: (open: boolean) => void,
@@ -23,6 +26,7 @@ const formatLabel = (text: string) => {
 };
 
 export default function ComputerCard({
+    index = 0,
     computer,
     setSelectedComputer,
     setIsEditing,
@@ -63,7 +67,9 @@ export default function ComputerCard({
     };
 
     return(
-        <article className={`group flex w-full cursor-pointer flex-col gap-3 rounded-2xl border ${computer.isArchived ? "border-zinc-200 bg-zinc-100" : "border-gray-200 bg-white"} p-4 transition hover:border-gray-300`}>
+        <motion.article
+            {...cardMotion(index)}
+            className={`group flex w-full cursor-pointer flex-col gap-3 rounded-2xl border ${computer.isArchived ? "border-zinc-200 bg-zinc-100" : "border-gray-200 bg-white"} p-4 ${CARD_SURFACE} hover:border-gray-300`}>
                 <div className={`flex items-start justify-between gap-3 ${computer.isArchived ? "opacity-60" : ""}`}>
                     <div className="flex min-w-0 items-center gap-3">
                         <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
@@ -125,7 +131,7 @@ export default function ComputerCard({
                     <ComputerArchiveAction computer={computer} queryKey={["admin-room-computers", room ?? ""]} />
 
                 </div>
-             </article>
+             </motion.article>
     );
 }
 

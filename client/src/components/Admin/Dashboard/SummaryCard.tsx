@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Minus, type LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
+import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type SummaryCardProps = {
+  index?: number;
   title: string;
   value: string;
   change: string;
@@ -35,6 +38,7 @@ function getAnimatedValue(value: string, progress: number) {
 }
 
 export default function SummaryCard({
+  index = 0,
   title,
   value,
   change,
@@ -104,8 +108,9 @@ export default function SummaryCard({
       : Minus;
 
   return (
-    <div
-      className="
+    <motion.div
+      {...cardMotion(index)}
+      className={`
         min-w-0
         w-full
         h-[174px]
@@ -113,6 +118,7 @@ export default function SummaryCard({
         flex-col
         justify-between
         rounded-2xl
+        ${CARD_SURFACE}
         border
         border-gray-200
         bg-linear-to-b
@@ -122,7 +128,7 @@ export default function SummaryCard({
         to-[#bf3419]/5
         px-4 py-5
         sm:px-5 sm:py-6
-      "
+      `}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -176,6 +182,6 @@ export default function SummaryCard({
           </>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -178,12 +178,12 @@ export default function RequestHistory({ roomId }: RequestHistoryProps) {
 
       <div className="px-4 py-4">
         <div className="relative">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+          <Search size={18} className="search-icon" />
           <input
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search request history..."
-            className="h-12 w-full rounded-xl bg-white pl-10 pr-10 text-sm font-medium shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none placeholder:text-zinc-400"
+            className="search-input h-12 text-sm font-medium"
           />
           {searchQuery.trim() !== "" && (
             <button

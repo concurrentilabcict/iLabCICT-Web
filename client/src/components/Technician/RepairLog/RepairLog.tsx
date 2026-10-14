@@ -353,10 +353,11 @@ export default function RepairLog({
                     </p>
                 )}
 
-                {!isLoading && paginatedRepairLogs.map((repairLog) => {
+                {!isLoading && paginatedRepairLogs.map((repairLog, index) => {
                     return (
                         <div className="flex h-full w-full justify-center" key={repairLog.id}>
                             <RepairLogCard
+                                index={index}
                                 repairLog={repairLog}
                                 onClick={() => {
                                     setSelectedRepairLogId(repairLog.id);

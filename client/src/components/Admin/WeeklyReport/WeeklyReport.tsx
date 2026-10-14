@@ -140,7 +140,7 @@ export default function WeeklyReport() {
           <div className="relative w-full md:w-[320px]">
             <Search
               size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2"
+              className="search-icon"
             />
             <input
               ref={searchInputRef}
@@ -151,7 +151,7 @@ export default function WeeklyReport() {
                 setPage(1);
               }}
               placeholder="Search Weekly Reports..."
-              className="primary-border-color w-full rounded-xl border bg-white py-2 pl-10 pr-10 outline-none focus:border-black!"
+              className="search-input"
             />
 
             {searchQuery && (

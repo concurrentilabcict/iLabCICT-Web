@@ -357,7 +357,7 @@ export default function WeeklyReport() {
                                 setPage(1);
                             }}
                             placeholder="Search my reports..."
-	                            className="w-full rounded-xl bg-white py-2 pl-10 pr-10 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none"
+	                            className="search-input"
                         />
 
                         {searchQuery && (
@@ -390,9 +390,10 @@ export default function WeeklyReport() {
                         </p>
                     )}
 
-                    {!isLoading && !isError && paginatedReports.map((report) => (
+                    {!isLoading && !isError && paginatedReports.map((report, index) => (
                         <div key={report.id} className="flex h-full justify-center">
                             <WeeklyReportCard
+                                index={index}
                                 report={report}
                                 onClick={() => openReport(report)}
                             />

@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 import Filter from "@/components/Technician/ManageTicket/Filter";
 import Header from "@/components/Header/Header";
 import ManageTicket from "@/components/Technician/ManageTicket/ManageTicket";
@@ -35,7 +37,12 @@ export default function ManageTicketPage() {
                 <SidebarInset>
                     <div className="min-h-screen w-full min-w-0 bg-[#f8fafc]">
                         {isMobile ? <MobileHeader title="Ticket Queue" /> : <Header title="Ticket Queue" />}
-                        <div className="mx-auto w-full min-w-0 max-w-[1000px]">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ type: "spring", stiffness: 120, damping: 20 }}
+                            className="mx-auto w-full min-w-0 max-w-[1000px]"
+                        >
                             <Filter
                                 selectedStatus={statusFilter}
                                 onStatusChange={setStatusFilter}
@@ -51,7 +58,7 @@ export default function ManageTicketPage() {
                                 typeFilter={typeFilter}
                                 searchQuery={searchQuery}
                             />
-                        </div>
+                        </motion.div>
 
                     </div>
                 </SidebarInset>

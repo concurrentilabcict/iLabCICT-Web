@@ -1,5 +1,7 @@
 import type { RepairLog } from "@/types/repairLog";
 import { formatDateTime } from "@/utils/string";
+import { motion } from "framer-motion";
+import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 import {
     ArrowRight,
     CalendarDays,
@@ -9,6 +11,7 @@ import {
 } from "lucide-react";
 
 type RepairLogCardProps = {
+    index?: number;
     repairLog: RepairLog;
     onClick?: () => void;
 };
@@ -22,6 +25,7 @@ const formatLabel = (text: string) =>
         .join(" ");
 
 export default function RepairLogCard({
+    index = 0,
     repairLog,
     onClick,
 }: RepairLogCardProps) {
@@ -30,9 +34,10 @@ export default function RepairLogCard({
     const type = formatLabel(repairLog.ticket.type);
 
     return (
-        <article
+        <motion.article
+            {...cardMotion(index)}
             onClick={onClick}
-            className="flex w-full cursor-pointer flex-col gap-3 rounded-3xl bg-white p-5 shadow-[0_16px_38px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_46px_rgba(15,23,42,0.12)]"
+            className={`flex w-full cursor-pointer flex-col gap-3 rounded-2xl bg-white p-5 shadow-[0_16px_38px_rgba(15,23,42,0.08)] ${CARD_SURFACE} hover:shadow-[0_20px_46px_rgba(15,23,42,0.12)]`}
         >
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -83,7 +88,7 @@ export default function RepairLogCard({
                     <ArrowRight size={16} />
                 </div>
             </div>
-        </article>
+        </motion.article>
     );
 }
 

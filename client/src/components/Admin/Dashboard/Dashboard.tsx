@@ -634,9 +634,10 @@ export default function Dashboard() {
                 <DataLoadNotice message="Laboratories couldn't load. Check your connection and try again." onRetry={() => { void roomFallback.retry(); }} isRetrying={roomFallback.isRetrying} />
             )}
             <div className="grid grid-cols-4 gap-3">
-                {summaryCards.map((card) => (
+                {summaryCards.map((card, index) => (
                     <SummaryCard
                         key={card.title}
+                        index={index}
                         {...card}
                         isLoading={isDashboardLoading}
                     />

@@ -1,8 +1,11 @@
 import type { NotificationProps } from "@/types/notification";
 import { useAuth } from "@/auth/useAuth";
 import { Archive, FileText, Ticket } from "lucide-react";
+import { motion } from "framer-motion";
+import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 
 type NotificationCardProps = NotificationProps & {
+    index?: number;
     onClick: () => void;
     onArchive: () => void;
 };
@@ -37,6 +40,7 @@ const formatNotificationTime = (dateString: string) => {
 };
 
 export default function NotificationCard({
+    index = 0,
     notification,
     onClick,
     onArchive,
@@ -54,7 +58,9 @@ export default function NotificationCard({
     const NotificationIcon = notification.entityType === "weekly-report" ? FileText : Ticket;
 
     return (
-        <article className={`group relative flex w-full items-center gap-3 rounded-lg border px-3 py-3 text-left transition-colors ${
+        <motion.article
+            {...cardMotion(index)}
+            className={`group relative flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left ${CARD_SURFACE} ${
                 isUnread
                     ? "border-[#f2d0c8] bg-[#fff8f6] hover:bg-[#fff1ed]"
                     : "border-zinc-200 bg-white hover:bg-zinc-50"
@@ -103,6 +109,6 @@ export default function NotificationCard({
             >
                 <Archive className="size-4" />
             </button>
-        </article>
+        </motion.article>
     );
 }

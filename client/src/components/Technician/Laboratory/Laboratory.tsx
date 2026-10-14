@@ -314,7 +314,7 @@ export default function Laboratory({
                     </p>
                 )}
 
-                {!isLoading && paginatedRooms.map((room)=> {
+                {!isLoading && paginatedRooms.map((room, index)=> {
 
                     const status = normalizeRoomStatus(room.status)
                     const location = formatLabel(room.buildingName) + " - " + floorConverter(room.floorNumber) + ", " + room.roomName
@@ -327,6 +327,7 @@ export default function Laboratory({
                     return(
                         <RoomCard
                             key={room.id}
+                            index={index}
                             room={room}
                             status={status}
                             location={location}

@@ -333,11 +333,12 @@ export default function ComputerList({
                     </div>
                 )}
 
-                {!isLoading && !isError && paginatedComputers.map((computer)=> {
+                {!isLoading && !isError && paginatedComputers.map((computer, index)=> {
 
                         return(
                             <ComputerCard 
                                 key={computer.id}
+                                index={index}
                                 computer={computer}
                             />
                         );

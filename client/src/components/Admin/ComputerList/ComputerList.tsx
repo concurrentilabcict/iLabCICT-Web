@@ -387,11 +387,12 @@ export default function ComputerList({
                     </p>
                 )}
 
-                {!isLoading && paginatedComputers.map((computer)=> {
+                {!isLoading && paginatedComputers.map((computer, index)=> {
 
                         return(
                             <ComputerCard 
                                 key={computer.id}
+                                index={index}
                                 computer={computer}
                                 setIsEditing={setIsEditing}
                                 setSheetOpen={setSheetOpen}

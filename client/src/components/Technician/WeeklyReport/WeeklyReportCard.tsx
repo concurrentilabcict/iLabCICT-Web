@@ -8,6 +8,8 @@ import {
     User,
     type LucideIcon,
 } from "lucide-react";
+import { motion } from "framer-motion";
+import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 
 import type { WeeklyReport as WeeklyReportType } from "@/types/weeklyReport";
 import {
@@ -16,11 +18,13 @@ import {
 } from "@/components/Admin/WeeklyReport/weeklyReportUtils";
 
 type WeeklyReportCardProps = {
+    index?: number;
     report: WeeklyReportType;
     onClick?: () => void;
 };
 
 export default function WeeklyReportCard({
+    index = 0,
     report,
     onClick,
 }: WeeklyReportCardProps) {
@@ -29,10 +33,11 @@ export default function WeeklyReportCard({
     const StatusIcon = isRead ? CheckCircle2 : CircleDot;
 
     return (
-        <button
+        <motion.button
             type="button"
             onClick={onClick}
-            className="group flex w-full cursor-pointer flex-col gap-3 rounded-3xl border border-white bg-white p-4 text-left shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            {...cardMotion(index)}
+            className={`group flex w-full cursor-pointer flex-col gap-3 rounded-2xl border border-white bg-white p-4 text-left shadow-[0_14px_34px_rgba(15,23,42,0.08)] ${CARD_SURFACE} hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary`}
         >
             <div className="flex items-center justify-between gap-3">
                 <div className="inline-flex items-center gap-2 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-red-600">
@@ -97,7 +102,7 @@ export default function WeeklyReportCard({
                     <ArrowRight size={17} />
                 </span>
             </div>
-        </button>
+        </motion.button>
     );
 }
 

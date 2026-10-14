@@ -37,7 +37,7 @@ export default function SearchFilter({
   return (
     <div className="flex items-center justify-between gap-2 px-3 py-3">
       <div className={`relative w-full ${isSearchActive ? "max-w-none md:max-w-sm" : "max-w-sm"}`}>
-        <Search size={18} className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+        <Search size={18} className="search-icon" />
         <input
           ref={searchInputRef}
           type="text"
@@ -46,7 +46,7 @@ export default function SearchFilter({
           placeholder="Search tickets..."
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-	          className="w-full rounded-xl bg-white py-2 pl-10 pr-10 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none"
+	          className="search-input"
         />
         {isSearchActive && (
           <button type="button" aria-label="Clear search" onMouseDown={(event) => event.preventDefault()} onClick={clearSearch} className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-950">

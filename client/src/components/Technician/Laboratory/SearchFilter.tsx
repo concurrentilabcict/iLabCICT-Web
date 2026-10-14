@@ -48,7 +48,7 @@ export default function SearchFilter({
             >
                 <Search
                     size={18}
-                    className="secondary-text-color absolute left-3 top-1/2 -translate-y-1/2"
+                    className="search-icon"
                 />
                 <input
                     ref={searchInputRef}
@@ -58,7 +58,7 @@ export default function SearchFilter({
                     placeholder="Search Rooms..."
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-	                    className="w-full rounded-xl bg-white py-2 pl-10 pr-10 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none"
+	                    className="search-input"
                 />
 
                 {isSearchActive && (

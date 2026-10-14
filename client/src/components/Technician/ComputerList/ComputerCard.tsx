@@ -1,10 +1,13 @@
 import { Archive, Cpu, HardDrive, Hash, LaptopMinimal, MemoryStick, SquarePen, type LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
+import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { getStatusData } from "@/utils/computer";
 import type { ComputerCardType } from "@/types/computer";
 import ComputerArchiveAction from "@/components/ComputerArchiveAction/ComputerArchiveAction";
 
 type CompCardType = {
+    index?: number
     computer: ComputerCardType
     setSelectedComputer: (computer: ComputerCardType) => void
     setIsEditing: (open: boolean) => void,
@@ -20,6 +23,7 @@ const formatLabel = (text: string) => {
 };
 
 export default function ComputerCard({
+    index = 0,
     computer,
     setSelectedComputer,
     setIsEditing,
@@ -38,7 +42,9 @@ export default function ComputerCard({
     const {room} = useParams()
     const navigate = useNavigate()
     return(
-        <article className={`group flex w-full cursor-pointer flex-col gap-3 rounded-3xl border ${computer.isArchived ? "border-zinc-200 bg-zinc-100" : "border-white bg-white"} p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)]`}>
+        <motion.article
+            {...cardMotion(index)}
+            className={`group flex w-full cursor-pointer flex-col gap-3 rounded-2xl border ${computer.isArchived ? "border-zinc-200 bg-zinc-100" : "border-white bg-white"} p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)] ${CARD_SURFACE} hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)]`}>
                 <div className={`flex items-start justify-between gap-3 ${computer.isArchived ? "opacity-60" : ""}`}>
                     <div className="flex min-w-0 items-center gap-3">
                         <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-zinc-100 text-zinc-500">
@@ -86,7 +92,7 @@ export default function ComputerCard({
                     <ComputerArchiveAction computer={computer} queryKey={["technician-room-computers", room ?? ""]} />
 
                 </div>
-             </article>
+             </motion.article>
     );
 }
 
