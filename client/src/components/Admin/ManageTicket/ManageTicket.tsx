@@ -965,18 +965,15 @@ export default function ManageTicket() {
                                   Assign Technician
                                 </DropdownMenuItem>
                               )}
-                              {ticket.status.toLowerCase() === "open" && (
-                                <>
-                                  <div className="my-1 h-px w-full bg-border" />
-                                  <DropdownMenuItem
-                                    onClick={() => setTicketToArchive(ticket)}
-                                    className="text-red-600 focus:bg-red-50 focus:text-red-700"
-                                  >
-                                    <Archive className="size-4" />
-                                    Archive Ticket
-                                  </DropdownMenuItem>
-                                </>
-                              )}
+                              <div className="my-1 h-px w-full bg-border" />
+                              <DropdownMenuItem
+                                onClick={() => setTicketToArchive(ticket)}
+                                disabled={ticket.status.toLowerCase() !== "open"}
+                                className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                              >
+                                <Archive className="size-4" />
+                                Archive Ticket
+                              </DropdownMenuItem>
                             </>
                           )}
                           {ticketView === "archived" && (
