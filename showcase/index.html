@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>iLabCICT — Showcase</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand: #bf3419;
+    --brand-deep: #7f2413;
+    --brand-bright: #f26a48;
+    --amber: #f2a92c;
+    --border: #e5e5e5;
+    --gray-200: #e5e7eb;
+    --muted: #f5f5f5;
+    --muted-fg: #737373;
+    --zinc-500: #71717a;
+    --zinc-800: #27272a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1254px; overflow: hidden; }
+  body { font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; }
+  svg { display: block; flex-shrink: 0; }
+
+  /* ---------- Canvas ---------- */
+  .canvas {
+    position: relative; width: 1920px; height: 1254px; overflow: hidden;
+    background:
+      radial-gradient(900px 700px at 78% 42%, rgba(191, 52, 25, .34), transparent 70%),
+      radial-gradient(700px 500px at 0% 100%, rgba(191, 52, 25, .14), transparent 70%),
+      #120a08;
+    color: #fff;
+  }
+  .canvas::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(255, 255, 255, .07) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: linear-gradient(90deg, transparent 30%, #000 70%);
+  }
+
+  /* ---------- Left column ---------- */
+  .intro { position: absolute; left: 96px; top: 0; bottom: 0; width: 540px; display: flex; flex-direction: column; justify-content: center; z-index: 3; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand .mark { height: 58px; }
+  .brand .name { font-size: 36px; font-weight: 800; letter-spacing: -.03em; }
+  .app-name { margin-top: 20px; font-size: 15px; font-weight: 500; letter-spacing: .28em; text-transform: uppercase; color: rgba(255, 255, 255, .6); }
+  .tagline { margin-top: 44px; font-size: 72px; line-height: 1.06; font-weight: 700; letter-spacing: -.04em; }
+  .tagline em { font-style: normal; color: var(--brand-bright); }
+  .desc { margin-top: 30px; font-size: 20px; line-height: 1.6; color: rgba(255, 255, 255, .68); max-width: 490px; }
+  .tags { margin-top: 44px; display: flex; flex-wrap: wrap; gap: 10px; max-width: 520px; }
+  .tag { padding: 9px 18px; font-size: 14px; font-weight: 500; color: rgba(255, 255, 255, .86); border: 1px solid rgba(255, 255, 255, .16); border-radius: 999px; background: rgba(255, 255, 255, .04); }
+  .stack { position: absolute; left: 96px; bottom: 64px; font-size: 13px; letter-spacing: .08em; color: rgba(255, 255, 255, .38); z-index: 3; }
+
+  /* ---------- Tilted app windows ---------- */
+  .window {
+    position: absolute; z-index: 1; width: 1440px; overflow: hidden;
+    transform-origin: 0 0; transform: rotate(-10deg) scale(.88);
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .08);
+  }
+  .bar { height: 44px; display: flex; align-items: center; gap: 20px; padding-left: 18px; background: #18100e; }
+  .bar .lights { display: flex; gap: 8px; }
+  .bar .lights i { width: 12px; height: 12px; border-radius: 50%; }
+  .bar .name { font-size: 14px; font-weight: 600; letter-spacing: .2em; color: rgba(255, 255, 255, .9); }
+  .bar .name b { color: var(--amber); margin-right: 12px; }
+
+  /* ---------- Light variant (index.html?theme=light) ---------- */
+  .light.canvas {
+    background:
+      radial-gradient(900px 700px at 80% 40%, rgba(191, 52, 25, .14), transparent 70%),
+      radial-gradient(700px 500px at 0% 100%, rgba(242, 169, 44, .10), transparent 70%),
+      #f8f4f1;
+    color: #1d110d;
+  }
+  .light.canvas::after { background-image: radial-gradient(rgba(90, 30, 15, .10) 1px, transparent 1px); }
+  .light .app-name { color: rgba(29, 17, 13, .55); }
+  .light .tagline em { color: var(--brand); }
+  .light .desc { color: rgba(29, 17, 13, .66); }
+  .light .tag { color: rgba(29, 17, 13, .82); border-color: rgba(29, 17, 13, .14); background: rgba(255, 255, 255, .7); }
+  .light .stack { color: rgba(29, 17, 13, .38); }
+  .light .window { box-shadow: 0 40px 80px rgba(90, 30, 15, .20), 0 0 0 1px rgba(29, 17, 13, .08); }
+  .light .bar { background: #fff; border-bottom: 1px solid var(--border); }
+  .light .bar .name { color: rgba(29, 17, 13, .78); }
+  .light .bar .name b { color: var(--brand); }
+
+  /* ---------- App screen (authored at 1440×900) ---------- */
+  .screen { width: 1440px; height: 900px; display: flex; overflow: hidden; background: #fbfbfb; color: #0a0a0a; font-size: 16px; line-height: 24px; }
+  .sm { font-size: 14px; line-height: 20px; }
+  .xs { font-size: 12px; line-height: 16px; }
+  .medium { font-weight: 500; }
+  .row { display: flex; align-items: center; justify-content: space-between; }
+
+  /* Sidebar */
+  .sidebar { width: 240px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border); background: #fff; }
+  .sb-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 8px 12px 12px; }
+  .sb-head img { width: 24px; margin-left: 8px; }
+  .sb-group { padding: 8px; flex: 1; }
+  .sb-label { height: 32px; padding: 0 8px; display: flex; align-items: center; font-size: 12px; font-weight: 500; color: rgba(10, 10, 10, .7); }
+  .sb-item { height: 40px; margin: 0 0 4px 4px; padding: 0 8px; display: flex; align-items: center; gap: 8px; border-radius: 18px; font-size: 14px; font-weight: 500; }
+  .sb-item.active { background: var(--muted); }
+  .sb-foot { border-top: 1px solid var(--border); padding: 8px; }
+  .sb-profile { height: 61px; padding: 0 8px; display: flex; align-items: center; gap: 12px; }
+  .sb-profile img { width: 32px; height: 32px; border-radius: 50%; }
+  .sb-profile .who { display: flex; flex-direction: column; min-width: 0; }
+  .sb-profile .who b { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sb-profile .who span { font-size: 14px; line-height: 20px; color: var(--muted-fg); }
+  .sb-profile svg { margin-left: auto; }
+
+  /* Page header */
+  .page { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .header { display: flex; align-items: center; justify-content: space-between; padding: 20px; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .05); }
+  .header .title { display: flex; align-items: center; gap: 8px; font-size: 18px; line-height: 28px; font-weight: 500; }
+  .header .title span { padding: 8px; border-radius: 4px; background: var(--brand); color: #fff; }
+  .header .right { display: flex; align-items: center; gap: 8px; }
+  .header .bell { position: relative; }
+  .header .bell i { position: absolute; right: -2px; top: -3px; min-width: 16px; height: 16px; padding: 0 4px; display: flex; align-items: center; justify-content: center; border-radius: 999px; background: #dc2626; color: #fff; font-style: normal; font-size: 10px; font-weight: 500; }
+  .header .divider { width: 1px; height: 24px; margin: 0 8px 0 4px; background: #d1d5db; }
+  .header img { width: 36px; height: 36px; border-radius: 50%; }
+
+  /* Dashboard */
+  .dash { padding: 12px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat { height: 174px; display: flex; flex-direction: column; justify-content: space-between; padding: 24px 20px; border: 1px solid var(--gray-200); border-radius: 18px; background: linear-gradient(#fff, rgba(191, 52, 25, .05) 80%); color: var(--zinc-800); }
+  .stat .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .stat h3 { font-size: 16px; font-weight: 500; }
+  .stat p { margin-top: 8px; font-size: 14px; line-height: 20px; color: var(--zinc-500); }
+  .stat h2 { font-size: 30px; line-height: 36px; font-weight: 500; letter-spacing: -.025em; }
+  .trend { margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 999px; font-size: 12px; line-height: 16px; font-weight: 500; }
+  .trend span { font-weight: 400; }
+  .trend.bad { background: #fee2e2; color: #b91c1c; }
+  .trend.good { background: #bbf7d0; color: #166534; }
+  .trend.neutral { background: #f4f4f5; color: #52525b; }
+  .split { display: grid; grid-template-columns: 70fr 30fr; gap: 12px; }
+  .panel { border: 1px solid var(--gray-200); border-radius: 18px; background: #fff; color: var(--zinc-800); }
+  .panel h2 { font-weight: 600; letter-spacing: -.025em; }
+  .ranges { display: flex; overflow: hidden; border: 1px solid var(--gray-200); border-radius: 14px; }
+  .ranges span { padding: 8px 16px; font-size: 14px; line-height: 20px; font-weight: 500; color: #52525b; border-right: 1px solid var(--gray-200); }
+  .ranges span:last-child { border-right: 0; }
+  .ranges .on { background: rgba(191, 52, 25, .1); color: var(--brand); }
+  .chart { margin-top: 24px; height: 300px; }
+  .chart text { font-size: 12px; fill: var(--muted-fg); }
+  .legend { display: flex; justify-content: center; gap: 16px; font-size: 12px; line-height: 16px; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .legend i { width: 8px; height: 8px; border-radius: 2px; }
+  .lab { margin-bottom: 12px; }
+  .lab .track { margin-top: 8px; height: 8px; overflow: hidden; border-radius: 999px; background: rgba(191, 52, 25, .15); }
+  .lab .track i { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
+  .field { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 14px; background: #fff; }
+
+  /* Ticket Management */
+  .tickets { width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 40px; }
+  .tickets .inner { margin-top: 20px; padding: 12px; display: flex; flex-direction: column; gap: 16px; }
+  .toolbar { display: flex; flex-direction: column; gap: 12px; }
+  .group { display: flex; align-items: center; gap: 12px; }
+  .btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 14px; background: #fff; }
+  .seg { display: flex; padding: 4px; border: 1px solid var(--border); border-radius: 14px; background: #fff; }
+  .seg span { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 10px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--muted-fg); }
+  .seg .on { background: var(--brand); color: #fff; }
+  .searchbox { position: relative; width: 300px; padding: 8px 40px; border: 1px solid var(--border); border-radius: 14px; background: #fff; color: #a3a3a3; }
+  .searchbox svg { position: absolute; left: 12px; top: 50%; margin-top: -9px; color: #0a0a0a; }
+  .table { overflow: hidden; border: 1px solid var(--border); border-radius: 18px; background: #fff; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 20px; }
+  th { height: 40px; padding: 0 8px; text-align: left; font-weight: 500; background: var(--muted); white-space: nowrap; }
+  td { padding: 8px; white-space: nowrap; }
+  tr { border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: 0; }
+  .person { display: flex; align-items: center; gap: 12px; }
+  .person img { width: 32px; height: 32px; border-radius: 50%; }
+  .status { padding: 4px 12px; border-radius: 999px; font-weight: 500; }
+  .status.open { background: #dbeafe; color: #1d4ed8; }
+  .status.ongoing { background: #fef9c3; color: #a16207; }
+  .status.resolved { background: #dcfce7; color: #15803d; }
+  .center { text-align: center; }
+  .center svg { margin: 0 auto; }
+</style>
+</head>
+<body>
+<div class="canvas">
+
+  <section class="intro">
+    <div class="brand">
+      <img class="mark" src="assets/logo.png" alt="" />
+      <span class="name">iLabCICT</span>
+    </div>
+    <div class="app-name">Laboratory Maintenance Platform</div>
+    <h1 class="tagline">Every lab,<br /><em>up and running.</em></h1>
+    <p class="desc">A laboratory maintenance system that takes faculty requests, routes them to technicians, and keeps every computer accounted for.</p>
+    <div class="tags">
+      <span class="tag">Ticketing</span>
+      <span class="tag">Laboratory Management</span>
+      <span class="tag">Repair Logs</span>
+      <span class="tag">Weekly Reports</span>
+      <span class="tag">Role-based Access</span>
+    </div>
+  </section>
+  <div class="stack">REACT · TYPESCRIPT · VITE · TAILWIND CSS · SHADCN/UI</div>
+
+  <div class="window" style="left: 700px; top: 250px;">
+    <div class="bar"><div class="lights"><i style="background:#ec6a5e"></i><i style="background:#f4bf4f"></i><i style="background:#61c554"></i></div><span class="name"><b>02</b>TICKET MANAGEMENT</span></div>
+    <div class="screen" id="ticket-management"></div>
+  </div>
+
+  <div class="window" style="left: 940px; top: 620px;">
+    <div class="bar"><div class="lights"><i style="background:#ec6a5e"></i><i style="background:#f4bf4f"></i><i style="background:#61c554"></i></div><span class="name"><b>01</b>DASHBOARD</span></div>
+    <div class="screen" id="dashboard"></div>
+  </div>
+
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get("theme") === "light") document.querySelector(".canvas").classList.add("light");
+
+  // ---------- Icons (lucide) ----------
+  const ICONS = {
+    dashboard: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+    scroll: '<path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/>',
+    monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
+    clipboard: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+    fileChart: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-1"/><path d="M12 18v-6"/><path d="M16 18v-3"/>',
+    wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    history: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+    panelLeft: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>',
+    ellipsis: '<circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>',
+    more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+    bell: '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>',
+    inbox: '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    check: '<path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16.5 12"/>',
+    up: '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
+    down: '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
+    flat: '<path d="M5 12h14"/>',
+    upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
+    archive: '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
+    search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    chevronDown: '<path d="m6 9 6 6 6-6"/>',
+    calendar: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  };
+  const icon = (name, size = 16, stroke = 2) =>
+    `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
+
+  // ---------- Sample data (follows the app's ticket and room shapes) ----------
+  const AVATAR = "assets/profile-placeholder.png";
+  const TICKETS = [
+    ["TKT-2026-0163", "Maria Santos", "Carlo Reyes", "Report", "Open", "Oct 13, 2026"],
+    ["TKT-2026-0162", "Daniel Cruz", "Aira Mendoza", "Request", "Open", "Oct 13, 2026"],
+    ["TKT-2026-0161", "Sofia Ramos", "Carlo Reyes", "Report", "Ongoing", "Oct 12, 2026"],
+    ["TKT-2026-0160", "Miguel Garcia", "Paolo Dizon", "Report", "Ongoing", "Oct 12, 2026"],
+    ["TKT-2026-0159", "Jasmine Flores", "Aira Mendoza", "Request", "Resolved", "Oct 10, 2026"],
+    ["TKT-2026-0158", "Bea Navarro", "Paolo Dizon", "Report", "Resolved", "Oct 9, 2026"],
+    ["TKT-2026-0157", "Nico Aquino", "Carlo Reyes", "Request", "Resolved", "Oct 9, 2026"],
+    ["TKT-2026-0156", "Lia Torres", "Aira Mendoza", "Report", "Resolved", "Oct 8, 2026"],
+    ["TKT-2026-0155", "Renz Bautista", "Paolo Dizon", "Report", "Resolved", "Oct 7, 2026"],
+    ["TKT-2026-0154", "Maria Santos", "Carlo Reyes", "Request", "Resolved", "Oct 6, 2026"],
+  ];
+  const STATS = [
+    { title: "Open Tickets", note: "Awaiting action", value: "14", icon: "inbox", trend: ["bad", "up", "+3", "new tickets vs last week"] },
+    { title: "Ongoing Repairs", note: "Currently in progress", value: "8", icon: "wrench", trend: ["bad", "up", "+2", "active updates vs last week"] },
+    { title: "Resolved This Month", note: "Last month:", caption: "46 resolved", value: "21", icon: "check", trend: ["neutral", "flat", "0%", "vs last month"] },
+    { title: "Est. Resolution Time", note: "Resolved this month", value: "1d 6h", icon: "clock", trend: ["good", "down", "-15%", "vs last month"] },
+  ];
+  // Two-week buckets over the last 3 months: [label, created, resolved].
+  const CHART = [
+    ["Jul 16-29", 18, 15], ["Jul 30-Aug 12", 22, 19], ["Aug 13-26", 27, 24], ["Aug 27-Sep 9", 31, 26],
+    ["Sep 10-23", 24, 25], ["Sep 24-Oct 7", 29, 23], ["Oct 8-13", 12, 9],
+  ];
+  const LABS = [["Lab 1", 28, 30], ["Lab 2", 30, 30], ["Lab 3", 25, 30], ["Lab 4", 27, 30], ["Lab 5", 22, 28], ["Lab 6", 30, 30]];
+  const NAV = [
+    ["Dashboard", "dashboard"], ["Ticket Management", "scroll"], ["Laboratory Management", "monitor"], ["User Management", "clipboard"],
+    ["Technician Report", "fileChart"], ["Repair Logs", "wrench"], ["Audit Logs", "history"],
+  ];
+
+  // ---------- Shared pieces ----------
+  const sidebar = (active) => `
+    <aside class="sidebar">
+      <div class="sb-head"><img src="assets/logo.png" alt="" /><div style="padding: 6px;">${icon("panelLeft")}</div></div>
+      <div class="sb-group">
+        <div class="sb-label">Navigation</div>
+        ${NAV.map(([label, name]) => `<div class="sb-item ${label === active ? "active" : ""}">${icon(name, 16)}<span>${label}</span></div>`).join("")}
+      </div>
+      <div class="sb-foot">
+        <div class="sb-profile">
+          <img src="${AVATAR}" alt="" />
+          <div class="who"><b>John Patrick Soriaga</b><span>Admin</span></div>
+          ${icon("ellipsis")}
+        </div>
+      </div>
+    </aside>`;
+
+  const header = (title, name) => `
+    <div class="header">
+      <div class="title"><span>${icon(name, 18)}</span>${title}</div>
+      <div class="right">
+        <div class="bell">${icon("bell", 20)}<i>3</i></div>
+        <div class="divider"></div>
+        <img src="${AVATAR}" alt="" />
+      </div>
+    </div>`;
+
+  // ---------- 01 Dashboard ----------
+  const chart = () => {
+    const width = 780, height = 300, left = 34, top = 12, bottom = 56, max = 32;
+    const plot = height - top - bottom;
+    const y = (value) => top + plot - (value / max) * plot;
+    const band = (width - left - 12) / CHART.length;
+    const grid = [0, 8, 16, 24, 32].map((tick) => `
+      <line x1="${left}" x2="${width - 12}" y1="${y(tick)}" y2="${y(tick)}" stroke="#e5e5e5" stroke-dasharray="4 4" />
+      <text x="${left - 8}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`).join("");
+    const bars = CHART.map(([label, created, resolved], index) => {
+      const center = left + band * index + band / 2;
+      const bar = (value, x, fill) => `<path d="M${x} ${y(0)} V${y(value) + 4} a4 4 0 0 1 4 -4 h26 a4 4 0 0 1 4 4 V${y(0)} Z" fill="${fill}" />`;
+      return `${bar(created, center - 36, "var(--brand)")}${bar(resolved, center + 2, "var(--brand-deep)")}
+        <text x="${center}" y="${y(0) + 22}" text-anchor="middle">${label}</text>`;
+    }).join("");
+    return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="270" preserveAspectRatio="none">${grid}${bars}</svg>`;
+  };
+
+  document.getElementById("dashboard").innerHTML = `
+    ${sidebar("Dashboard")}
+    <div class="page">
+      ${header("Dashboard", "dashboard")}
+      <div class="dash">
+        <div class="cards">
+          ${STATS.map((s) => `
+            <div class="stat">
+              <div class="top">
+                <div><h3>${s.title}</h3><p><span class="medium">${s.note}</span> ${s.caption || ""}</p></div>
+                ${icon(s.icon, 24, 1.75)}
+              </div>
+              <div>
+                <h2>${s.value}</h2>
+                <div class="trend ${s.trend[0]}">${icon(s.trend[1], 14)}${s.trend[2]}<span>${s.trend[3]}</span></div>
+              </div>
+            </div>`).join("")}
+        </div>
+
+        <div class="split">
+          <section class="panel" style="padding: 20px;">
+            <div class="row" style="align-items: flex-start;">
+              <div>
+                <h2 style="font-size: 20px; line-height: 28px;">Ticket Overview</h2>
+                <p class="sm" style="margin-top: 4px; color: var(--zinc-500);">163 created, 141 resolved</p>
+              </div>
+              <div class="ranges"><span class="on">Last 3 months</span><span>Last 30 days</span><span>Last 7 days</span></div>
+            </div>
+            <div class="chart">
+              ${chart()}
+              <div class="legend"><span><i style="background: var(--brand)"></i>Created</span><span><i style="background: var(--brand-deep)"></i>Resolved</span></div>
+            </div>
+          </section>
+
+          <section class="panel" style="padding: 16px;">
+            <h2 style="font-size: 18px; line-height: 28px;">Laboratory Status</h2>
+            <p class="xs" style="margin-top: 4px; color: var(--zinc-500);">${LABS.length} laboratories tracked</p>
+            <div style="margin-top: 16px;">
+              ${LABS.map(([name, working, total]) => `
+                <div class="lab">
+                  <div class="row">
+                    <div><h3 class="sm" style="font-weight: 600;">${name}</h3><p class="xs" style="margin-top: 2px; color: var(--zinc-500);">${working}/${total} operational</p></div>
+                    <span class="sm" style="font-weight: 600;">${Math.round((working / total) * 100)}%</span>
+                  </div>
+                  <div class="track"><i style="width: ${(working / total) * 100}%"></i></div>
+                </div>`).join("")}
+            </div>
+          </section>
+        </div>
+
+        <section class="panel" style="padding: 20px;">
+          <div class="row">
+            <h2 style="font-size: 18px; line-height: 28px;">Recent Tickets</h2>
+            <div class="group sm" style="gap: 8px;">
+              <div class="searchbox" style="width: 220px; padding-left: 36px;">${icon("search")}Search tickets...</div>
+              <div class="field" style="min-width: 128px;">All Type${icon("chevronDown", 14)}</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>`;
+
+  // ---------- 02 Ticket Management ----------
+  const person = (name) => `<div class="person"><img src="${AVATAR}" alt="" /><span>${name}</span></div>`;
+
+  document.getElementById("ticket-management").innerHTML = `
+    ${sidebar("Ticket Management")}
+    <div class="page">
+      ${header("Manage Ticket", "scroll")}
+      <div class="tickets">
+        <div class="inner">
+          <div class="toolbar">
+            <div class="row">
+              <div class="group">
+                <div class="btn">${icon("upload", 20)}Export</div>
+                <div class="seg"><span class="on">${icon("inbox")}Active</span><span>${icon("archive")}Archived</span></div>
+              </div>
+              <div class="searchbox">${icon("search", 18)}Search Tickets...</div>
+            </div>
+            <div class="row">
+              <div class="group">
+                <div class="field" style="min-width: 144px;">All Status${icon("chevronDown", 14)}</div>
+                <div class="field" style="min-width: 144px;">All Type${icon("chevronDown", 14)}</div>
+              </div>
+              <div class="field" style="width: 200px; height: 42px; color: var(--muted-fg);">dd/mm/yyyy${icon("calendar")}</div>
+            </div>
+          </div>
+
+          <div class="table">
+            <table>
+              <thead><tr><th>Ticket ID</th><th>Faculty</th><th>Technician</th><th>Type</th><th>Status</th><th>Created</th><th class="center">Actions</th></tr></thead>
+              <tbody>
+                ${TICKETS.map(([code, faculty, technician, type, status, created]) => `
+                  <tr>
+                    <td class="medium">${code}</td>
+                    <td>${person(faculty)}</td>
+                    <td>${person(technician)}</td>
+                    <td>${type}</td>
+                    <td><span class="status ${status.toLowerCase()}">${status}</span></td>
+                    <td>${created}</td>
+                    <td class="center">${icon("more")}</td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>`;
+</script>
+</body>
+</html>
