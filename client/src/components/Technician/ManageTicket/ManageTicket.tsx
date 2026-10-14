@@ -109,6 +109,9 @@ const isTicketWebSocketMessage = (
     );
 };
 
+const isArchivedTicket = (ticket: ApiTicket) =>
+    ticket.is_archived === true || ticket.status === "archived";
+
 const mapTicket = (ticket: ApiTicket): Ticket => ({
     id: ticket.id,
     ticketCode: ticket.ticket_code,
@@ -260,7 +263,9 @@ export default function ManageTicket({
                     queryClient.setQueryData(TICKETS_READY_QUERY_KEY, true);
                     queryClient.setQueryData<Ticket[]>(
                         TICKETS_QUERY_KEY,
-                        parsedMessage.ticket.map(mapTicket)
+                        parsedMessage.ticket
+                            .filter((ticket) => !isArchivedTicket(ticket))
+                            .map(mapTicket)
                     );
                     return;
                 }
@@ -294,12 +299,22 @@ export default function ManageTicket({
                     const apiTicket = parsedMessage.ticket ?? (
                         response?.ok ? await response.json() as ApiTicket : null
                     );
-                    if (apiTicket?.assigned_to?.id === technicianId) {
+                    if (apiTicket && !isArchivedTicket(apiTicket) && apiTicket.assigned_to?.id === technicianId) {
                         queryClient.setQueryData<Ticket[]>(
                             TICKETS_QUERY_KEY,
                             (currentTickets = []) => upsertTicket(currentTickets, apiTicket)
                         );
                     }
+                    return;
+                }
+
+                if (isArchivedTicket(parsedMessage.ticket)) {
+                    const archivedTicketId = parsedMessage.ticket.id;
+                    queryClient.setQueryData<Ticket[]>(
+                        TICKETS_QUERY_KEY,
+                        (currentTickets = []) =>
+                            currentTickets.filter((ticket) => ticket.id !== archivedTicketId)
+                    );
                     return;
                 }
 
