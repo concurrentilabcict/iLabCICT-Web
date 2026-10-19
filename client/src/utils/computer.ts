@@ -56,3 +56,10 @@ export type PeripheralStatus =
     keyof typeof peripheralStatusConfig
 
 export type StatusFilter = "All" | Status | "Archived"
+
+export const SIZE_UNIT_OPTIONS = ["MB", "GB", "TB"] as const
+
+export const DEFAULT_SIZE_UNIT = "GB"
+
+export const formatSize = (size: number, unit?: string | null) =>
+    `${size} ${unit || DEFAULT_SIZE_UNIT}`

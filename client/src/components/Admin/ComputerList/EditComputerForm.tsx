@@ -15,6 +15,7 @@ import PheripheralStatus from "./PheripheralStatus";
 import ComputerStatus from "./ComputerStatus";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { appToast } from "@/utils/appToast";
+import { DEFAULT_SIZE_UNIT, SIZE_UNIT_OPTIONS } from "@/utils/computer";
 
 type EditComputerProps = {
     closeSheet: () => void;
@@ -31,7 +32,9 @@ type EditComputerForm = {
     gpu: string,
     motherboard: string,
     ramSize: number,
+    ramUnit: string,
     diskSize: number,
+    diskUnit: string,
     operatingSystem: string,
     buildVersion: string,
     computerStatus: ComputerStatusType,
@@ -92,7 +95,9 @@ computer
             gpu: computer.gpu,
             motherboard: computer.motherboard,
             ramSize: computer.ramSizeInstalled,
+            ramUnit: computer.ramUnit || DEFAULT_SIZE_UNIT,
             diskSize: computer.diskSizeInstalled,
+            diskUnit: computer.diskUnit || DEFAULT_SIZE_UNIT,
             operatingSystem: computer.operatingSystem,
             buildVersion: computer.buildVersion,
             computerStatus: computer.computerStatus as ComputerStatusType,
@@ -120,7 +125,9 @@ computer
                         gpu: form.gpu.trim(),
                         motherboard: form.motherboard.trim(),
                         ram_size_installed: form.ramSize,
+                        ram_unit: form.ramUnit,
                         disk_size_installed: form.diskSize,
+                        disk_unit: form.diskUnit,
                         operating_system: form.operatingSystem,
                         build_version: form.buildVersion,
                         computer_status: form.computerStatus,
@@ -248,28 +255,54 @@ computer
             
                                     <div className="flex flex-col gap-1">
             
-                                        <h3 className="font-medium secondary-text-color">Total Ram Size Installed (GB)</h3>
-                                        <Input
-                                        type="number"
-                                        value={form.ramSize}
-                                        onChange={(event) => updateField("ramSize", Number(event.target.value))}
-                                        required
-                                        disabled={isSubmitting}
-                                        className="h-10"
-                                        />
+                                        <h3 className="font-medium secondary-text-color">Total Ram Size Installed</h3>
+                                        <div className="flex gap-2">
+                                            <Input
+                                            type="number"
+                                            value={form.ramSize}
+                                            onChange={(event) => updateField("ramSize", Number(event.target.value))}
+                                            required
+                                            disabled={isSubmitting}
+                                            className="h-10 flex-1"
+                                            />
+                                            <select
+                                            aria-label="RAM unit"
+                                            value={form.ramUnit}
+                                            onChange={(event) => updateField("ramUnit", event.target.value)}
+                                            disabled={isSubmitting}
+                                            className="h-10 w-20 rounded-lg border border-input bg-white px-2 text-sm disabled:opacity-50"
+                                            >
+                                                {SIZE_UNIT_OPTIONS.map((unit) => (
+                                                    <option key={unit} value={unit}>{unit}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
             
                                     <div className="flex flex-col gap-1">
             
-                                        <h3 className="font-medium secondary-text-color">Disk Size Installed (GB)</h3>
-                                        <Input
-                                        type="number"
-                                        value={form.diskSize}
-                                        onChange={(event) => updateField("diskSize", Number(event.target.value))}
-                                        required
-                                        disabled={isSubmitting}
-                                        className="h-10"
-                                        />
+                                        <h3 className="font-medium secondary-text-color">Disk Size Installed</h3>
+                                        <div className="flex gap-2">
+                                            <Input
+                                            type="number"
+                                            value={form.diskSize}
+                                            onChange={(event) => updateField("diskSize", Number(event.target.value))}
+                                            required
+                                            disabled={isSubmitting}
+                                            className="h-10 flex-1"
+                                            />
+                                            <select
+                                            aria-label="Disk unit"
+                                            value={form.diskUnit}
+                                            onChange={(event) => updateField("diskUnit", event.target.value)}
+                                            disabled={isSubmitting}
+                                            className="h-10 w-20 rounded-lg border border-input bg-white px-2 text-sm disabled:opacity-50"
+                                            >
+                                                {SIZE_UNIT_OPTIONS.map((unit) => (
+                                                    <option key={unit} value={unit}>{unit}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
             
                                     <div className="flex flex-col gap-1">

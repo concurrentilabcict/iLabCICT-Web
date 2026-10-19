@@ -18,7 +18,9 @@ export type ApiComputer = {
   cpu: string;
   motherboard?: string;
   ram_size_installed: number;
+  ram_unit?: string;
   disk_size_installed: number;
+  disk_unit?: string;
   build_version?: string;
   computer_status: string;
   monitor_status: string;

@@ -21,6 +21,7 @@ import {
 
 import type { ApiComputer, ApiRelatedTicket, ApiRoom, PeripheralStatus, PeripheralTone } from "@/types/createTicket";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatSize } from "@/utils/computer";
 
 const statusToneClass: Record<PeripheralTone, string> = {
   green: "bg-green-100 text-green-700",
@@ -53,12 +54,8 @@ function getStatusTone(status: string): PeripheralTone {
   return "gray";
 }
 
-function formatStorage(value?: number) {
-  return typeof value === "number" ? `${value} GB` : "Not set";
-}
-
-function formatRam(value?: number) {
-  return typeof value === "number" ? `${value} GB` : "Not set";
+function formatComputerSize(value?: number, unit?: string) {
+  return typeof value === "number" ? formatSize(value, unit) : "Not set";
 }
 
 function formatPerson(person?: { first_name: string; last_name: string } | null) {
@@ -186,8 +183,8 @@ export function ComputerInfoCard({ computer, isLoading }: { computer?: ApiComput
             <div className="space-y-4 pl-4">
               <SpecRow icon={Cpu} value={computer.cpu} label="CPU" />
               <SpecRow icon={HardDrive} value={computer.gpu ?? "Not set"} label="GPU" />
-              <SpecRow icon={MemoryStick} value={formatRam(computer.ram_size_installed)} label="RAM" />
-              <SpecRow icon={HardDrive} value={formatStorage(computer.disk_size_installed)} label="Storage" />
+              <SpecRow icon={MemoryStick} value={formatComputerSize(computer.ram_size_installed, computer.ram_unit)} label="RAM" />
+              <SpecRow icon={HardDrive} value={formatComputerSize(computer.disk_size_installed, computer.disk_unit)} label="Storage" />
             </div>
           </div>
         ) : null}

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
-import { getStatusData } from "@/utils/computer";
+import { formatSize, getStatusData } from "@/utils/computer";
 import type { ComputerCardType } from "@/types/computer";
 import ComputerArchiveAction from "@/components/ComputerArchiveAction/ComputerArchiveAction";
 import { downloadComputerQrPng } from "@/utils/computerQr";
@@ -91,7 +91,7 @@ export default function ComputerCard({
                     )}
                     <InfoTile icon={Cpu} label="CPU" value={computer.cpu} />
                     <InfoTile icon={HardDrive} label="GPU" value={computer.gpu} />
-                    <InfoTile icon={MemoryStick} label="Memory" value={`${computer.ramSizeInstalled}GB RAM`} />
+                    <InfoTile icon={MemoryStick} label="Memory" value={`${formatSize(computer.ramSizeInstalled, computer.ramUnit)} RAM`} />
                 </div>
 
                 <div className="mt-auto h-px w-full bg-gray-100" />

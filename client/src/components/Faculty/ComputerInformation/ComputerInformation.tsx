@@ -7,7 +7,7 @@ import ComputerAssetCard from "@/components/ComputerInformation/ComputerAssetCar
 import type { Computer } from "@/types/computer";
 import { useQuery } from "@tanstack/react-query";
 import { buildApiUrl, createApiError, privateFetch } from "@/lib/api";
-import type { PeripheralStatus, Status } from "@/utils/computer";
+import { formatSize, type PeripheralStatus, type Status } from "@/utils/computer";
 import {
     Sheet,
     SheetContent,
@@ -48,7 +48,9 @@ type ApiComputerDetails = {
     gpu: string;
     cpu: string;
     ram_size_installed: number;
+    ram_unit: string;
     disk_size_installed: number;
+    disk_unit: string;
     build_version: string;
     computer_status: string;
     motherboard: string;
@@ -89,7 +91,9 @@ export default function ComputerInformation({
         gpu: computer.gpu,
         cpu: computer.cpu,
         ramSizeInstalled: computer.ram_size_installed,
+        ramUnit: computer.ram_unit,
         diskSizeInstalled: computer.disk_size_installed,
+        diskUnit: computer.disk_unit,
         buildVersion: computer.build_version,
         computerStatus: computer.computer_status,
         motherboard: computer.motherboard,
@@ -168,8 +172,8 @@ export default function ComputerInformation({
                             gpu={computer.gpu}
                             motherboard={computer.motherboard}
                             operatingSystem={computer.operatingSystem}
-                            ramSize={`${computer.ramSizeInstalled} GB`}
-                            diskSize={`${computer.diskSizeInstalled} GB`}
+                            ramSize={formatSize(computer.ramSizeInstalled, computer.ramUnit)}
+                            diskSize={formatSize(computer.diskSizeInstalled, computer.diskUnit)}
                             buildVersion={computer.buildVersion}
                             updatedAt={computer.updatedAt}
                             createdAt={computer.createdAt}
