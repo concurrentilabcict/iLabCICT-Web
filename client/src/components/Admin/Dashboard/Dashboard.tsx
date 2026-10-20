@@ -545,9 +545,14 @@ export default function Dashboard() {
             trend: isDashboardLoading || isDashboardError
                 ? undefined
                 : {
-                    ...incomingTrend,
-                    label: "new tickets vs last week",
-                    status: "bad" as const,
+                    direction: incomingTrend.direction,
+                    value: String(incomingThisWeek),
+                    label: `new this week (${incomingTrend.value} vs last week)`,
+                    status: incomingTrend.direction === "up"
+                        ? "bad" as const
+                        : incomingTrend.direction === "down"
+                            ? "good" as const
+                            : "neutral" as const,
                 },
         },
         {

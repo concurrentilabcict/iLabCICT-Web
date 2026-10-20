@@ -315,7 +315,7 @@ export default function WeeklyReport() {
                                 <FileText size={21} />
                             </div>
                             <div>
-                                <h2 className="text-lg font-semibold">My Weekly Reports</h2>
+                                <h2 className="text-lg font-semibold">Technician Reports</h2>
                                 <p className="mt-1 text-sm leading-6 secondary-text-color">
                                     Generated summaries for your completed maintenance work.
                                 </p>

@@ -30,6 +30,9 @@ export const formatLabel = (text: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 
+export const formatReportTitle = (title: string) =>
+  title.replace(/^(weekly|monthly)\s+report\b/i, "Technician Reports");
+
 export const formatDate = (date: string) =>
   new Intl.DateTimeFormat("en-US", {
     month: "short",

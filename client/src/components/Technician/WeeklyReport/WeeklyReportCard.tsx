@@ -14,6 +14,7 @@ import { CARD_SURFACE, cardMotion } from "@/lib/motion";
 import type { WeeklyReport as WeeklyReportType } from "@/types/weeklyReport";
 import {
     formatDate,
+    formatReportTitle,
     getTotalRepairLogs,
 } from "@/components/Admin/WeeklyReport/weeklyReportUtils";
 
@@ -42,7 +43,7 @@ export default function WeeklyReportCard({
             <div className="flex items-center justify-between gap-3">
                 <div className="inline-flex items-center gap-2 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-red-600">
                     <FileText size={14} />
-                    <span>Weekly Report</span>
+                    <span>Report</span>
                 </div>
 
                 <div
@@ -59,7 +60,7 @@ export default function WeeklyReportCard({
 
             <div>
                 <h2 className="text-lg font-bold leading-snug text-zinc-950">
-                    {report.title}
+                    {formatReportTitle(report.title)}
                 </h2>
                 <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-zinc-400">
                     {report.reportCode}

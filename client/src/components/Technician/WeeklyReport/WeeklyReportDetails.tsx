@@ -14,6 +14,7 @@ import {
 import type { WeeklyReport as WeeklyReportType } from "@/types/weeklyReport";
 import { formatDateTime } from "@/utils/string";
 import {
+    formatReportTitle,
     formatSummaryDate,
     getTotalRepairLogs,
 } from "@/components/Admin/WeeklyReport/weeklyReportUtils";
@@ -38,7 +39,7 @@ export default function WeeklyReportDetails({
                     Report Overview
                 </SheetTitle>
                 <SheetDescription className="pr-10">
-                    #{report.reportCode} · {report.title}
+                    #{report.reportCode} · {formatReportTitle(report.title)}
                 </SheetDescription>
             </SheetHeader>
 
@@ -54,7 +55,7 @@ export default function WeeklyReportDetails({
 
                 <Section icon={FileText} title="Report Information">
                     <InfoRow label="Report Code" value={report.reportCode} />
-                    <InfoRow label="Title" value={report.title} />
+                    <InfoRow label="Title" value={formatReportTitle(report.title)} />
                     <InfoRow label="Technician" value={report.technicianName} />
                     <InfoRow label="Created" value={formatDateTime(report.createdAt)} />
                     <InfoRow label="Updated" value={formatDateTime(report.updatedAt)} />
