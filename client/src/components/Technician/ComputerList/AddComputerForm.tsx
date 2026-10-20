@@ -30,9 +30,9 @@ type AddComputerForm = {
     cpu: string,
     gpu: string,
     motherboard: string,
-    ramSize: number,
+    ramSize: string,
     ramUnit: string,
-    diskSize: number,
+    diskSize: string,
     diskUnit: string,
     operatingSystem: string,
     buildVersion: string,
@@ -94,9 +94,9 @@ export default function AddComputerForm({
     cpu: "",
     gpu: "",
     motherboard: "",
-    ramSize: 0,
+    ramSize: "",
     ramUnit: DEFAULT_SIZE_UNIT,
-    diskSize: 0,
+    diskSize: "",
     diskUnit: DEFAULT_SIZE_UNIT,
     operatingSystem: "",
     buildVersion: "",
@@ -123,9 +123,9 @@ export default function AddComputerForm({
                         cpu: form.cpu.trim(),
                         gpu: form.gpu.trim(),
                         motherboard: form.motherboard.trim(),
-                        ram_size_installed: form.ramSize,
+                        ram_size_installed: Number(form.ramSize),
                         ram_unit: form.ramUnit,
-                        disk_size_installed: form.diskSize,
+                        disk_size_installed: Number(form.diskSize),
                         disk_unit: form.diskUnit,
                         operating_system: form.operatingSystem.trim(),
                         build_version: form.buildVersion.trim(),
@@ -264,7 +264,7 @@ export default function AddComputerForm({
                                 <Input
                                 type="number"
                                 value={form.ramSize}
-                                onChange={(event) => updateField("ramSize", Number(event.target.value))}
+                                onChange={(event) => updateField("ramSize", event.target.value)}
                                 required
                                 disabled={isSubmitting}
                                 className="h-10 flex-1"
@@ -290,7 +290,7 @@ export default function AddComputerForm({
                                 <Input
                                 type="number"
                                 value={form.diskSize}
-                                onChange={(event) => updateField("diskSize", Number(event.target.value))}
+                                onChange={(event) => updateField("diskSize", event.target.value)}
                                 required
                                 disabled={isSubmitting}
                                 className="h-10 flex-1"
