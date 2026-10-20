@@ -91,7 +91,7 @@ function App() {
         <Route path="/repair-logs" element={<ProtectedRoute allowedRoles={technicianAndAdmin}>
           {role === "technician" ? <TechnicianRepairLog /> : <AdminRepairLog />}
         </ProtectedRoute>} />
-        <Route path="/weekly-reports" element={<ProtectedRoute allowedRoles={technicianAndAdmin}>
+        <Route path="/technician-reports" element={<ProtectedRoute allowedRoles={technicianAndAdmin}>
           {role === "technician" ? <TechnicianWeeklyReport /> : <AdminWeeklyReport />}
         </ProtectedRoute>} />
 

@@ -86,5 +86,5 @@ export const sortNotificationsByNewest = (notifications: Notification[]) => {
 
 export const getNotificationPath = (notification: Notification) =>
     notification.entityType === "weekly-report"
-        ? "/weekly-reports"
+        ? "/technician-reports"
         : `/manage-ticket?ticket=${notification.entityId}`;

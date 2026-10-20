@@ -46,7 +46,7 @@ export default function MoreMenu({ isActive, showWeeklyReport = true, compactLab
                 sideOffset={20}
             >
                 {showWeeklyReport && (
-                    <DropdownMenuItem onSelect={() => navigate("/weekly-reports")}>
+                    <DropdownMenuItem onSelect={() => navigate("/technician-reports")}>
                         <FileText className="mr-2 h-4 w-4" />
                         Weekly Report
                     </DropdownMenuItem>

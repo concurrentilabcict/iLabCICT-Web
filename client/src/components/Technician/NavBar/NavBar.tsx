@@ -173,7 +173,7 @@ export default function NavBar() {
 
             <MoreMenu
                 isActive={
-                    pathname === "/weekly-reports" ||
+                    pathname === "/technician-reports" ||
                     pathname === "/notifications"
                 }
             />

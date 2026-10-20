@@ -256,8 +256,8 @@ export default function TemplateUploadDialog() {
           </div>
           <DialogTitle>Report Template</DialogTitle>
           <DialogDescription>
-            Replace the PDF letterhead used for Admin and Technician Weekly
-            Report exports.
+            Replace the PDF letterhead used for Admin and Technician Report
+            exports.
           </DialogDescription>
         </DialogHeader>
 

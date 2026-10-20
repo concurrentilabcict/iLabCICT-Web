@@ -40,7 +40,7 @@ export const technicianNavItems: NavItem[] = [
     },
     {
         title: "Weekly Reports",
-        url: "/weekly-reports",
+        url: "/technician-reports",
         icon: BookOpen,
     },
 ];
@@ -91,7 +91,7 @@ export const adminNavItems: NavItem[] = [
     },
     {
         title: "Technician Report",
-        url: "/weekly-reports",
+        url: "/technician-reports",
         icon: FileChartColumn,
     },
     {
