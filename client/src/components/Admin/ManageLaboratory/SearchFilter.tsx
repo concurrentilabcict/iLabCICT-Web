@@ -15,7 +15,7 @@ type SearchFilterProps = {
     onStatusChange: (type: StatusFilter) => void;
 };
 
-const statusOptions: StatusFilter[] = ["All", "Operational", "Maintenance", "Degraded", "OutOfService"];
+const statusOptions: StatusFilter[] = ["All", "Operational", "Maintenance", "OutOfService"];
 const getStatusLabel = (status: StatusFilter) =>
     status === "All" ? status : statusConfig[status].value;
 

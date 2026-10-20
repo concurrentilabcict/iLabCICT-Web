@@ -13,14 +13,14 @@ type ApiPrintableTemplate = {
   updated_at: string;
 };
 
-const configuredTemplateName =
-  import.meta.env.VITE_WEEKLY_REPORT_TEMPLATE_NAME?.trim();
-const weeklyReportTemplateNames = configuredTemplateName
-  ? [configuredTemplateName]
-  : ["weekly-report", "report-header-footer"];
+export const WEEKLY_REPORT_TEMPLATE_NAME = "report-template";
 
-export const WEEKLY_REPORT_TEMPLATE_NAME =
-  configuredTemplateName || "weekly-report";
+// Older uploads were saved under these names; keep them as export fallbacks.
+const weeklyReportTemplateNames = [
+  WEEKLY_REPORT_TEMPLATE_NAME,
+  "weekly-report",
+  "report-header-footer",
+];
 
 export const formatLabel = (text: string) =>
   text

@@ -36,7 +36,6 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { buildWebSocketUrl, getFreshAccessToken } from "@/lib/api";
 import type { RepairLog as RepairLogType } from "@/types/repairLog";
 import { getPaginationWindow } from "@/utils/pagination";
-import type { TicketTypeFilter } from "@/utils/ticket";
 
 type ApiRepairLog = {
   id: number;
@@ -170,7 +169,6 @@ export default function RepairLog() {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState<TicketTypeFilter>("All");
   const [technicianFilter, setTechnicianFilter] =
     useState<TechnicianFilter>("All Technician");
   const [dateFilter, setDateFilter] = useState<Date>();
@@ -280,7 +278,6 @@ export default function RepairLog() {
 
       const matchesSearch =
         normalizedQuery === "" || searchableText.includes(normalizedQuery);
-      const matchesType = typeFilter === "All" || type === typeFilter;
       const matchesTechnician =
         technicianFilter === "All Technician" ||
         technician === technicianFilter;
@@ -288,9 +285,9 @@ export default function RepairLog() {
         !dateFilter ||
         new Date(repairLog.createdAt).toDateString() === dateFilter.toDateString();
 
-      return matchesSearch && matchesType && matchesTechnician && matchesDate;
+      return matchesSearch && matchesTechnician && matchesDate;
     }).sort(sortByNewest);
-  }, [repairLogs, searchQuery, typeFilter, technicianFilter, dateFilter]);
+  }, [repairLogs, searchQuery, technicianFilter, dateFilter]);
 
   const updateFilter = (update: () => void) => {
     update();
@@ -334,8 +331,6 @@ export default function RepairLog() {
         onSearchQueryChange={(query) =>
           updateFilter(() => setSearchQuery(query))
         }
-        selectedType={typeFilter}
-        onTypeChange={(type) => updateFilter(() => setTypeFilter(type))}
         selectedTechnician={technicianFilter}
         onTechnicianChange={(technician) =>
           updateFilter(() => setTechnicianFilter(technician))

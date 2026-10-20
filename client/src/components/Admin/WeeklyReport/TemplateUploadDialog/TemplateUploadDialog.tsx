@@ -119,7 +119,12 @@ export default function TemplateUploadDialog() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("name", WEEKLY_REPORT_TEMPLATE_NAME);
-      formData.append("file", file);
+      formData.append(
+        "file",
+        new File([file], `${WEEKLY_REPORT_TEMPLATE_NAME}.pdf`, {
+          type: "application/pdf",
+        })
+      );
 
       const response = await privateFetch(
         buildApiUrl("/api/templates/upload/"),
@@ -151,7 +156,7 @@ export default function TemplateUploadDialog() {
           ...templates.filter((item) => item.name !== template.name),
         ]
       );
-      appToast.success("Weekly Report template updated successfully.");
+      appToast.success("Report template updated successfully.");
       setSelectedFile(null);
       setOpen(false);
     },
@@ -159,7 +164,7 @@ export default function TemplateUploadDialog() {
       appToast.error(
         error instanceof Error
           ? error.message
-          : "We couldn't update the Weekly Report template."
+          : "We couldn't update the Report template."
       );
     },
   });
@@ -190,13 +195,13 @@ export default function TemplateUploadDialog() {
             (template) => template.name !== WEEKLY_REPORT_TEMPLATE_NAME
           )
       );
-      appToast.success("Weekly Report template removed successfully.");
+      appToast.success("Report template removed successfully.");
     },
     onError: (error) => {
       appToast.error(
         error instanceof Error
           ? error.message
-          : "We couldn't remove the Weekly Report template."
+          : "We couldn't remove the Report template."
       );
     },
   });
@@ -249,7 +254,7 @@ export default function TemplateUploadDialog() {
           <div className="mb-1 flex size-11 items-center justify-center rounded-lg bg-[#fff1ed] text-[#bf3419]">
             <FileText className="size-5" />
           </div>
-          <DialogTitle>Weekly Report Template</DialogTitle>
+          <DialogTitle>Report Template</DialogTitle>
           <DialogDescription>
             Replace the PDF letterhead used for Admin and Technician Weekly
             Report exports.
@@ -295,7 +300,7 @@ export default function TemplateUploadDialog() {
                         variant="ghost"
                         size="icon"
                         className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                        aria-label="Remove Weekly Report template"
+                        aria-label="Remove Report template"
                       >
                         <Trash2 />
                       </Button>
@@ -304,7 +309,7 @@ export default function TemplateUploadDialog() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Remove Template?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          The current Weekly Report printable template will be
+                          The current Report printable template will be
                           permanently removed.
                         </AlertDialogDescription>
                       </AlertDialogHeader>

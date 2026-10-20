@@ -2,7 +2,6 @@ import { useMediaQuery } from "@/hooks/useMediaQuery"
 import type { EditRoomFormType, Room } from "@/types/room"
 import { Download, Plus } from "lucide-react"
 import { useState } from "react"
-import RoomExcelImport from "./RoomExcelImport/RoomExcelImport"
 import { appToast } from "@/utils/appToast"
 import { exportTablePdf, formatPdfDate, getLocalDateStamp } from "@/utils/tabularPdf"
 
@@ -123,12 +122,6 @@ export default function ButtonGroup({
                         <Download size={16}/>
                         <span className={isMobile ? 'hidden' : ''} >{isExporting ? "Exporting..." : "Export"}</span>
                     </button>
-
-                    <RoomExcelImport
-                        showLabel={!isMobile}
-                        className="flex h-9 items-center gap-1.5 rounded-xl border primary-border-color bg-white px-3.5 text-sm font-medium secondary-text-color hover:cursor-pointer hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-                    />
-                    
                 </div>
 
             </div>

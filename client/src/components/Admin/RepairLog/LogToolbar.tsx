@@ -1,7 +1,6 @@
 import { ChevronDown, Download, Search, X } from "lucide-react";
 import { useRef, useState } from "react";
 import type { RepairLog } from "@/types/repairLog";
-import type { TicketTypeFilter } from "@/utils/ticket";
 import {
   Popover,
   PopoverContent,
@@ -30,7 +29,6 @@ import { exportTablePdf, formatPdfDate, getLocalDateStamp } from "@/utils/tabula
 
 import { DatePicker } from "../DatePicker/DatePicker";
 
-const typeOptions: TicketTypeFilter[] = ["All", "Request", "Report"];
 export type TechnicianFilter =
   | "All Technician"
   | "John Patrick Soriaga"
@@ -46,8 +44,6 @@ type LogToolbarProps = {
   isLoading?: boolean;
   searchQuery: string;
   onSearchQueryChange: (query: string) => void;
-  selectedType: TicketTypeFilter;
-  onTypeChange: (type: TicketTypeFilter) => void;
   selectedTechnician: TechnicianFilter;
   onTechnicianChange: (technician: TechnicianFilter) => void;
   selectedDate?: Date;
@@ -67,16 +63,12 @@ export default function LogToolbar({
   isLoading = false,
   searchQuery,
   onSearchQueryChange,
-  selectedType,
-  onTypeChange,
   selectedTechnician,
   onTechnicianChange,
   selectedDate,
   onDateChange,
 }: LogToolbarProps) {
-  const [openFilter, setOpenFilter] = useState<"technician" | "type" | null>(
-    null
-  );
+  const [openFilter, setOpenFilter] = useState<"technician" | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const clearSearch = () => {
@@ -234,51 +226,6 @@ export default function LogToolbar({
             </PopoverContent>
           </Popover>
 
-          <Popover
-            open={openFilter === "type"}
-            onOpenChange={(isOpen) => setOpenFilter(isOpen ? "type" : null)}
-          >
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className="primary-border-color flex min-w-36 cursor-pointer items-center justify-between gap-x-5 rounded-xl border bg-white px-3 py-2"
-              >
-                <span>{selectedType === "All" ? "All Type" : selectedType}</span>
-
-                <ChevronDown
-                  size={14}
-                  className={`transition-transform ${
-                    openFilter === "type" ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-            </PopoverTrigger>
-
-            <PopoverContent align="start" className="w-50 rounded-3xl p-1">
-              <Command>
-
-                <CommandList>
-                  <CommandEmpty>No type found.</CommandEmpty>
-
-                  <CommandGroup className="p-2">
-                    {typeOptions.map((type) => (
-                      <CommandItem
-                        key={type}
-                        onSelect={() => onTypeChange(type)}
-                        className={`flex cursor-pointer items-center gap-3 rounded-2xl py-2 ${
-                          selectedType === type
-                            ? "bg-muted data-selected:bg-muted"
-                            : ""
-                        }`}
-                      >
-                        <span>{type}</span>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
         </div>
 
         <DatePicker date={selectedDate} onDateChange={onDateChange} />
