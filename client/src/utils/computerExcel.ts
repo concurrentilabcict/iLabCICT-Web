@@ -6,6 +6,7 @@ import {
   formatPdfDateTime,
   getLocalDateStamp,
 } from "@/utils/tabularPdf";
+import { DEFAULT_SIZE_UNIT, SIZE_UNIT_OPTIONS } from "@/utils/computer";
 
 const WORKSHEET_NAME = "Computer Inventory";
 
@@ -16,7 +17,9 @@ export const COMPUTER_INVENTORY_HEADERS = [
   "CPU",
   "Motherboard",
   "RAM Installed (GB)",
+  "RAM Unit",
   "Disk Installed (GB)",
+  "Disk Unit",
   "Build Version",
   "Computer Status",
   "Monitor Status",
@@ -43,7 +46,9 @@ export type ComputerExcelImportRecord = {
   gpu: string;
   motherboard: string;
   ramSizeInstalled: number;
+  ramUnit: string;
   diskSizeInstalled: number;
+  diskUnit: string;
   operatingSystem: string;
   buildVersion: string;
   computerStatus: string;
@@ -151,6 +156,22 @@ const normalizeStatus = (
   return status;
 };
 
+const normalizeSizeUnit = (
+  value: string,
+  fieldName: string,
+  rowNumber: number
+) => {
+  const unit = value.trim().toUpperCase() || DEFAULT_SIZE_UNIT;
+
+  if (!SIZE_UNIT_OPTIONS.some((option) => option === unit)) {
+    throw new Error(
+      `Row ${rowNumber}: ${fieldName} must be ${SIZE_UNIT_OPTIONS.join(", ")}.`
+    );
+  }
+
+  return unit;
+};
+
 export const readComputerInventoryWorkbook = async (file: File) => {
   const { Workbook } = await import("exceljs");
   const workbook = new Workbook();
@@ -219,6 +240,11 @@ export const readComputerInventoryWorkbook = async (file: File) => {
         "RAM Installed (GB)",
         rowNumber
       ),
+      ramUnit: normalizeSizeUnit(
+        getRowValue(worksheet, rowNumber, headerIndexes, "RAM Unit"),
+        "RAM Unit",
+        rowNumber
+      ),
       diskSizeInstalled: parsePositiveNumber(
         getRowValue(
           worksheet,
@@ -227,6 +253,11 @@ export const readComputerInventoryWorkbook = async (file: File) => {
           "Disk Installed (GB)"
         ),
         "Disk Installed (GB)",
+        rowNumber
+      ),
+      diskUnit: normalizeSizeUnit(
+        getRowValue(worksheet, rowNumber, headerIndexes, "Disk Unit"),
+        "Disk Unit",
         rowNumber
       ),
       operatingSystem,
@@ -309,7 +340,9 @@ export const exportComputerInventoryPdf = ({
       computer.cpu,
       computer.motherboard,
       computer.ramSizeInstalled,
+      computer.ramUnit || DEFAULT_SIZE_UNIT,
       computer.diskSizeInstalled,
+      computer.diskUnit || DEFAULT_SIZE_UNIT,
       computer.buildVersion,
       computer.computerStatus,
       computer.monitorStatus,
@@ -321,7 +354,7 @@ export const exportComputerInventoryPdf = ({
       formatPdfDateTime(computer.createdAt),
     ]),
     columnWidths: [
-      20, 24, 30, 28, 28, 18, 19, 18, 18, 17, 17, 18, 15, 18, 23, 23,
+      20, 24, 30, 28, 28, 18, 12, 19, 12, 18, 18, 17, 17, 18, 15, 18, 23, 23,
     ],
     metadata: [
       { label: "Laboratory", value: roomName || "Not specified" },
